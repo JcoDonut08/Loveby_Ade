@@ -10,3 +10,7 @@
 #FB923C
 #FFFFFF
 #000000
+
+# Fonts 
+
+Playfair Display + Inter

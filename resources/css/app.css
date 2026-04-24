@@ -7,7 +7,21 @@
 
 @theme {
     --font-sans:
-        "Instrument Sans", ui-sans-serif, system-ui, sans-serif,
+        "Inter", ui-sans-serif, system-ui, sans-serif,
         "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol",
         "Noto Color Emoji";
+    --font-display: "Playfair Display", ui-serif, Georgia, serif;
+    --color-love-pink-100: #ffe7f1;
+    --color-love-pink-200: #f9c6dd;
+    --color-love-pink-300: #f9a8cf;
+    --color-love-pink-400: #f472a8;
+    --color-love-pink-500: #ec4899;
+    --color-love-blue-100: #dff5ff;
+    --color-love-blue-200: #bae9ff;
+    --color-love-blue-300: #7dd3fc;
+    --color-love-blue-400: #38bdf8;
+    --color-love-blue-500: #22d3ee;
+    --color-love-gold-300: #fcd34d;
+    --color-love-orange-400: #fb923c;
+    --color-love-cream: #fff8f6;
 }
