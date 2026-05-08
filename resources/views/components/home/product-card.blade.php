@@ -41,7 +41,7 @@
         </h3>
 
         <div class="mt-4 grid grid-cols-[1fr_auto] items-end gap-3">
-            <p class="text-[1.3rem] font-bold leading-none text-love-orange-500">{{ $price }}</p>
+            <p class="text-[1.3rem] font-bold leading-none text-slate-950">{{ $price }}</p>
             <p class="w-20 text-right text-sm font-medium text-slate-500">{{ $sold }}</p>
         </div>
 

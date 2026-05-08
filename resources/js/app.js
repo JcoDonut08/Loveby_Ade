@@ -1,4 +1,10 @@
 import './bootstrap';
+import { initializeAdminAnalytics } from './admin-analytics';
+import { initializeAdminCustomers } from './admin-customers';
+import { initializeAdminDashboard } from './admin-dashboard';
+import { initializeAdminNotifications } from './admin-notifications';
+import { initializeAdminOrderManagement } from './admin-orders';
+import { initializeAdminProducts } from './admin-products';
 
 const initializePasswordToggles = () => {
     document.querySelectorAll('[data-password-toggle]').forEach((toggle) => {
@@ -309,6 +315,12 @@ const initializeStorefrontInteractions = () => {
     initializeReviewRatings();
     initializeReviewForms();
     initializeContactForms();
+    initializeAdminDashboard();
+    initializeAdminOrderManagement();
+    initializeAdminProducts();
+    initializeAdminCustomers();
+    initializeAdminNotifications();
+    initializeAdminAnalytics();
 };
 
 if (document.readyState === 'loading') {

@@ -42,7 +42,7 @@
             </div>
 
             <h1 class="mt-4 font-display text-4xl leading-tight text-slate-950 sm:text-5xl">Pastel Donut Box</h1>
-            <p class="mt-3 text-3xl font-bold text-love-orange-500">PHP 120</p>
+            <p class="mt-3 text-3xl font-bold text-love-orange-500">₱120</p>
 
             <div class="mt-4 flex flex-wrap items-center gap-3 text-sm text-slate-500">
                 <x-product.rating-stars rating="4.8" size="h-5 w-5" />
