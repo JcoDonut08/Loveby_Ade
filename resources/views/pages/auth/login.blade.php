@@ -46,14 +46,14 @@
                             <input class="h-4 w-4 rounded border-slate-300 text-love-pink-500 focus:ring-love-pink-200" id="remember" name="remember" type="checkbox">
                             <span>Remember me</span>
                         </label>
-                        <a class="font-semibold text-love-pink-500 transition hover:text-love-pink-600" href="#">
+                        <a class="font-semibold text-love-pink-500 transition hover:text-love-pink-600" href="{{ route('password.request') }}">
                             Forgot password?
                         </a>
                     </div>
 
-                    <button class="inline-flex w-full items-center justify-center rounded-2xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white shadow-[0_18px_40px_-24px_rgba(15,23,42,0.75)] transition hover:-translate-y-0.5 hover:bg-love-pink-500" type="button">
+                    <a class="inline-flex w-full items-center justify-center rounded-2xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white shadow-[0_18px_40px_-24px_rgba(15,23,42,0.75)] transition hover:-translate-y-0.5 hover:bg-love-pink-500" href="{{ route('login.otp') }}">
                         Login
-                    </button>
+                    </a>
                 </form>
 
                 <div class="my-4 flex items-center gap-4">

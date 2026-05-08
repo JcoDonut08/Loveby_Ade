@@ -6,7 +6,10 @@ Route::view('/', 'welcome')->name('home');
 Route::view('/products/pastel-donut-box', 'pages.products.show')->name('products.show');
 Route::view('/contact', 'pages.contact')->name('contact');
 Route::view('/login', 'pages.auth.login')->name('login');
+Route::view('/login/otp', 'pages.auth.login_otp')->name('login.otp');
 Route::view('/register', 'pages.auth.register')->name('register');
+Route::view('/forgot-password', 'pages.auth.forgot_password')->name('password.request');
+Route::view('/password/otp', 'pages.auth.otp')->name('password.otp');
 
 Route::redirect('/admin', '/admin/dashboard')->name('admin.home');
 Route::prefix('admin')->name('admin.')->group(function (): void {
