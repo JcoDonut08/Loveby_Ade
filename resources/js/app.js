@@ -335,6 +335,180 @@ const initializeOtpInputs = () => {
     });
 };
 
+const initializeFavoriteToggles = () => {
+    const updateFavoritesEmptyState = () => {
+        const grid = document.querySelector('[data-favorites-grid]');
+        const emptyState = document.querySelector('[data-favorites-empty]');
+        const countLabel = document.querySelector('[data-favorites-count]');
+
+        if (!(grid instanceof HTMLElement)) {
+            return;
+        }
+
+        const count = grid.querySelectorAll('[data-favorite-card]').length;
+
+        if (countLabel instanceof HTMLElement) {
+            countLabel.textContent = `${count} ${count === 1 ? 'saved item' : 'saved items'}`;
+        }
+
+        if (emptyState instanceof HTMLElement) {
+            emptyState.classList.toggle('hidden', count > 0);
+        }
+    };
+
+    document.querySelectorAll('[data-favorite-toggle]').forEach((button) => {
+        if (!(button instanceof HTMLButtonElement) || button.dataset.initialized === 'true') {
+            return;
+        }
+
+        const icon = button.querySelector('[data-favorite-icon]');
+
+        const setActive = (isActive) => {
+            button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+            button.classList.toggle('border-love-pink-500', isActive);
+            button.classList.toggle('bg-love-pink-500', isActive);
+            button.classList.toggle('text-white', isActive);
+            button.classList.toggle('border-transparent', !isActive);
+            button.classList.toggle('bg-white/92', !isActive);
+            button.classList.toggle('text-slate-500', !isActive);
+            button.classList.toggle('hover:text-love-pink-500', !isActive);
+            icon?.classList.toggle('fill-current', isActive);
+            icon?.classList.toggle('fill-transparent', !isActive);
+        };
+
+        button.addEventListener('click', () => {
+            setActive(button.getAttribute('aria-pressed') !== 'true');
+        });
+
+        setActive(button.getAttribute('aria-pressed') === 'true');
+        button.dataset.initialized = 'true';
+    });
+
+    document.querySelectorAll('[data-favorite-remove]').forEach((button) => {
+        if (!(button instanceof HTMLButtonElement) || button.dataset.initialized === 'true') {
+            return;
+        }
+
+        button.addEventListener('click', () => {
+            button.closest('[data-favorite-card]')?.remove();
+            updateFavoritesEmptyState();
+        });
+
+        button.dataset.initialized = 'true';
+    });
+
+    updateFavoritesEmptyState();
+};
+
+const initializeCartPages = () => {
+    const formatPeso = (amount) => `\u20B1${amount.toFixed(2)}`;
+
+    document.querySelectorAll('[data-cart-page]').forEach((cartPage) => {
+        if (!(cartPage instanceof HTMLElement) || cartPage.dataset.initialized === 'true') {
+            return;
+        }
+
+        const cartContent = cartPage.querySelector('[data-cart-content]');
+        const cartSummary = cartPage.querySelector('[data-cart-summary]');
+        const emptyState = cartPage.querySelector('[data-cart-empty]');
+        const itemCount = cartPage.querySelector('[data-cart-item-count]');
+        const subtotal = cartPage.querySelector('[data-cart-subtotal]');
+        const total = cartPage.querySelector('[data-cart-total]');
+        const navCount = cartPage.querySelector('[data-cart-nav-count]');
+
+        const updateCart = () => {
+            let subtotalAmount = 0;
+            let quantityCount = 0;
+            const items = Array.from(cartPage.querySelectorAll('[data-cart-item]')).filter((item) => item instanceof HTMLElement);
+
+            items.forEach((item) => {
+                const input = item.querySelector('[data-cart-quantity-input]');
+                const lineTotal = item.querySelector('[data-cart-line-total]');
+                const price = Number.parseFloat(item.dataset.cartPrice || '0');
+                const quantity = input instanceof HTMLInputElement ? Number.parseInt(input.value || '1', 10) : 1;
+                const lineAmount = price * quantity;
+
+                quantityCount += quantity;
+                subtotalAmount += lineAmount;
+
+                if (lineTotal instanceof HTMLElement) {
+                    lineTotal.textContent = formatPeso(lineAmount);
+                }
+            });
+
+            if (itemCount instanceof HTMLElement) {
+                itemCount.textContent = `${quantityCount} ${quantityCount === 1 ? 'item' : 'items'}`;
+            }
+
+            if (subtotal instanceof HTMLElement) {
+                subtotal.textContent = formatPeso(subtotalAmount);
+            }
+
+            if (total instanceof HTMLElement) {
+                total.textContent = formatPeso(subtotalAmount);
+            }
+
+            if (navCount instanceof HTMLElement) {
+                navCount.textContent = quantityCount.toString();
+            }
+
+            const hasItems = items.length > 0;
+            cartContent?.classList.toggle('hidden', !hasItems);
+            cartSummary?.classList.toggle('hidden', !hasItems);
+            emptyState?.classList.toggle('hidden', hasItems);
+        };
+
+        cartPage.querySelectorAll('[data-cart-item]').forEach((item) => {
+            if (!(item instanceof HTMLElement)) {
+                return;
+            }
+
+            const input = item.querySelector('[data-cart-quantity-input]');
+            const decrease = item.querySelector('[data-cart-quantity-decrease]');
+            const increase = item.querySelector('[data-cart-quantity-increase]');
+            const remove = item.querySelector('[data-cart-remove]');
+
+            if (input instanceof HTMLInputElement) {
+                const setQuantity = (value) => {
+                    const min = Number.parseInt(input.min || '1', 10);
+                    const max = Number.parseInt(input.max || '20', 10);
+                    const safeValue = Math.min(max, Math.max(min, Number.isNaN(value) ? min : value));
+
+                    input.value = safeValue.toString();
+
+                    if (decrease instanceof HTMLButtonElement) {
+                        decrease.disabled = safeValue <= min;
+                    }
+
+                    updateCart();
+                };
+
+                decrease?.addEventListener('click', () => {
+                    setQuantity(Number.parseInt(input.value || '1', 10) - 1);
+                });
+
+                increase?.addEventListener('click', () => {
+                    setQuantity(Number.parseInt(input.value || '1', 10) + 1);
+                });
+
+                input.addEventListener('input', () => {
+                    setQuantity(Number.parseInt(input.value || '1', 10));
+                });
+
+                setQuantity(Number.parseInt(input.value || '1', 10));
+            }
+
+            remove?.addEventListener('click', () => {
+                item.remove();
+                updateCart();
+            });
+        });
+
+        updateCart();
+        cartPage.dataset.initialized = 'true';
+    });
+};
+
 const initializeStorefrontInteractions = () => {
     initializePasswordToggles();
     initializeProductGalleries();
@@ -344,6 +518,8 @@ const initializeStorefrontInteractions = () => {
     initializeReviewForms();
     initializeContactForms();
     initializeOtpInputs();
+    initializeFavoriteToggles();
+    initializeCartPages();
     initializeAdminDashboard();
     initializeAdminOrderManagement();
     initializeAdminProducts();

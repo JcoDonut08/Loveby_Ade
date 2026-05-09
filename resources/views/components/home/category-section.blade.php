@@ -8,7 +8,7 @@
                 <h2 class="mt-4 font-display text-4xl text-slate-900 sm:text-5xl">Shop by category</h2>
             </div>
 
-            <a class="inline-flex items-center gap-2 text-sm font-semibold text-love-blue-500 transition hover:text-love-pink-500" href="#products">
+            <a class="inline-flex items-center gap-2 text-sm font-semibold text-love-blue-500 transition hover:text-love-pink-500" href="{{ route('products.index') }}">
                 <span>Browse all categories</span>
                 <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14" />
@@ -21,18 +21,22 @@
             <x-home.category-card
                 title="Cookies"
                 image="https://images.unsplash.com/photo-1499636136210-6f4ee915583e?auto=format&fit=crop&w=1200&q=80"
+                :href="route('products.index', ['category' => 'Cookies'])"
             />
             <x-home.category-card
                 title="Pastries"
                 image="https://images.unsplash.com/photo-1488477181946-6428a0291777?auto=format&fit=crop&w=1200&q=80"
+                :href="route('products.index', ['category' => 'Pastries'])"
             />
             <x-home.category-card
                 title="Cakes"
                 image="https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=1200&q=80"
+                :href="route('products.index', ['category' => 'Cakes'])"
             />
             <x-home.category-card
                 title="Coffees / Shakes"
                 image="https://images.unsplash.com/photo-1517701604599-bb29b565090c?auto=format&fit=crop&w=1200&q=80"
+                :href="route('products.index')"
             />
         </div>
     </div>

@@ -13,6 +13,9 @@
                 <a class="transition hover:text-love-pink-500" href="{{ route('home') }}#products">Products</a>
                 <a class="transition hover:text-love-pink-500" href="{{ route('home') }}#recommended">Recommended</a>
                 <a class="transition hover:text-love-pink-500" href="{{ route('home') }}#about">About Us</a>
+                <a class="transition hover:text-love-pink-500" href="{{ route('favorites') }}">Favorites</a>
+                <a class="transition hover:text-love-pink-500" href="{{ route('cart') }}">Cart</a>
+                <a class="transition hover:text-love-pink-500" href="{{ route('notifications') }}">Notifications</a>
                 <a class="transition hover:text-love-pink-500" href="{{ route('contact') }}">Contact Admin</a>
                 <a class="transition hover:text-love-pink-500" href="{{ route('login') }}">Login</a>
             </div>

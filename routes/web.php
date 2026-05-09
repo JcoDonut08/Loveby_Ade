@@ -1,10 +1,16 @@
 <?php
 
+use App\Http\Controllers\ProductController;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'welcome')->name('home');
-Route::view('/products/pastel-donut-box', 'pages.products.show')->name('products.show');
+Route::get('/products', [ProductController::class, 'index'])->name('products.index');
+Route::get('/products/pastel-donut-box', [ProductController::class, 'showDefault'])->name('products.show');
+Route::get('/products/{slug}', [ProductController::class, 'show'])->name('products.show-by-slug');
 Route::view('/contact', 'pages.contact')->name('contact');
+Route::view('/notifications', 'pages.notifications')->name('notifications');
+Route::view('/favorites', 'pages.favorites')->name('favorites');
+Route::view('/cart', 'pages.cart')->name('cart');
 Route::view('/login', 'pages.auth.login')->name('login');
 Route::view('/login/otp', 'pages.auth.login_otp')->name('login.otp');
 Route::view('/register', 'pages.auth.register')->name('register');

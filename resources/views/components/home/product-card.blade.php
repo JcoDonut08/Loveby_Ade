@@ -19,8 +19,8 @@
             <img class="aspect-[4/3] w-full object-cover object-center transition duration-500 group-hover:scale-[1.04]" src="{{ $image }}" alt="{{ $title }}" loading="lazy">
         </a>
 
-        <button class="absolute right-3 top-3 inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/92 text-slate-500 shadow-[0_16px_30px_-20px_rgba(15,23,42,0.35)] backdrop-blur-sm transition hover:-translate-y-0.5 hover:text-love-pink-500" type="button" aria-label="Add {{ $title }} to favorites">
-            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+        <button class="absolute right-3 top-3 inline-flex h-10 w-10 items-center justify-center rounded-full border border-transparent bg-white/92 text-slate-500 shadow-[0_16px_30px_-20px_rgba(15,23,42,0.35)] backdrop-blur-sm transition hover:-translate-y-0.5 hover:text-love-pink-500" type="button" aria-label="Add {{ $title }} to favorites" aria-pressed="false" data-favorite-toggle>
+            <svg class="h-5 w-5 fill-transparent" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true" data-favorite-icon>
                 <path stroke-linecap="round" stroke-linejoin="round" d="m12 20.25-1.1-1C5.4 14.26 2.25 11.39 2.25 7.88A4.88 4.88 0 0 1 7.12 3c1.86 0 3.65.86 4.88 2.21A6.57 6.57 0 0 1 16.88 3a4.88 4.88 0 0 1 4.87 4.88c0 3.51-3.15 6.38-8.65 11.37l-1.1 1Z" />
             </svg>
         </button>
@@ -41,7 +41,13 @@
         </h3>
 
         <div class="mt-4 grid grid-cols-[1fr_auto] items-end gap-3">
-            <p class="text-[1.3rem] font-bold leading-none text-slate-950">{{ $price }}</p>
+            <p class="text-[1.3rem] font-bold leading-none text-slate-950">
+                @if (is_numeric($price))
+                    &#8369;{{ number_format((float) $price) }}
+                @else
+                    {{ $price }}
+                @endif
+            </p>
             <p class="w-20 text-right text-sm font-medium text-slate-500">{{ $sold }}</p>
         </div>
 
@@ -59,13 +65,13 @@
             </span>
         </div>
 
-        <button class="mt-4 inline-flex w-full items-center justify-center rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white shadow-[0_18px_34px_-24px_rgba(15,23,42,0.8)] transition hover:-translate-y-0.5 hover:bg-love-pink-500" type="button">
+        <a class="mt-4 inline-flex w-full items-center justify-center rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white shadow-[0_18px_34px_-24px_rgba(15,23,42,0.8)] transition hover:-translate-y-0.5 hover:bg-love-pink-500" href="{{ route('cart') }}">
             <svg class="mr-2 h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                 <circle cx="9" cy="19" r="1.5" />
                 <circle cx="17" cy="19" r="1.5" />
                 <path stroke-linecap="round" stroke-linejoin="round" d="M3 4.5h2l2.1 10.25a1 1 0 0 0 1 .8h8.92a1 1 0 0 0 1-.78L20 7.5H6.25" />
             </svg>
             <span>Add to cart</span>
-        </button>
+        </a>
     </div>
 </article>
