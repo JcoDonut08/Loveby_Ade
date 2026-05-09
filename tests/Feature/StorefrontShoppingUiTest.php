@@ -49,10 +49,25 @@ test('cart page renders responsive cart controls subtotal promo code and empty s
         ->assertSee('Enter discount code if any')
         ->assertSee('Subtotal')
         ->assertSee('Checkout')
+        ->assertSee('href="'.route('orders.confirmed').'"', false)
         ->assertSee('Your cart is empty')
         ->assertSee('data-cart-page', false)
         ->assertSee('data-cart-item', false)
         ->assertSee('data-cart-subtotal', false)
         ->assertSee('data-cart-total', false)
         ->assertDontSee('Shipping');
+});
+
+test('order confirmation page renders thank you message order items and totals', function () {
+    $this->get(route('orders.confirmed'))
+        ->assertSuccessful()
+        ->assertSee('Payment successful')
+        ->assertSee('Thanks for ordering')
+        ->assertSee('Tracking number')
+        ->assertSee('LBA-51547878755545848512')
+        ->assertSee('Pastel Donut Box')
+        ->assertSee('Chocolate Chip Cookies')
+        ->assertSee('Mini Cake Cups')
+        ->assertSee('Total')
+        ->assertSee('Continue shopping');
 });

@@ -52,9 +52,9 @@
                         <span class="text-2xl font-extrabold text-love-pink-500" data-cart-total>&#8369;480.00</span>
                     </div>
 
-                    <button class="mt-6 inline-flex w-full items-center justify-center rounded-full bg-slate-900 px-6 py-3.5 text-sm font-semibold text-white shadow-[0_18px_34px_-24px_rgba(15,23,42,0.8)] transition hover:-translate-y-0.5 hover:bg-love-pink-500" type="button">
+                    <a class="mt-6 inline-flex w-full items-center justify-center rounded-full bg-slate-900 px-6 py-3.5 text-sm font-semibold text-white shadow-[0_18px_34px_-24px_rgba(15,23,42,0.8)] transition hover:-translate-y-0.5 hover:bg-love-pink-500" href="{{ route('orders.confirmed') }}">
                         Checkout
-                    </button>
+                    </a>
                 </aside>
             </div>
 

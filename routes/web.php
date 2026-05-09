@@ -11,6 +11,7 @@ Route::view('/contact', 'pages.contact')->name('contact');
 Route::view('/notifications', 'pages.notifications')->name('notifications');
 Route::view('/favorites', 'pages.favorites')->name('favorites');
 Route::view('/cart', 'pages.cart')->name('cart');
+Route::view('/orders/confirmed', 'pages.orders.confirmed')->name('orders.confirmed');
 Route::view('/login', 'pages.auth.login')->name('login');
 Route::view('/login/otp', 'pages.auth.login_otp')->name('login.otp');
 Route::view('/register', 'pages.auth.register')->name('register');
