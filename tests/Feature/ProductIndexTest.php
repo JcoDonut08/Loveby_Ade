@@ -3,7 +3,7 @@
 test('product index renders filters and product cards', function () {
     $this->get(route('products.index'))
         ->assertSuccessful()
-        ->assertSee('Products')
+        ->assertDontSee('Dessert catalog')
         ->assertSee('Search')
         ->assertSee('Category')
         ->assertSee('Min price')

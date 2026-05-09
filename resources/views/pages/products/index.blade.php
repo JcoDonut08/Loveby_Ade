@@ -16,23 +16,7 @@
         <x-home.store-header />
 
         <main class="mx-auto max-w-[86rem] px-4 py-10 sm:px-6 lg:px-8">
-            <section class="rounded-[1.5rem] border border-white/80 bg-white/90 p-6 shadow-[0_24px_58px_-38px_rgba(15,23,42,0.32)]">
-                <div class="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-end">
-                    <div>
-                        <p class="text-sm font-bold uppercase tracking-[0.26em] text-love-pink-500">Dessert catalog</p>
-                        <h1 class="mt-2 font-display text-4xl leading-tight text-slate-950 sm:text-5xl">Products</h1>
-                        <p class="mt-3 max-w-2xl text-sm leading-7 text-slate-500">
-                            Search, filter by category, and narrow the price range to find the right Loveby_Ade treat.
-                        </p>
-                    </div>
-
-                    <span class="inline-flex w-max items-center rounded-full bg-love-blue-100 px-4 py-2 text-sm font-extrabold text-love-blue-500">
-                        {{ $products->count() }} {{ $products->count() === 1 ? 'product' : 'products' }}
-                    </span>
-                </div>
-            </section>
-
-            <section class="mt-8 rounded-[1.5rem] border border-white/80 bg-white/92 p-5 shadow-[0_24px_58px_-40px_rgba(15,23,42,0.28)]">
+            <section class="rounded-[1.5rem] border border-white/80 bg-white/92 p-5 shadow-[0_24px_58px_-40px_rgba(15,23,42,0.28)]">
                 <form class="grid gap-4 lg:grid-cols-[1.35fr_0.95fr_0.75fr_0.75fr_auto] lg:items-end" action="{{ route('products.index') }}" method="GET">
                     <div>
                         <label class="text-xs font-bold uppercase tracking-[0.2em] text-slate-500" for="product-search">Search</label>
