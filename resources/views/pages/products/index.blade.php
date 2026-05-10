@@ -96,6 +96,7 @@
                             :stock-left="$product['stock_label']"
                             :rating="$product['rating']"
                             :href="$product['show_url']"
+                            :slug="$product['slug']"
                         />
                     @endforeach
                 </section>

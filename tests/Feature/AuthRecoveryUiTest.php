@@ -27,6 +27,8 @@ test('login renders a real submit form', function () {
     $this->get(route('login'))
         ->assertSuccessful()
         ->assertSee('action="'.route('login.store').'"', false)
+        ->assertSee('name="remember"', false)
+        ->assertSee('value="1"', false)
         ->assertSee('type="submit"', false);
 });
 

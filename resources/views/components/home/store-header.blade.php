@@ -1,3 +1,7 @@
+@php
+    $cartCount = app(\App\Services\CartService::class)->count(request());
+@endphp
+
 <header class="fixed inset-x-0 top-0 z-50 border-b border-white/70 bg-white/90 shadow-[0_16px_40px_-32px_rgba(15,23,42,0.45)] backdrop-blur-xl">
     <div class="mx-auto flex max-w-[92rem] items-center gap-6 px-4 py-4 sm:px-6 lg:gap-10 lg:px-10">
         <div class="shrink-0">
@@ -41,7 +45,7 @@
                     <circle cx="17" cy="19" r="1.5" />
                     <path stroke-linecap="round" stroke-linejoin="round" d="M3 4.5h2l2.1 10.25a1 1 0 0 0 1 .8h8.92a1 1 0 0 0 1-.78L20 7.5H6.25" />
                 </svg>
-                <span class="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-love-pink-400 px-1 text-xs font-extrabold text-white" data-cart-nav-count>4</span>
+                <span class="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-love-pink-400 px-1 text-xs font-extrabold text-white transition duration-300 {{ $cartCount === 0 ? 'hidden' : '' }}" data-cart-nav-count>{{ $cartCount }}</span>
             </a>
             @auth
                 <details class="group relative">

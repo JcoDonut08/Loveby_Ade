@@ -400,6 +400,101 @@ const initializeFavoriteToggles = () => {
     updateFavoritesEmptyState();
 };
 
+const setCartNavCount = (count) => {
+    document.querySelectorAll('[data-cart-nav-count]').forEach((counter) => {
+        if (!(counter instanceof HTMLElement)) {
+            return;
+        }
+
+        counter.textContent = count.toString();
+        counter.classList.toggle('hidden', count < 1);
+
+        if (count > 0) {
+            counter.classList.add('scale-125', 'ring-4', 'ring-love-pink-100');
+
+            window.setTimeout(() => {
+                counter.classList.remove('scale-125', 'ring-4', 'ring-love-pink-100');
+            }, 420);
+        }
+    });
+};
+
+const addCartItem = async ({ slug, quantity = 1 }) => {
+    const response = await window.axios.post('/cart/items', {
+        slug,
+        quantity,
+    });
+
+    setCartNavCount(response.data.count || 0);
+
+    return response.data;
+};
+
+const updateCartItem = async ({ slug, quantity }) => {
+    const response = await window.axios.patch(`/cart/items/${slug}`, {
+        quantity,
+    });
+
+    setCartNavCount(response.data.count || 0);
+
+    return response.data;
+};
+
+const removeCartItem = async (slug) => {
+    const response = await window.axios.delete(`/cart/items/${slug}`);
+
+    setCartNavCount(response.data.count || 0);
+
+    return response.data;
+};
+
+const initializeAddToCartButtons = () => {
+    document.querySelectorAll('[data-add-to-cart]').forEach((button) => {
+        if (!(button instanceof HTMLButtonElement) || button.dataset.initialized === 'true') {
+            return;
+        }
+
+        const label = button.querySelector('[data-add-to-cart-label]') || button;
+        const defaultLabel = label.textContent || 'Add to cart';
+
+        button.addEventListener('click', async () => {
+            const slug = button.dataset.productSlug;
+
+            if (!slug) {
+                return;
+            }
+
+            const quantitySource = button.dataset.quantitySource
+                ? document.querySelector(button.dataset.quantitySource)
+                : null;
+            const quantity = quantitySource instanceof HTMLInputElement
+                ? Number.parseInt(quantitySource.value || '1', 10)
+                : 1;
+
+            button.disabled = true;
+            button.classList.add('scale-[1.02]', 'bg-love-pink-500');
+
+            try {
+                await addCartItem({ slug, quantity });
+                label.textContent = 'Added to cart';
+                button.classList.add('ring-4', 'ring-love-pink-100');
+
+                window.setTimeout(() => {
+                    label.textContent = defaultLabel;
+                    button.disabled = false;
+                    button.classList.remove('scale-[1.02]', 'bg-love-pink-500', 'ring-4', 'ring-love-pink-100');
+                }, 1200);
+            } catch {
+                label.textContent = 'Try again';
+                button.disabled = false;
+                button.classList.remove('scale-[1.02]', 'bg-love-pink-500', 'ring-4', 'ring-love-pink-100');
+            }
+        });
+
+        button.dataset.initialized = 'true';
+    });
+};
+
 const initializeCartPages = () => {
     const formatPeso = (amount) => `\u20B1${amount.toFixed(2)}`;
 
@@ -414,7 +509,6 @@ const initializeCartPages = () => {
         const itemCount = cartPage.querySelector('[data-cart-item-count]');
         const subtotal = cartPage.querySelector('[data-cart-subtotal]');
         const total = cartPage.querySelector('[data-cart-total]');
-        const navCount = cartPage.querySelector('[data-cart-nav-count]');
 
         const updateCart = () => {
             let subtotalAmount = 0;
@@ -448,9 +542,7 @@ const initializeCartPages = () => {
                 total.textContent = formatPeso(subtotalAmount);
             }
 
-            if (navCount instanceof HTMLElement) {
-                navCount.textContent = quantityCount.toString();
-            }
+            setCartNavCount(quantityCount);
 
             const hasItems = items.length > 0;
             cartContent?.classList.toggle('hidden', !hasItems);
@@ -469,7 +561,7 @@ const initializeCartPages = () => {
             const remove = item.querySelector('[data-cart-remove]');
 
             if (input instanceof HTMLInputElement) {
-                const setQuantity = (value) => {
+                const setQuantity = async (value, shouldSync = true) => {
                     const min = Number.parseInt(input.min || '1', 10);
                     const max = Number.parseInt(input.max || '20', 10);
                     const safeValue = Math.min(max, Math.max(min, Number.isNaN(value) ? min : value));
@@ -481,6 +573,13 @@ const initializeCartPages = () => {
                     }
 
                     updateCart();
+
+                    if (shouldSync && item.dataset.cartSlug) {
+                        await updateCartItem({
+                            slug: item.dataset.cartSlug,
+                            quantity: safeValue,
+                        });
+                    }
                 };
 
                 decrease?.addEventListener('click', () => {
@@ -495,17 +594,54 @@ const initializeCartPages = () => {
                     setQuantity(Number.parseInt(input.value || '1', 10));
                 });
 
-                setQuantity(Number.parseInt(input.value || '1', 10));
+                setQuantity(Number.parseInt(input.value || '1', 10), false);
             }
 
-            remove?.addEventListener('click', () => {
+            remove?.addEventListener('click', async () => {
+                const slug = item.dataset.cartSlug;
+
                 item.remove();
                 updateCart();
+
+                if (slug) {
+                    await removeCartItem(slug);
+                }
             });
         });
 
         updateCart();
         cartPage.dataset.initialized = 'true';
+    });
+};
+
+const initializeCheckoutLoginModal = () => {
+    const modal = document.querySelector('[data-checkout-login-modal]');
+    const trigger = document.querySelector('[data-checkout-login-trigger]');
+    const close = document.querySelector('[data-checkout-login-close]');
+
+    if (!(modal instanceof HTMLElement) || !(trigger instanceof HTMLButtonElement)) {
+        return;
+    }
+
+    const setOpen = (isOpen) => {
+        modal.classList.toggle('hidden', !isOpen);
+        modal.classList.toggle('flex', isOpen);
+        document.body.classList.toggle('overflow-hidden', isOpen);
+    };
+
+    trigger.addEventListener('click', () => setOpen(true));
+    close?.addEventListener('click', () => setOpen(false));
+
+    modal.addEventListener('click', (event) => {
+        if (event.target === modal) {
+            setOpen(false);
+        }
+    });
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+            setOpen(false);
+        }
     });
 };
 
@@ -519,7 +655,9 @@ const initializeStorefrontInteractions = () => {
     initializeContactForms();
     initializeOtpInputs();
     initializeFavoriteToggles();
+    initializeAddToCartButtons();
     initializeCartPages();
+    initializeCheckoutLoginModal();
     initializeAdminDashboard();
     initializeAdminOrderManagement();
     initializeAdminProducts();

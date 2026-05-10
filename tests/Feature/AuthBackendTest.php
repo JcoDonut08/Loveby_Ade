@@ -4,6 +4,7 @@ use App\Mail\OtpCodeMail;
 use App\Models\AuthOtpCode;
 use App\Models\User;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 
@@ -30,6 +31,21 @@ test('a user can log in and see the profile menu on the homepage', function () {
         ->assertSee('Account')
         ->assertSee('View delivered products')
         ->assertSee('aria-haspopup="menu"', false);
+});
+
+test('remember me creates the recaller cookie on login', function () {
+    User::factory()->create([
+        'email' => 'remember@example.com',
+        'password' => 'secret-password',
+    ]);
+
+    $this->post(route('login.store'), [
+        'email' => 'remember@example.com',
+        'password' => 'secret-password',
+        'remember' => '1',
+    ])
+        ->assertRedirect(route('home'))
+        ->assertCookie(Auth::guard()->getRecallerName());
 });
 
 test('signup sends an otp and creates the user after verification', function () {

@@ -4,6 +4,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\Auth\PasswordResetOtpController;
 use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\CartController;
 use App\Http\Controllers\ProductController;
 use Illuminate\Support\Facades\Route;
 
@@ -14,7 +15,11 @@ Route::get('/products/{slug}', [ProductController::class, 'show'])->name('produc
 Route::view('/contact', 'pages.contact')->name('contact');
 Route::view('/notifications', 'pages.notifications')->name('notifications');
 Route::view('/favorites', 'pages.favorites')->name('favorites');
-Route::view('/cart', 'pages.cart')->name('cart');
+Route::get('/cart', [CartController::class, 'index'])->name('cart');
+Route::get('/cart/summary', [CartController::class, 'summary'])->name('cart.summary');
+Route::post('/cart/items', [CartController::class, 'store'])->name('cart.items.store');
+Route::patch('/cart/items/{slug}', [CartController::class, 'update'])->name('cart.items.update');
+Route::delete('/cart/items/{slug}', [CartController::class, 'destroy'])->name('cart.items.destroy');
 Route::view('/orders/confirmed', 'pages.orders.confirmed')->name('orders.confirmed');
 Route::middleware('auth')->group(function (): void {
     Route::view('/account', 'pages.account')->name('account');

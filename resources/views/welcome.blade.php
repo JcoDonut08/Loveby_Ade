@@ -63,10 +63,10 @@
                     />
 
                     <div class="mt-10 grid gap-6 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-                        <x-home.product-card image="https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=900&q=80" title="Pastel Donut Box" price="120" sold="184 sold" stock-left="14 left" rating="4.8" :href="route('products.show')" />
-                        <x-home.product-card image="https://images.unsplash.com/photo-1499636136210-6f4ee915583e?auto=format&fit=crop&w=900&q=80" title="Chocolate Chip Cookies" price="90" sold="226 sold" stock-left="21 left" rating="4.7" :href="route('products.show-by-slug', 'chocolate-chip-cookies')" />
-                        <x-home.product-card image="https://images.unsplash.com/photo-1551024601-bec78aea704b?auto=format&fit=crop&w=900&q=80" title="Mini Cake Cups" price="150" sold="142 sold" stock-left="9 left" rating="4.9" :href="route('products.show-by-slug', 'mini-cake-cups')" />
-                        <x-home.product-card image="https://images.unsplash.com/photo-1488477181946-6428a0291777?auto=format&fit=crop&w=900&q=80" title="Berry Danish Set" price="130" sold="118 sold" stock-left="11 left" rating="4.6" :href="route('products.show-by-slug', 'berry-danish-set')" />
+                        <x-home.product-card image="https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=900&q=80" title="Pastel Donut Box" price="120" sold="184 sold" stock-left="14 left" rating="4.8" :href="route('products.show')" slug="pastel-donut-box" />
+                        <x-home.product-card image="https://images.unsplash.com/photo-1499636136210-6f4ee915583e?auto=format&fit=crop&w=900&q=80" title="Chocolate Chip Cookies" price="90" sold="226 sold" stock-left="21 left" rating="4.7" :href="route('products.show-by-slug', 'chocolate-chip-cookies')" slug="chocolate-chip-cookies" />
+                        <x-home.product-card image="https://images.unsplash.com/photo-1551024601-bec78aea704b?auto=format&fit=crop&w=900&q=80" title="Mini Cake Cups" price="150" sold="142 sold" stock-left="9 left" rating="4.9" :href="route('products.show-by-slug', 'mini-cake-cups')" slug="mini-cake-cups" />
+                        <x-home.product-card image="https://images.unsplash.com/photo-1488477181946-6428a0291777?auto=format&fit=crop&w=900&q=80" title="Berry Danish Set" price="130" sold="118 sold" stock-left="11 left" rating="4.6" :href="route('products.show-by-slug', 'berry-danish-set')" slug="berry-danish-set" />
                     </div>
                 </div>
             </section>
@@ -81,10 +81,10 @@
                     />
 
                     <div class="mt-10 grid gap-6 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-                        <x-home.product-card image="https://images.unsplash.com/photo-1464305795204-6f5bbfc7fb81?auto=format&fit=crop&w=900&q=80" title="Strawberry Tartlets" price="110" sold="154 sold" stock-left="13 left" rating="4.8" :href="route('products.show-by-slug', 'strawberry-tartlets')" />
-                        <x-home.product-card image="https://images.unsplash.com/photo-1571115764595-644a1f56a55c?auto=format&fit=crop&w=900&q=80" title="Vanilla Cream Puffs" price="100" sold="167 sold" stock-left="18 left" rating="4.7" :href="route('products.show-by-slug', 'vanilla-cream-puffs')" />
-                        <x-home.product-card image="https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?auto=format&fit=crop&w=900&q=80" title="Caramel Brownie Bites" price="140" sold="131 sold" stock-left="8 left" rating="4.9" :href="route('products.show-by-slug', 'caramel-brownie-bites')" />
-                        <x-home.product-card image="https://images.unsplash.com/photo-1515037893149-de7f840978e2?auto=format&fit=crop&w=900&q=80" title="Milk Tea Cookie Tin" price="80" sold="205 sold" stock-left="16 left" rating="4.5" :href="route('products.show-by-slug', 'milk-tea-cookie-tin')" />
+                        <x-home.product-card image="https://images.unsplash.com/photo-1464305795204-6f5bbfc7fb81?auto=format&fit=crop&w=900&q=80" title="Strawberry Tartlets" price="110" sold="154 sold" stock-left="13 left" rating="4.8" :href="route('products.show-by-slug', 'strawberry-tartlets')" slug="strawberry-tartlets" />
+                        <x-home.product-card image="https://images.unsplash.com/photo-1571115764595-644a1f56a55c?auto=format&fit=crop&w=900&q=80" title="Vanilla Cream Puffs" price="100" sold="167 sold" stock-left="18 left" rating="4.7" :href="route('products.show-by-slug', 'vanilla-cream-puffs')" slug="vanilla-cream-puffs" />
+                        <x-home.product-card image="https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?auto=format&fit=crop&w=900&q=80" title="Caramel Brownie Bites" price="140" sold="131 sold" stock-left="8 left" rating="4.9" :href="route('products.show-by-slug', 'caramel-brownie-bites')" slug="caramel-brownie-bites" />
+                        <x-home.product-card image="https://images.unsplash.com/photo-1515037893149-de7f840978e2?auto=format&fit=crop&w=900&q=80" title="Milk Tea Cookie Tin" price="80" sold="205 sold" stock-left="16 left" rating="4.5" :href="route('products.show-by-slug', 'milk-tea-cookie-tin')" slug="milk-tea-cookie-tin" />
                     </div>
                 </div>
             </section>

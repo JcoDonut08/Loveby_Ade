@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Services\CartService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
@@ -11,6 +12,8 @@ use Illuminate\View\View;
 
 class LoginController extends Controller
 {
+    public function __construct(private CartService $cart) {}
+
     public function show(): View|RedirectResponse
     {
         if (Auth::check()) {
@@ -29,6 +32,7 @@ class LoginController extends Controller
         }
 
         $request->session()->regenerate();
+        $this->cart->mergeSessionIntoUser($request->session(), $request->user());
 
         return redirect()->intended(route('home'));
     }

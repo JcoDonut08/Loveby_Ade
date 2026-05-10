@@ -52,7 +52,7 @@
 
                     <div class="flex items-center justify-between gap-4 pt-0.5 text-sm">
                         <label class="inline-flex items-center gap-3 font-medium text-slate-600" for="remember">
-                            <input class="h-4 w-4 rounded border-slate-300 text-love-pink-500 focus:ring-love-pink-200" id="remember" name="remember" type="checkbox">
+                            <input class="h-4 w-4 rounded border-slate-300 text-love-pink-500 focus:ring-love-pink-200" id="remember" name="remember" type="checkbox" value="1" @checked(old('remember'))>
                             <span>Remember me</span>
                         </label>
                         <a class="font-semibold text-love-pink-500 transition hover:text-love-pink-600" href="{{ route('password.request') }}">

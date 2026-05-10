@@ -6,11 +6,13 @@
     'stockLeft',
     'rating',
     'href' => null,
+    'slug' => null,
 ])
 
 @php
     $filledStars = max(0, min(5, (int) round((float) $rating)));
     $productHref = $href ?? route('products.show');
+    $productSlug = $slug ?? \Illuminate\Support\Str::afterLast($productHref, '/');
 @endphp
 
 <article class="group flex h-full flex-col overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white shadow-[0_22px_50px_-34px_rgba(15,23,42,0.34)] transition duration-300 hover:-translate-y-1.5 hover:shadow-[0_30px_68px_-36px_rgba(244,114,168,0.3)]">
@@ -65,13 +67,13 @@
             </span>
         </div>
 
-        <a class="mt-4 inline-flex w-full items-center justify-center rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white shadow-[0_18px_34px_-24px_rgba(15,23,42,0.8)] transition hover:-translate-y-0.5 hover:bg-love-pink-500" href="{{ route('cart') }}">
+        <button class="mt-4 inline-flex w-full items-center justify-center rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white shadow-[0_18px_34px_-24px_rgba(15,23,42,0.8)] transition hover:-translate-y-0.5 hover:bg-love-pink-500 disabled:cursor-wait disabled:opacity-70" type="button" data-add-to-cart data-product-slug="{{ $productSlug }}">
             <svg class="mr-2 h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                 <circle cx="9" cy="19" r="1.5" />
                 <circle cx="17" cy="19" r="1.5" />
                 <path stroke-linecap="round" stroke-linejoin="round" d="M3 4.5h2l2.1 10.25a1 1 0 0 0 1 .8h8.92a1 1 0 0 0 1-.78L20 7.5H6.25" />
             </svg>
-            <span>Add to cart</span>
-        </a>
+            <span data-add-to-cart-label>Add to cart</span>
+        </button>
     </div>
 </article>
