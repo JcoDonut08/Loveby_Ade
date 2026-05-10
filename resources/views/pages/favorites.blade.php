@@ -4,6 +4,11 @@
 @section('description', 'Saved Loveby_Ade desserts with prices, ratings, and quick add to cart actions.')
 @section('body_classes', 'bg-[radial-gradient(circle_at_top_left,#ffd9ea_0%,transparent_28%),radial-gradient(circle_at_bottom_right,#c9eeff_0%,transparent_26%),linear-gradient(180deg,#fff3f8_0%,#eff8ff_48%,#fff8f3_100%)] text-slate-900')
 
+@php
+    $favoriteItems = $favorites['items'];
+    $favoriteCount = $favorites['count'];
+@endphp
+
 @section('content')
     <div class="relative min-h-screen overflow-x-hidden">
         <x-home.store-header />
@@ -18,18 +23,25 @@
                     </div>
 
                     <span class="inline-flex w-max items-center rounded-full bg-love-pink-100 px-4 py-2 text-sm font-extrabold text-love-pink-500" data-favorites-count>
-                        3 saved items
+                        {{ $favoriteCount }} {{ $favoriteCount === 1 ? 'saved item' : 'saved items' }}
                     </span>
                 </div>
             </section>
 
-            <section class="mt-8 grid gap-6 md:grid-cols-2 xl:grid-cols-3" data-favorites-grid>
-                <x-store.favorite-card image="https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=900&q=80" title="Pastel Donut Box" price="120" rating="4.8" />
-                <x-store.favorite-card image="https://images.unsplash.com/photo-1551024601-bec78aea704b?auto=format&fit=crop&w=900&q=80" title="Mini Cake Cups" price="150" rating="4.9" />
-                <x-store.favorite-card image="https://images.unsplash.com/photo-1499636136210-6f4ee915583e?auto=format&fit=crop&w=900&q=80" title="Chocolate Chip Cookies" price="90" rating="4.7" />
+            <section class="{{ $favoriteItems->isEmpty() ? 'hidden ' : '' }}mt-8 grid gap-6 md:grid-cols-2 xl:grid-cols-3" data-favorites-grid>
+                @foreach ($favoriteItems as $favorite)
+                    <x-store.favorite-card
+                        :slug="$favorite['slug']"
+                        :href="$favorite['show_url']"
+                        :image="$favorite['image']"
+                        :title="$favorite['title']"
+                        :price="$favorite['price']"
+                        :rating="$favorite['rating']"
+                    />
+                @endforeach
             </section>
 
-            <x-store.empty-state class="mt-8 hidden" title="No favorites yet" description="Tap a heart on any dessert and your saved treats will appear here." icon="heart" action-label="Browse desserts" :action-href="route('home').'#products'" data-favorites-empty />
+            <x-store.empty-state class="mt-8 {{ $favoriteItems->isNotEmpty() ? 'hidden' : '' }}" title="No favorites yet" description="Tap a heart on any dessert and your saved treats will appear here." icon="heart" action-label="Browse desserts" :action-href="route('home').'#products'" data-favorites-empty />
         </main>
 
         <x-home.store-footer />

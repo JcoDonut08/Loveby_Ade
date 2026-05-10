@@ -5,6 +5,7 @@ use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\Auth\PasswordResetOtpController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\CartController;
+use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\ProductController;
 use Illuminate\Support\Facades\Route;
 
@@ -14,7 +15,10 @@ Route::get('/products/pastel-donut-box', [ProductController::class, 'showDefault
 Route::get('/products/{slug}', [ProductController::class, 'show'])->name('products.show-by-slug');
 Route::view('/contact', 'pages.contact')->name('contact');
 Route::view('/notifications', 'pages.notifications')->name('notifications');
-Route::view('/favorites', 'pages.favorites')->name('favorites');
+Route::get('/favorites', [FavoriteController::class, 'index'])->name('favorites');
+Route::get('/favorites/summary', [FavoriteController::class, 'summary'])->name('favorites.summary');
+Route::post('/favorites/items', [FavoriteController::class, 'store'])->name('favorites.items.store');
+Route::delete('/favorites/items/{slug}', [FavoriteController::class, 'destroy'])->name('favorites.items.destroy');
 Route::get('/cart', [CartController::class, 'index'])->name('cart');
 Route::get('/cart/summary', [CartController::class, 'summary'])->name('cart.summary');
 Route::post('/cart/items', [CartController::class, 'store'])->name('cart.items.store');

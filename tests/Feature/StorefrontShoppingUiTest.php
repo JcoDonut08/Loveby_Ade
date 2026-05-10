@@ -24,18 +24,13 @@ test('customer notifications page renders order and promo updates with an empty 
         ->assertSee('data-notifications-empty', false);
 });
 
-test('favorites page renders saved desserts and removable favorite controls', function () {
+test('favorites page renders saved desserts empty state and removable favorite controls', function () {
     $this->get(route('favorites'))
         ->assertSuccessful()
         ->assertSee('Favorites')
-        ->assertSee('Pastel Donut Box')
-        ->assertSee('Mini Cake Cups')
-        ->assertSee('Chocolate Chip Cookies')
-        ->assertSee('Add to Cart')
-        ->assertSee('Remove')
+        ->assertSee('0 saved items')
         ->assertSee('No favorites yet')
-        ->assertSee('data-favorite-toggle', false)
-        ->assertSee('data-favorite-remove', false)
+        ->assertSee('data-favorites-grid', false)
         ->assertSee('data-favorites-empty', false);
 });
 

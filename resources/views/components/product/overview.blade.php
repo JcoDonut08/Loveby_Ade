@@ -82,7 +82,7 @@
                     <button class="inline-flex items-center justify-center rounded-xl bg-slate-900 px-6 py-3.5 text-sm font-semibold text-white shadow-[0_18px_34px_-24px_rgba(15,23,42,0.8)] transition hover:-translate-y-0.5 hover:bg-love-pink-500 disabled:cursor-wait disabled:opacity-70" type="button" data-add-to-cart data-product-slug="{{ $product['slug'] }}" data-quantity-source="[data-quantity-input]">
                         Add to cart
                     </button>
-                    <button class="inline-flex h-12 w-full items-center justify-center rounded-xl border border-transparent bg-white/92 text-slate-500 transition hover:border-love-pink-200 hover:text-love-pink-500 sm:w-12" type="button" aria-label="Add to favorites" aria-pressed="false" data-favorite-toggle>
+                    <button class="inline-flex h-12 w-full items-center justify-center rounded-xl border border-transparent bg-white/92 text-slate-500 transition hover:border-love-pink-200 hover:text-love-pink-500 sm:w-12" type="button" aria-label="Add to favorites" aria-pressed="false" data-favorite-toggle data-product-slug="{{ $product['slug'] }}">
                         <svg class="h-5 w-5 fill-transparent" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true" data-favorite-icon>
                             <path stroke-linecap="round" stroke-linejoin="round" d="m12 20.25-1.1-1C5.4 14.26 2.25 11.39 2.25 7.88A4.88 4.88 0 0 1 7.12 3c1.86 0 3.65.86 4.88 2.21A6.57 6.57 0 0 1 16.88 3a4.88 4.88 0 0 1 4.87 4.88c0 3.51-3.15 6.38-8.65 11.37l-1.1 1Z" />
                         </svg>

@@ -1,5 +1,6 @@
 @php
     $cartCount = app(\App\Services\CartService::class)->count(request());
+    $favoriteCount = app(\App\Services\FavoriteService::class)->count(request());
 @endphp
 
 <header class="fixed inset-x-0 top-0 z-50 border-b border-white/70 bg-white/90 shadow-[0_16px_40px_-32px_rgba(15,23,42,0.45)] backdrop-blur-xl">
@@ -27,10 +28,11 @@
         </form>
 
         <div class="ml-auto flex items-center gap-2 sm:gap-3 lg:gap-4">
-            <a class="flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white/90 text-slate-600 transition hover:-translate-y-0.5 hover:border-love-pink-200 hover:text-love-pink-500" href="{{ route('favorites') }}" aria-label="Favorites">
+            <a class="relative flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white/90 text-slate-600 transition hover:-translate-y-0.5 hover:border-love-pink-200 hover:text-love-pink-500" href="{{ route('favorites') }}" aria-label="Favorites">
                 <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" d="m12 20.25-1.1-1C5.4 14.26 2.25 11.39 2.25 7.88A4.88 4.88 0 0 1 7.12 3c1.86 0 3.65.86 4.88 2.21A6.57 6.57 0 0 1 16.88 3a4.88 4.88 0 0 1 4.87 4.88c0 3.51-3.15 6.38-8.65 11.37l-1.1 1Z" />
                 </svg>
+                <span class="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-love-pink-400 px-1 text-xs font-extrabold text-white transition duration-300 {{ $favoriteCount === 0 ? 'hidden' : '' }}" data-favorites-nav-count>{{ $favoriteCount }}</span>
             </a>
             <a class="relative flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white/90 text-slate-600 transition hover:-translate-y-0.5 hover:border-love-pink-200 hover:text-love-pink-500" href="{{ route('notifications') }}" aria-label="Notifications">
                 <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">

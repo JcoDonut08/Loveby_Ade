@@ -21,7 +21,7 @@
             <img class="aspect-[4/3] w-full object-cover object-center transition duration-500 group-hover:scale-[1.04]" src="{{ $image }}" alt="{{ $title }}" loading="lazy">
         </a>
 
-        <button class="absolute right-3 top-3 inline-flex h-10 w-10 items-center justify-center rounded-full border border-transparent bg-white/92 text-slate-500 shadow-[0_16px_30px_-20px_rgba(15,23,42,0.35)] backdrop-blur-sm transition hover:-translate-y-0.5 hover:text-love-pink-500" type="button" aria-label="Add {{ $title }} to favorites" aria-pressed="false" data-favorite-toggle>
+        <button class="absolute right-3 top-3 inline-flex h-10 w-10 items-center justify-center rounded-full border border-transparent bg-white/92 text-slate-500 shadow-[0_16px_30px_-20px_rgba(15,23,42,0.35)] backdrop-blur-sm transition hover:-translate-y-0.5 hover:text-love-pink-500" type="button" aria-label="Add {{ $title }} to favorites" aria-pressed="false" data-favorite-toggle data-product-slug="{{ $productSlug }}">
             <svg class="h-5 w-5 fill-transparent" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true" data-favorite-icon>
                 <path stroke-linecap="round" stroke-linejoin="round" d="m12 20.25-1.1-1C5.4 14.26 2.25 11.39 2.25 7.88A4.88 4.88 0 0 1 7.12 3c1.86 0 3.65.86 4.88 2.21A6.57 6.57 0 0 1 16.88 3a4.88 4.88 0 0 1 4.87 4.88c0 3.51-3.15 6.38-8.65 11.37l-1.1 1Z" />
             </svg>

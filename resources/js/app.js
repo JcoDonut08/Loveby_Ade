@@ -369,6 +369,25 @@ const initializeOtpInputs = () => {
 };
 
 const initializeFavoriteToggles = () => {
+    const setFavoriteNavCount = (count) => {
+        document.querySelectorAll('[data-favorites-nav-count]').forEach((counter) => {
+            if (!(counter instanceof HTMLElement)) {
+                return;
+            }
+
+            counter.textContent = count.toString();
+            counter.classList.toggle('hidden', count < 1);
+
+            if (count > 0) {
+                counter.classList.add('scale-125', 'ring-4', 'ring-love-pink-100');
+
+                window.setTimeout(() => {
+                    counter.classList.remove('scale-125', 'ring-4', 'ring-love-pink-100');
+                }, 420);
+            }
+        });
+    };
+
     const updateFavoritesEmptyState = () => {
         const grid = document.querySelector('[data-favorites-grid]');
         const emptyState = document.querySelector('[data-favorites-empty]');
@@ -387,6 +406,87 @@ const initializeFavoriteToggles = () => {
         if (emptyState instanceof HTMLElement) {
             emptyState.classList.toggle('hidden', count > 0);
         }
+
+        grid.classList.toggle('hidden', count < 1);
+    };
+
+    const setActive = (button, isActive) => {
+        const icon = button.querySelector('[data-favorite-icon]');
+
+        button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+        button.classList.toggle('border-love-pink-500', isActive);
+        button.classList.toggle('bg-love-pink-500', isActive);
+        button.classList.toggle('text-white', isActive);
+        button.classList.toggle('border-transparent', !isActive);
+        button.classList.toggle('bg-white/92', !isActive);
+        button.classList.toggle('text-slate-500', !isActive);
+        button.classList.toggle('hover:text-love-pink-500', !isActive);
+        icon?.classList.toggle('fill-current', isActive);
+        icon?.classList.toggle('fill-transparent', !isActive);
+    };
+
+    const animateButton = (button, isActive) => {
+        button.classList.add('scale-110', 'ring-4', isActive ? 'ring-love-pink-100' : 'ring-slate-100');
+
+        window.setTimeout(() => {
+            button.classList.remove('scale-110', 'ring-4', 'ring-love-pink-100', 'ring-slate-100');
+        }, 420);
+    };
+
+    const syncFavoriteButtons = (slugs) => {
+        document.querySelectorAll('[data-favorite-toggle]').forEach((button) => {
+            if (!(button instanceof HTMLButtonElement)) {
+                return;
+            }
+
+            const slug = button.dataset.productSlug;
+
+            if (!slug) {
+                return;
+            }
+
+            setActive(button, slugs.includes(slug));
+        });
+    };
+
+    const removeFavoriteCard = (card) => {
+        card.classList.add('scale-[0.98]', 'opacity-0');
+
+        window.setTimeout(() => {
+            card.remove();
+            updateFavoritesEmptyState();
+        }, 220);
+    };
+
+    const applyFavoriteSummary = (summary) => {
+        setFavoriteNavCount(summary.count || 0);
+        syncFavoriteButtons(summary.slugs || []);
+    };
+
+    const fetchFavoriteSummary = async () => {
+        const response = await window.axios.get('/favorites/summary');
+
+        applyFavoriteSummary(response.data);
+
+        return response.data;
+    };
+
+    const toggleFavoriteItem = async (slug) => {
+        const response = await window.axios.post('/favorites/items', {
+            slug,
+        });
+
+        applyFavoriteSummary(response.data);
+
+        return response.data;
+    };
+
+    const removeFavoriteItem = async (slug) => {
+        const response = await window.axios.delete(`/favorites/items/${slug}`);
+
+        applyFavoriteSummary(response.data);
+
+        return response.data;
     };
 
     document.querySelectorAll('[data-favorite-toggle]').forEach((button) => {
@@ -394,26 +494,36 @@ const initializeFavoriteToggles = () => {
             return;
         }
 
-        const icon = button.querySelector('[data-favorite-icon]');
+        button.addEventListener('click', async () => {
+            const slug = button.dataset.productSlug;
 
-        const setActive = (isActive) => {
-            button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
-            button.classList.toggle('border-love-pink-500', isActive);
-            button.classList.toggle('bg-love-pink-500', isActive);
-            button.classList.toggle('text-white', isActive);
-            button.classList.toggle('border-transparent', !isActive);
-            button.classList.toggle('bg-white/92', !isActive);
-            button.classList.toggle('text-slate-500', !isActive);
-            button.classList.toggle('hover:text-love-pink-500', !isActive);
-            icon?.classList.toggle('fill-current', isActive);
-            icon?.classList.toggle('fill-transparent', !isActive);
-        };
+            if (!slug) {
+                setActive(button, button.getAttribute('aria-pressed') !== 'true');
+                animateButton(button, button.getAttribute('aria-pressed') === 'true');
 
-        button.addEventListener('click', () => {
-            setActive(button.getAttribute('aria-pressed') !== 'true');
+                return;
+            }
+
+            button.disabled = true;
+
+            try {
+                const response = await toggleFavoriteItem(slug);
+                const isActive = response.favorited === true;
+
+                setActive(button, isActive);
+                animateButton(button, isActive);
+
+                const card = button.closest('[data-favorite-card]');
+
+                if (card instanceof HTMLElement && !isActive) {
+                    removeFavoriteCard(card);
+                }
+            } finally {
+                button.disabled = false;
+            }
         });
 
-        setActive(button.getAttribute('aria-pressed') === 'true');
+        setActive(button, button.getAttribute('aria-pressed') === 'true');
         button.dataset.initialized = 'true';
     });
 
@@ -422,13 +532,36 @@ const initializeFavoriteToggles = () => {
             return;
         }
 
-        button.addEventListener('click', () => {
-            button.closest('[data-favorite-card]')?.remove();
-            updateFavoritesEmptyState();
+        button.addEventListener('click', async () => {
+            const slug = button.dataset.productSlug;
+            const card = button.closest('[data-favorite-card]');
+
+            if (!slug) {
+                card?.remove();
+                updateFavoritesEmptyState();
+
+                return;
+            }
+
+            button.disabled = true;
+
+            try {
+                await removeFavoriteItem(slug);
+
+                if (card instanceof HTMLElement) {
+                    removeFavoriteCard(card);
+                }
+            } finally {
+                button.disabled = false;
+            }
         });
 
         button.dataset.initialized = 'true';
     });
+
+    if (document.querySelector('[data-favorite-toggle], [data-favorites-nav-count], [data-favorites-grid]')) {
+        fetchFavoriteSummary().catch(() => {});
+    }
 
     updateFavoritesEmptyState();
 };
