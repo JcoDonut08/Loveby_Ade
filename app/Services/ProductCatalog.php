@@ -60,10 +60,9 @@ class ProductCatalog
     public static function availableCategories(): array
     {
         return [
-            'Brownies',
             'Cakes',
+            'Coffees / Shakes',
             'Cookies',
-            'Donuts',
             'Pastries',
         ];
     }
@@ -216,6 +215,28 @@ class ProductCatalog
                 'rating' => 4.5,
                 'image' => 'https://images.unsplash.com/photo-1515037893149-de7f840978e2?auto=format&fit=crop&w=900&q=80',
                 'description' => 'A budget-friendly cookie tin with cozy milk tea notes and crisp, snackable pieces for quick sweet breaks.',
+            ],
+            [
+                'slug' => 'strawberry-cream-shake',
+                'title' => 'Strawberry Cream Shake',
+                'category' => 'Coffees / Shakes',
+                'price' => 130,
+                'sold' => 119,
+                'stock' => 15,
+                'rating' => 4.8,
+                'image' => 'https://images.unsplash.com/photo-1572490122747-3968b75cc699?auto=format&fit=crop&w=900&q=80',
+                'description' => 'A chilled strawberry shake with creamy notes and a soft dessert-shop finish for pairing with cookies and cakes.',
+            ],
+            [
+                'slug' => 'iced-caramel-latte',
+                'title' => 'Iced Caramel Latte',
+                'category' => 'Coffees / Shakes',
+                'price' => 120,
+                'sold' => 138,
+                'stock' => 18,
+                'rating' => 4.7,
+                'image' => 'https://images.unsplash.com/photo-1517701604599-bb29b565090c?auto=format&fit=crop&w=900&q=80',
+                'description' => 'A smooth iced latte with caramel sweetness, made for slow browsing, dessert pairings, and afternoon cravings.',
             ],
         ];
     }

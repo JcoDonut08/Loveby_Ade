@@ -263,6 +263,39 @@ const initializeReviewForms = () => {
     });
 };
 
+const initializeAutoFilterForms = () => {
+    document.querySelectorAll('[data-auto-filter-form]').forEach((form) => {
+        if (!(form instanceof HTMLFormElement) || form.dataset.initialized === 'true') {
+            return;
+        }
+
+        let timeoutId;
+
+        const submit = (delay = 0) => {
+            window.clearTimeout(timeoutId);
+            timeoutId = window.setTimeout(() => {
+                form.requestSubmit();
+            }, delay);
+        };
+
+        form.querySelectorAll('select').forEach((select) => {
+            select.addEventListener('change', () => submit());
+        });
+
+        form.querySelectorAll('input').forEach((input) => {
+            if (!(input instanceof HTMLInputElement)) {
+                return;
+            }
+
+            input.addEventListener(input.type === 'search' ? 'input' : 'change', () => {
+                submit(input.type === 'search' ? 450 : 0);
+            });
+        });
+
+        form.dataset.initialized = 'true';
+    });
+};
+
 const initializeContactForms = () => {
     document.querySelectorAll('[data-contact-form]').forEach((form) => {
         if (!(form instanceof HTMLFormElement) || form.dataset.initialized === 'true') {
@@ -652,6 +685,7 @@ const initializeStorefrontInteractions = () => {
     initializeReviewPagination();
     initializeReviewRatings();
     initializeReviewForms();
+    initializeAutoFilterForms();
     initializeContactForms();
     initializeOtpInputs();
     initializeFavoriteToggles();

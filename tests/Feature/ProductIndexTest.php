@@ -8,6 +8,11 @@ test('product index renders filters and product cards', function () {
         ->assertSee('Category')
         ->assertSee('Min price')
         ->assertSee('Max price')
+        ->assertSee('Coffees / Shakes')
+        ->assertSee('data-auto-filter-form', false)
+        ->assertDontSee('Apply')
+        ->assertDontSee('Brownies')
+        ->assertDontSee('Donuts')
         ->assertSee('Pastel Donut Box')
         ->assertSee('Milk Tea Cookie Tin')
         ->assertSee('href="'.route('products.show-by-slug', 'milk-tea-cookie-tin').'"', false);
@@ -23,6 +28,16 @@ test('product index can filter by search category and price', function () {
         ->assertSuccessful()
         ->assertSee('Chocolate Chip Cookies')
         ->assertSee('Milk Tea Cookie Tin')
+        ->assertDontSee('Pastel Donut Box');
+});
+
+test('product index can filter by the homepage coffees and shakes category', function () {
+    $this->get(route('products.index', [
+        'category' => 'Coffees / Shakes',
+    ]))
+        ->assertSuccessful()
+        ->assertSee('Strawberry Cream Shake')
+        ->assertSee('Iced Caramel Latte')
         ->assertDontSee('Pastel Donut Box');
 });
 

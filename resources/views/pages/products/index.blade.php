@@ -17,7 +17,7 @@
 
         <main class="mx-auto max-w-[86rem] px-4 py-10 sm:px-6 lg:px-8">
             <section class="rounded-[1.5rem] border border-white/80 bg-white/92 p-5 shadow-[0_24px_58px_-40px_rgba(15,23,42,0.28)]">
-                <form class="grid gap-4 lg:grid-cols-[1.35fr_0.95fr_0.75fr_0.75fr_auto] lg:items-end" action="{{ route('products.index') }}" method="GET">
+                <form class="grid gap-4 lg:grid-cols-[1.35fr_0.95fr_0.75fr_0.75fr_auto] lg:items-end" action="{{ route('products.index') }}" method="GET" data-auto-filter-form>
                     <div>
                         <label class="text-xs font-bold uppercase tracking-[0.2em] text-slate-500" for="product-search">Search</label>
                         <div class="relative mt-2">
@@ -63,10 +63,7 @@
                         @enderror
                     </div>
 
-                    <div class="grid grid-cols-2 gap-3 lg:grid-cols-1">
-                        <button class="inline-flex items-center justify-center rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white shadow-[0_18px_34px_-24px_rgba(15,23,42,0.8)] transition hover:-translate-y-0.5 hover:bg-love-pink-500" type="submit">
-                            Apply
-                        </button>
+                    <div class="grid gap-3">
                         <a class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-600 transition hover:-translate-y-0.5 hover:border-love-blue-200 hover:text-love-blue-500" href="{{ route('products.index') }}">
                             Reset
                         </a>

@@ -36,7 +36,7 @@
             <x-home.category-card
                 title="Coffees / Shakes"
                 image="https://images.unsplash.com/photo-1517701604599-bb29b565090c?auto=format&fit=crop&w=1200&q=80"
-                :href="route('products.index')"
+                :href="route('products.index', ['category' => 'Coffees / Shakes'])"
             />
         </div>
     </div>
