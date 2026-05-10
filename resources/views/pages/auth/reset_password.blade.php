@@ -1,7 +1,7 @@
 @extends('layouts.guest')
 
-@section('title', 'Loveby_Ade | Forgot Password')
-@section('description', 'Request a Loveby_Ade password recovery code.')
+@section('title', 'Loveby_Ade | Change Password')
+@section('description', 'Create a new password for your Loveby_Ade account.')
 @section('body_classes', 'h-[100dvh] overflow-hidden bg-[radial-gradient(circle_at_top_left,#ffd9ea_0%,transparent_32%),radial-gradient(circle_at_bottom_right,#c9eeff_0%,transparent_30%),linear-gradient(180deg,#fff3f8_0%,#edf8ff_52%,#fff7f1_100%)] text-slate-900')
 
 @section('content')
@@ -17,40 +17,40 @@
         </div>
 
         <x-auth.page-card
-            title="Forgot your password?"
-            description="Enter your email and we will send a 6-digit verification code to help you recover your account."
+            title="Create a new password."
+            description="Choose a fresh password for your Loveby_Ade account."
         >
-            @if (session('status'))
-                <div class="mt-5 rounded-2xl border border-love-blue-200 bg-love-blue-100/80 px-4 py-3 text-sm font-semibold text-slate-700">
-                    {{ session('status') }}
-                </div>
-            @endif
-
-            <form class="mt-5 space-y-4" action="{{ route('password.email') }}" method="POST">
+            <form class="mt-5 space-y-3.5" action="{{ route('password.update') }}" method="POST">
                 @csrf
+                @method('PUT')
+
                 <x-auth.form-field
-                    id="forgot-password-email"
-                    name="email"
-                    label="Email"
-                    type="email"
-                    placeholder="you@example.com"
-                    autocomplete="email"
-                    icon="email"
+                    id="reset-password"
+                    name="password"
+                    label="New password"
+                    type="password"
+                    placeholder="Enter a new password"
+                    autocomplete="new-password"
+                    icon="password"
                     required
                     autofocus
                 />
 
+                <x-auth.form-field
+                    id="reset-password-confirmation"
+                    name="password_confirmation"
+                    label="Confirm password"
+                    type="password"
+                    placeholder="Confirm your new password"
+                    autocomplete="new-password"
+                    icon="password"
+                    required
+                />
+
                 <button class="inline-flex w-full items-center justify-center rounded-2xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white shadow-[0_18px_40px_-24px_rgba(15,23,42,0.75)] transition hover:-translate-y-0.5 hover:bg-love-pink-500" type="submit">
-                    Send OTP
+                    Change Password
                 </button>
             </form>
-
-            <p class="mt-4 text-center text-sm text-slate-500">
-                Remembered your password?
-                <a class="font-semibold text-love-pink-500 transition hover:text-love-pink-600" href="{{ route('login') }}">
-                    Back to login
-                </a>
-            </p>
         </x-auth.page-card>
     </main>
 @endsection

@@ -21,7 +21,13 @@
                 description="Sign in to continue with your desserts, saved orders, and favorites.">
 
                 {{-- Login form --}}
-                <form class="mt-5 space-y-3.5">
+                @if (session('status'))
+                    <div class="mt-5 rounded-2xl border border-love-blue-200 bg-love-blue-100/80 px-4 py-3 text-sm font-semibold text-slate-700">
+                        {{ session('status') }}
+                    </div>
+                @endif
+
+                <form class="mt-5 space-y-3.5" action="{{ route('login.store') }}" method="POST">
                     @csrf
                     <x-auth.form-field
                         id="login-email"
@@ -30,7 +36,9 @@
                         type="email"
                         placeholder="you@example.com"
                         autocomplete="email"
-                        icon="email"/>
+                        icon="email"
+                        required
+                        autofocus/>
 
                     <x-auth.form-field
                         id="login-password"
@@ -39,7 +47,8 @@
                         type="password"
                         placeholder="Enter your password"
                         autocomplete="current-password"
-                        icon="password"/>
+                        icon="password"
+                        required/>
 
                     <div class="flex items-center justify-between gap-4 pt-0.5 text-sm">
                         <label class="inline-flex items-center gap-3 font-medium text-slate-600" for="remember">
@@ -51,9 +60,9 @@
                         </a>
                     </div>
 
-                    <a class="inline-flex w-full items-center justify-center rounded-2xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white shadow-[0_18px_40px_-24px_rgba(15,23,42,0.75)] transition hover:-translate-y-0.5 hover:bg-love-pink-500" href="{{ route('login.otp') }}">
+                    <button class="inline-flex w-full items-center justify-center rounded-2xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white shadow-[0_18px_40px_-24px_rgba(15,23,42,0.75)] transition hover:-translate-y-0.5 hover:bg-love-pink-500" type="submit">
                         Login
-                    </a>
+                    </button>
                 </form>
 
                 <div class="my-4 flex items-center gap-4">

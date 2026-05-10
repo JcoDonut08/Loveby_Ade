@@ -43,11 +43,11 @@
 
         <input
             autocomplete="{{ $autocomplete }}"
-            class="w-full rounded-2xl border bg-white py-3 text-sm font-medium text-slate-900 outline-none transition placeholder:text-slate-400 focus:ring-4 {{ $icon ? 'px-12' : 'px-4' }} {{ $type === 'password' ? 'pr-12' : '' }} {{ $hasError ? 'border-red-300 focus:border-red-300 focus:ring-red-100' : 'border-slate-200 focus:border-love-pink-300 focus:ring-love-pink-100' }}"
             id="{{ $id }}"
             name="{{ $name }}"
             placeholder="{{ $placeholder }}"
             type="{{ $inputType }}"
+            {{ $attributes->merge(['class' => "w-full rounded-2xl border bg-white py-3 text-sm font-medium text-slate-900 outline-none transition placeholder:text-slate-400 focus:ring-4 ".($icon ? 'px-12' : 'px-4').' '.($type === 'password' ? 'pr-12' : '').' '.($hasError ? 'border-red-300 focus:border-red-300 focus:ring-red-100' : 'border-slate-200 focus:border-love-pink-300 focus:ring-love-pink-100')]) }}
             @if (filled($defaultValue)) value="{{ $defaultValue }}" @endif
         >
 

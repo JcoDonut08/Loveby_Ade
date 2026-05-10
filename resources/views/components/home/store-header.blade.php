@@ -43,9 +43,35 @@
                 </svg>
                 <span class="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-love-pink-400 px-1 text-xs font-extrabold text-white" data-cart-nav-count>4</span>
             </a>
-            <a class="inline-flex items-center justify-center rounded-full bg-slate-900 px-5 py-3 text-sm font-semibold text-white shadow-[0_18px_40px_-24px_rgba(15,23,42,0.8)] transition hover:-translate-y-0.5 hover:bg-love-pink-500" href="{{ route('login') }}">
-                Login
-            </a>
+            @auth
+                <details class="group relative">
+                    <summary class="flex h-11 w-11 cursor-pointer list-none items-center justify-center rounded-full bg-slate-900 text-sm font-extrabold text-white shadow-[0_18px_40px_-24px_rgba(15,23,42,0.8)] transition hover:-translate-y-0.5 hover:bg-love-pink-500 focus:outline-none focus:ring-4 focus:ring-love-pink-100 [&::-webkit-details-marker]:hidden" aria-haspopup="menu">
+                        {{ mb_strtoupper(mb_substr(auth()->user()->name, 0, 1)) }}
+                    </summary>
+
+                    <div class="absolute right-0 top-full z-50 hidden w-64 pt-3 group-open:block">
+                        <div class="rounded-2xl border border-white/80 bg-white p-2 shadow-[0_24px_70px_-36px_rgba(15,23,42,0.42)]">
+                            <div class="px-3 py-2">
+                                <p class="truncate text-sm font-extrabold text-slate-900">{{ auth()->user()->name }}</p>
+                                <p class="truncate text-xs font-medium text-slate-500">{{ auth()->user()->email }}</p>
+                            </div>
+                            <a class="block rounded-xl px-3 py-2 text-sm font-semibold text-slate-600 transition hover:bg-love-pink-100 hover:text-love-pink-500" href="{{ route('orders.index') }}">View orders</a>
+                            <a class="block rounded-xl px-3 py-2 text-sm font-semibold text-slate-600 transition hover:bg-love-pink-100 hover:text-love-pink-500" href="{{ route('account') }}">Account settings</a>
+                            <a class="block rounded-xl px-3 py-2 text-sm font-semibold text-slate-600 transition hover:bg-love-pink-100 hover:text-love-pink-500" href="{{ route('delivered-products.index') }}">View delivered products</a>
+                            <form class="mt-1 border-t border-slate-100 pt-1" action="{{ route('logout') }}" method="POST">
+                                @csrf
+                                <button class="block w-full rounded-xl px-3 py-2 text-left text-sm font-semibold text-red-500 transition hover:bg-red-50" type="submit">
+                                    Logout
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </details>
+            @else
+                <a class="inline-flex items-center justify-center rounded-full bg-slate-900 px-5 py-3 text-sm font-semibold text-white shadow-[0_18px_40px_-24px_rgba(15,23,42,0.8)] transition hover:-translate-y-0.5 hover:bg-love-pink-500" href="{{ route('login') }}">
+                    Login
+                </a>
+            @endauth
         </div>
     </div>
 </header>

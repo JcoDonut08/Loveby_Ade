@@ -21,7 +21,13 @@
             description="Join Loveby_Ade to save your favorites and make checkout faster."
         >
             {{-- Register form --}}
-            <form class="mt-5 space-y-3.5">
+            @if (session('status'))
+                <div class="mt-5 rounded-2xl border border-love-blue-200 bg-love-blue-100/80 px-4 py-3 text-sm font-semibold text-slate-700">
+                    {{ session('status') }}
+                </div>
+            @endif
+
+            <form class="mt-5 space-y-3.5" action="{{ route('register.store') }}" method="POST">
                 @csrf
 
                 <x-auth.form-field
@@ -32,6 +38,8 @@
                     placeholder="lovebyade_user"
                     autocomplete="username"
                     icon="user"
+                    required
+                    autofocus
                 />
 
                 <x-auth.form-field
@@ -42,6 +50,7 @@
                     placeholder="you@example.com"
                     autocomplete="email"
                     icon="email"
+                    required
                 />
 
                 <x-auth.form-field
@@ -52,9 +61,10 @@
                     placeholder="Create your password"
                     autocomplete="new-password"
                     icon="password"
+                    required
                 />
 
-                <button class="inline-flex w-full items-center justify-center rounded-2xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white shadow-[0_18px_40px_-24px_rgba(15,23,42,0.75)] transition hover:-translate-y-0.5 hover:bg-love-pink-500" type="button">
+                <button class="inline-flex w-full items-center justify-center rounded-2xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white shadow-[0_18px_40px_-24px_rgba(15,23,42,0.75)] transition hover:-translate-y-0.5 hover:bg-love-pink-500" type="submit">
                     Sign Up
                 </button>
             </form>

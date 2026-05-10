@@ -1,5 +1,9 @@
 <?php
 
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\LogoutController;
+use App\Http\Controllers\Auth\PasswordResetOtpController;
+use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\ProductController;
 use Illuminate\Support\Facades\Route;
 
@@ -12,11 +16,29 @@ Route::view('/notifications', 'pages.notifications')->name('notifications');
 Route::view('/favorites', 'pages.favorites')->name('favorites');
 Route::view('/cart', 'pages.cart')->name('cart');
 Route::view('/orders/confirmed', 'pages.orders.confirmed')->name('orders.confirmed');
-Route::view('/login', 'pages.auth.login')->name('login');
-Route::view('/login/otp', 'pages.auth.login_otp')->name('login.otp');
-Route::view('/register', 'pages.auth.register')->name('register');
-Route::view('/forgot-password', 'pages.auth.forgot_password')->name('password.request');
-Route::view('/password/otp', 'pages.auth.otp')->name('password.otp');
+Route::middleware('auth')->group(function (): void {
+    Route::view('/account', 'pages.account')->name('account');
+    Route::view('/orders', 'pages.orders.index')->name('orders.index');
+    Route::view('/delivered-products', 'pages.delivered_products')->name('delivered-products.index');
+    Route::post('/logout', LogoutController::class)->name('logout');
+});
+
+Route::middleware('guest')->group(function (): void {
+    Route::get('/login', [LoginController::class, 'show'])->name('login');
+    Route::post('/login', [LoginController::class, 'store'])->middleware('throttle:5,1')->name('login.store');
+    Route::get('/register', [RegisteredUserController::class, 'show'])->name('register');
+    Route::post('/register', [RegisteredUserController::class, 'store'])->middleware('throttle:5,1')->name('register.store');
+    Route::get('/register/otp', [RegisteredUserController::class, 'showOtp'])->name('register.otp');
+    Route::post('/register/otp', [RegisteredUserController::class, 'verifyOtp'])->middleware('throttle:5,1')->name('register.otp.verify');
+    Route::post('/register/otp/resend', [RegisteredUserController::class, 'resendOtp'])->middleware('throttle:3,1')->name('register.otp.resend');
+    Route::get('/forgot-password', [PasswordResetOtpController::class, 'showEmailForm'])->name('password.request');
+    Route::post('/forgot-password', [PasswordResetOtpController::class, 'sendOtp'])->middleware('throttle:5,1')->name('password.email');
+    Route::get('/password/otp', [PasswordResetOtpController::class, 'showOtp'])->name('password.otp');
+    Route::post('/password/otp', [PasswordResetOtpController::class, 'verifyOtp'])->middleware('throttle:5,1')->name('password.otp.verify');
+    Route::post('/password/otp/resend', [PasswordResetOtpController::class, 'resendOtp'])->middleware('throttle:3,1')->name('password.otp.resend');
+    Route::get('/password/reset', [PasswordResetOtpController::class, 'showResetForm'])->name('password.reset');
+    Route::put('/password/reset', [PasswordResetOtpController::class, 'reset'])->middleware('throttle:5,1')->name('password.update');
+});
 
 Route::redirect('/admin', '/admin/dashboard')->name('admin.home');
 Route::prefix('admin')->name('admin.')->group(function (): void {

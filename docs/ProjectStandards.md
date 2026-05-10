@@ -89,6 +89,84 @@ Layout → Flexbox/Grid → Spacing → Sizing → Typography → Colors → Bor
 -Components live in resources/views/components/.
 -Keep component files under 100 lines. Split complex components.
 
+# Livewire Standards
+
+## When to Use Livewire
+
+Use Livewire only when a page needs interactive behavior without writing a full custom JavaScript system.
+
+Use Livewire for:
+- OTP verification forms
+- Resend OTP countdowns
+- Search and filter products
+- Add to cart interactions
+- Wishlist / favorites toggle
+- Quantity increment and decrement buttons
+- Notification dropdowns and unread counters
+- Dashboard widgets that update dynamically
+- Admin product filters
+- Order status updates
+- Small real-time UI interactions
+
+Do not use Livewire for:
+- Static pages like About Us, Contact Us, Terms, or basic Landing Page sections
+- Simple forms that only submit once and do not need dynamic feedback
+- Business logic that belongs in a Service class
+- Large page layouts that should stay as Blade views
+- Heavy frontend features better handled by dedicated JavaScript
+
+Rule:
+If the feature needs dynamic UI behavior but should still stay Laravel-first, use Livewire.
+If the feature is only static display, use Blade.
+If the feature contains business logic, place that logic in a Service class and call it from Livewire.
+
+## Livewire Component Structure
+
+Livewire components must be organized by feature.
+
+Recommended structure:
+
+app/
+└── Livewire/
+    ├── Auth/
+    │   ├── OtpVerification.php
+    │   ├── ForgotPassword.php
+    │   └── ResetPassword.php
+    ├── Cart/
+    │   ├── CartDropdown.php
+    │   ├── CartPage.php
+    │   └── QuantitySelector.php
+    ├── Products/
+    │   ├── ProductSearch.php
+    │   ├── ProductFilters.php
+    │   └── ProductGrid.php
+    ├── Wishlist/
+    │   └── WishlistButton.php
+    └── Notifications/
+        └── NotificationDropdown.php
+
+resources/
+└── views/
+    └── livewire/
+        ├── auth/
+        ├── cart/
+        ├── products/
+        ├── wishlist/
+        └── notifications/
+
+## Livewire Naming Rules
+
+- Livewire class names use PascalCase.
+- Livewire view files use kebab-case.
+- Component names must describe one clear responsibility.
+
+Examples:
+- OtpVerification.php
+- ProductFilters.php
+- CartDropdown.php
+- WishlistButton.php
+- NotificationDropdown.php
+
 # Security Rules
 
 -Always use Laravel's built-in auth never roll a custom auth system.

@@ -18,9 +18,15 @@
 
         <x-auth.page-card
             title="Enter your 6-digit OTP."
-            description="We sent a verification code to your email. Type the code below to continue resetting your password."
+            description="We sent a verification code to {{ $email ?? 'your email' }}. Type the code below to continue resetting your password."
         >
-            <form class="mt-5 space-y-5">
+            @if (session('status'))
+                <div class="mt-5 rounded-2xl border border-love-blue-200 bg-love-blue-100/80 px-4 py-3 text-sm font-semibold text-slate-700">
+                    {{ session('status') }}
+                </div>
+            @endif
+
+            <form class="mt-5 space-y-5" action="{{ route('password.otp.verify') }}" method="POST">
                 @csrf
 
                 <fieldset>
@@ -39,9 +45,12 @@
                         <label class="sr-only" for="otp-6">Digit 6</label>
                         <input class="h-12 rounded-2xl border border-slate-200 bg-white text-center text-lg font-extrabold text-slate-900 outline-none transition focus:border-love-pink-300 focus:ring-4 focus:ring-love-pink-100 sm:h-14 sm:text-xl" id="otp-6" name="otp[]" type="text" inputmode="numeric" maxlength="1" pattern="[0-9]">
                     </div>
+                    @error('otp_code')
+                        <p class="mt-2 text-center text-xs font-semibold text-red-500">{{ $message }}</p>
+                    @enderror
                 </fieldset>
 
-                <button class="inline-flex w-full items-center justify-center rounded-2xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white shadow-[0_18px_40px_-24px_rgba(15,23,42,0.75)] transition hover:-translate-y-0.5 hover:bg-love-pink-500" type="button">
+                <button class="inline-flex w-full items-center justify-center rounded-2xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white shadow-[0_18px_40px_-24px_rgba(15,23,42,0.75)] transition hover:-translate-y-0.5 hover:bg-love-pink-500" type="submit">
                     Verify OTP
                 </button>
             </form>
@@ -51,9 +60,12 @@
                     Change email
                 </a>
                 <span aria-hidden="true">-</span>
-                <button class="font-semibold text-love-blue-500 transition hover:text-love-blue-400" type="button">
+                <form action="{{ route('password.otp.resend') }}" method="POST">
+                    @csrf
+                    <button class="font-semibold text-love-blue-500 transition hover:text-love-blue-400" type="submit">
                     Resend code
-                </button>
+                    </button>
+                </form>
             </div>
         </x-auth.page-card>
     </main>
