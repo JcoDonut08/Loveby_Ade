@@ -257,6 +257,7 @@ class ProductCatalog
 
         return [
             ...$product,
+            'formatted_price' => 'PHP '.number_format((int) $product['price'], 2),
             'gallery' => $gallery,
             'sold_label' => $product['sold'].' sold',
             'stock_label' => $product['stock'].' left',

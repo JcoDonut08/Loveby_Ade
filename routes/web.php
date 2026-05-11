@@ -8,6 +8,7 @@ use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\SearchController;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'welcome')->name('home');
@@ -15,6 +16,8 @@ Route::get('/products', [ProductController::class, 'index'])->name('products.ind
 Route::get('/products/pastel-donut-box', [ProductController::class, 'showDefault'])->name('products.show');
 Route::get('/products/{slug}', [ProductController::class, 'show'])->name('products.show-by-slug');
 Route::view('/contact', 'pages.contact')->name('contact');
+Route::get('/search/suggestions', SearchController::class)->name('search.suggestions');
+Route::delete('/search/recent', [SearchController::class, 'destroyRecent'])->name('search.recent.destroy');
 Route::view('/notifications', 'pages.notifications')->name('notifications');
 Route::get('/favorites', [FavoriteController::class, 'index'])->name('favorites');
 Route::get('/favorites/summary', [FavoriteController::class, 'summary'])->name('favorites.summary');

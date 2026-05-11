@@ -17,7 +17,7 @@
 
         <main class="mx-auto max-w-[86rem] px-4 py-10 sm:px-6 lg:px-8">
             <section class="rounded-[1.5rem] border border-white/80 bg-white/92 p-5 shadow-[0_24px_58px_-40px_rgba(15,23,42,0.28)]">
-                <form class="grid gap-4 lg:grid-cols-[1.35fr_0.95fr_0.75fr_0.75fr_auto] lg:items-end" action="{{ route('products.index') }}" method="GET" data-auto-filter-form>
+                <form class="grid gap-4 lg:grid-cols-[1.35fr_0.95fr_0.75fr_0.75fr_auto] lg:items-end" action="{{ route('products.index') }}" method="GET" data-auto-filter-form data-product-search-preview-form>
                     <div>
                         <label class="text-xs font-bold uppercase tracking-[0.2em] text-slate-500" for="product-search">Search</label>
                         <div class="relative mt-2">
@@ -83,20 +83,24 @@
             </section>
 
             @if ($products->isNotEmpty())
-                <section class="mt-8 grid gap-6 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+                <section class="mt-8 grid gap-6 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4" data-product-results-grid>
                     @foreach ($products as $product)
-                        <x-home.product-card
-                            :image="$product['image']"
-                            :title="$product['title']"
-                            :price="$product['price']"
-                            :sold="$product['sold_label']"
-                            :stock-left="$product['stock_label']"
-                            :rating="$product['rating']"
-                            :href="$product['show_url']"
-                            :slug="$product['slug']"
-                        />
+                        <div class="h-full" data-product-result data-product-search-text="{{ \Illuminate\Support\Str::lower($product['title'].' '.$product['category'].' '.$product['description']) }}">
+                            <x-home.product-card
+                                :image="$product['image']"
+                                :title="$product['title']"
+                                :price="$product['price']"
+                                :sold="$product['sold_label']"
+                                :stock-left="$product['stock_label']"
+                                :rating="$product['rating']"
+                                :href="$product['show_url']"
+                                :slug="$product['slug']"
+                            />
+                        </div>
                     @endforeach
                 </section>
+
+                <x-store.empty-state class="mt-8 hidden" title="No products found" description="Try a different search, category, or price range to browse more desserts." icon="sparkle" action-label="Clear filters" :action-href="route('products.index')" data-product-search-empty />
             @else
                 <x-store.empty-state class="mt-8" title="No products found" description="Try a different search, category, or price range to browse more desserts." icon="sparkle" action-label="Clear filters" :action-href="route('products.index')" />
             @endif

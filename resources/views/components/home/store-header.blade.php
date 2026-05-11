@@ -20,7 +20,7 @@
             <a class="transition hover:text-love-pink-500" href="{{ route('contact') }}">Contact</a>
         </nav>
 
-        <form class="relative hidden max-w-xl flex-1 lg:block" action="{{ route('products.index') }}" method="GET">
+        <form class="relative hidden max-w-xl flex-1 lg:block" action="{{ route('products.index') }}" method="GET" data-search-autocomplete-form data-search-suggestions-url="{{ route('search.suggestions') }}" data-search-recent-destroy-url="{{ route('search.recent.destroy') }}">
             <label class="sr-only" for="site-search">Search products</label>
             <span class="pointer-events-none absolute inset-y-0 left-4 flex items-center text-slate-400">
                 <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
@@ -28,7 +28,22 @@
                     <path stroke-linecap="round" d="m16 16 4.5 4.5" />
                 </svg>
             </span>
-            <input class="w-full rounded-full border border-slate-200 bg-white/90 px-12 py-3 text-sm font-medium text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-love-pink-300 focus:ring-4 focus:ring-love-pink-100" id="site-search" name="search" type="search" placeholder="Search cakes, donuts, cookies...">
+            <input class="w-full rounded-full border border-slate-200 bg-white/90 px-12 py-3 text-sm font-medium text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-love-pink-300 focus:ring-4 focus:ring-love-pink-100" id="site-search" name="search" type="search" value="{{ request('search', '') }}" placeholder="Search cakes, donuts, cookies..." autocomplete="off" data-search-autocomplete-input>
+            <div class="absolute left-0 right-0 top-full z-50 mt-2 hidden overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_24px_70px_-36px_rgba(15,23,42,0.42)]" data-search-autocomplete-panel>
+                <div class="max-h-96 overflow-y-auto py-2">
+                    <div class="hidden" data-search-recent-section>
+                        <p class="px-4 pb-1 pt-2 text-xs font-extrabold uppercase tracking-[0.2em] text-slate-400">Recent searches</p>
+                        <div data-search-recent-list></div>
+                    </div>
+
+                    <div class="hidden" data-search-suggestion-section>
+                        <p class="px-4 pb-1 pt-2 text-xs font-extrabold uppercase tracking-[0.2em] text-love-pink-500">Search recommendations</p>
+                        <div data-search-suggestion-list></div>
+                    </div>
+
+                    <p class="px-4 py-3 text-sm font-semibold text-slate-500" data-search-empty-state>Start typing to search desserts.</p>
+                </div>
+            </div>
         </form>
 
         <div class="ml-auto flex items-center gap-2 sm:gap-3 lg:gap-4">

@@ -287,9 +287,219 @@ const initializeAutoFilterForms = () => {
                 return;
             }
 
-            input.addEventListener(input.type === 'search' ? 'input' : 'change', () => {
-                submit(input.type === 'search' ? 450 : 0);
+            if (input.type !== 'search') {
+                input.addEventListener('change', () => submit());
+            }
+        });
+
+        form.dataset.initialized = 'true';
+    });
+};
+
+const initializeProductSearchPreviews = () => {
+    document.querySelectorAll('[data-product-search-preview-form]').forEach((form) => {
+        if (!(form instanceof HTMLFormElement) || form.dataset.searchPreviewInitialized === 'true') {
+            return;
+        }
+
+        const input = form.querySelector('input[type="search"][name="search"]');
+        const grid = document.querySelector('[data-product-results-grid]');
+        const emptyState = document.querySelector('[data-product-search-empty]');
+
+        if (!(input instanceof HTMLInputElement) || !(grid instanceof HTMLElement)) {
+            return;
+        }
+
+        const productResults = Array.from(grid.querySelectorAll('[data-product-result]'))
+            .filter((productResult) => productResult instanceof HTMLElement);
+
+        const applySearchPreview = () => {
+            const tokens = input.value
+                .trim()
+                .toLowerCase()
+                .split(/\s+/)
+                .filter(Boolean);
+
+            let visibleCount = 0;
+
+            productResults.forEach((productResult) => {
+                const searchText = productResult.dataset.productSearchText || '';
+                const isVisible = tokens.length === 0
+                    || tokens.every((token) => searchText.includes(token));
+
+                productResult.classList.toggle('hidden', !isVisible);
+
+                if (isVisible) {
+                    visibleCount += 1;
+                }
             });
+
+            grid.classList.toggle('hidden', visibleCount === 0);
+            emptyState?.classList.toggle('hidden', visibleCount > 0);
+        };
+
+        input.addEventListener('input', applySearchPreview);
+        applySearchPreview();
+
+        form.dataset.searchPreviewInitialized = 'true';
+    });
+};
+
+const initializeSearchAutocomplete = () => {
+    document.querySelectorAll('[data-search-autocomplete-form]').forEach((form) => {
+        if (!(form instanceof HTMLFormElement) || form.dataset.initialized === 'true') {
+            return;
+        }
+
+        const input = form.querySelector('[data-search-autocomplete-input]');
+        const panel = form.querySelector('[data-search-autocomplete-panel]');
+        const recentSection = form.querySelector('[data-search-recent-section]');
+        const recentList = form.querySelector('[data-search-recent-list]');
+        const suggestionSection = form.querySelector('[data-search-suggestion-section]');
+        const suggestionList = form.querySelector('[data-search-suggestion-list]');
+        const emptyState = form.querySelector('[data-search-empty-state]');
+        const suggestionsUrl = form.dataset.searchSuggestionsUrl;
+        const recentDestroyUrl = form.dataset.searchRecentDestroyUrl;
+        let debounceId;
+
+        if (!(input instanceof HTMLInputElement) || !(panel instanceof HTMLElement) || !suggestionsUrl) {
+            return;
+        }
+
+        const setOpen = (isOpen) => {
+            panel.classList.toggle('hidden', !isOpen);
+        };
+
+        const submitSearch = (url) => {
+            window.location.href = url;
+        };
+
+        const removeRecent = async (title) => {
+            if (!recentDestroyUrl) {
+                return;
+            }
+
+            await window.axios.delete(recentDestroyUrl, {
+                data: {
+                    term: title,
+                },
+            });
+
+            await fetchSuggestions();
+        };
+
+        const createSearchButton = ({ title, subtitle, url }, label) => {
+            const button = document.createElement('button');
+            button.className = 'flex w-full items-center justify-between gap-3 px-4 py-3 text-left transition hover:bg-love-pink-100 focus:bg-love-pink-100 focus:outline-none';
+            button.type = 'button';
+
+            const text = document.createElement('span');
+            text.className = 'min-w-0';
+
+            const titleElement = document.createElement('span');
+            titleElement.className = 'block truncate text-sm font-extrabold text-slate-900';
+            titleElement.textContent = title;
+
+            const subtitleElement = document.createElement('span');
+            subtitleElement.className = 'mt-0.5 block truncate text-xs font-medium text-slate-500';
+            subtitleElement.textContent = subtitle || label;
+
+            const action = document.createElement('span');
+            action.className = 'shrink-0 text-xs font-bold text-love-pink-500';
+            action.textContent = 'Search';
+
+            text.append(titleElement, subtitleElement);
+            button.append(text, action);
+            button.addEventListener('mousedown', (event) => {
+                event.preventDefault();
+                input.value = title;
+                submitSearch(url);
+            });
+
+            return button;
+        };
+
+        const createRecentItem = (item, label) => {
+            const row = document.createElement('div');
+            row.className = 'flex items-center';
+
+            const searchButton = createSearchButton(item, label);
+            searchButton.classList.add('min-w-0', 'flex-1');
+
+            const removeButton = document.createElement('button');
+            removeButton.className = 'mr-2 flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-lg font-semibold leading-none text-slate-400 transition hover:bg-love-pink-100 hover:text-love-pink-500 focus:bg-love-pink-100 focus:text-love-pink-500 focus:outline-none';
+            removeButton.type = 'button';
+            removeButton.setAttribute('aria-label', `Remove ${item.title} from recent searches`);
+            removeButton.textContent = 'x';
+            removeButton.addEventListener('mousedown', (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                removeRecent(item.title).catch(() => setOpen(false));
+            });
+
+            row.append(searchButton, removeButton);
+
+            return row;
+        };
+
+        const renderList = (container, section, items, label, createListItem = createSearchButton) => {
+            if (!(container instanceof HTMLElement) || !(section instanceof HTMLElement)) {
+                return false;
+            }
+
+            container.replaceChildren();
+            section.classList.toggle('hidden', items.length === 0);
+
+            items.forEach((item) => {
+                container.append(createListItem(item, label));
+            });
+
+            return items.length > 0;
+        };
+
+        const fetchSuggestions = async () => {
+            const response = await window.axios.get(suggestionsUrl, {
+                params: {
+                    q: input.value,
+                },
+            });
+
+            const hasRecent = input.value.trim()
+                ? renderList(recentList, recentSection, [], 'Recent search', createRecentItem)
+                : renderList(recentList, recentSection, response.data.recent || [], 'Recent search', createRecentItem);
+            const hasSuggestions = renderList(suggestionList, suggestionSection, response.data.suggestions || [], 'Recommended');
+
+            if (emptyState instanceof HTMLElement) {
+                emptyState.classList.toggle('hidden', hasRecent || hasSuggestions);
+                emptyState.textContent = input.value.trim()
+                    ? 'No matching desserts yet.'
+                    : 'Start typing to search desserts.';
+            }
+
+            setOpen(true);
+        };
+
+        input.addEventListener('focus', () => {
+            fetchSuggestions().catch(() => setOpen(false));
+        });
+
+        input.addEventListener('input', () => {
+            window.clearTimeout(debounceId);
+            debounceId = window.setTimeout(() => {
+                fetchSuggestions().catch(() => setOpen(false));
+            }, 180);
+        });
+
+        input.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') {
+                setOpen(false);
+            }
+        });
+
+        document.addEventListener('click', (event) => {
+            if (!form.contains(event.target)) {
+                setOpen(false);
+            }
         });
 
         form.dataset.initialized = 'true';
@@ -858,6 +1068,8 @@ const initializeStorefrontInteractions = () => {
     initializeReviewRatings();
     initializeReviewForms();
     initializeAutoFilterForms();
+    initializeProductSearchPreviews();
+    initializeSearchAutocomplete();
     initializeContactForms();
     initializeAccountProfilePhotoPreviews();
     initializeOtpInputs();

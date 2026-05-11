@@ -4,15 +4,20 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\FilterProductsRequest;
 use App\Services\ProductCatalog;
+use App\Services\SearchAssistant;
 use Illuminate\Contracts\View\View;
 
 class ProductController extends Controller
 {
-    public function __construct(private ProductCatalog $catalog) {}
+    public function __construct(
+        private ProductCatalog $catalog,
+        private SearchAssistant $searchAssistant,
+    ) {}
 
     public function index(FilterProductsRequest $request): View
     {
         $filters = $request->validated();
+        $this->searchAssistant->remember($request, $filters['search'] ?? null);
 
         return view('pages.products.index', [
             'categories' => $this->catalog->categories(),
