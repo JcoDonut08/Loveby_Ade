@@ -1,6 +1,10 @@
 @php
     $cartCount = app(\App\Services\CartService::class)->count(request());
     $favoriteCount = app(\App\Services\FavoriteService::class)->count(request());
+    $authenticatedUser = auth()->user();
+    $profilePhotoUrl = $authenticatedUser?->profile_photo_path
+        ? asset('storage/'.$authenticatedUser->profile_photo_path)
+        : null;
 @endphp
 
 <header class="fixed inset-x-0 top-0 z-50 border-b border-white/70 bg-white/90 shadow-[0_16px_40px_-32px_rgba(15,23,42,0.45)] backdrop-blur-xl">
@@ -51,15 +55,26 @@
             </a>
             @auth
                 <details class="group relative">
-                    <summary class="flex h-11 w-11 cursor-pointer list-none items-center justify-center rounded-full bg-slate-900 text-sm font-extrabold text-white shadow-[0_18px_40px_-24px_rgba(15,23,42,0.8)] transition hover:-translate-y-0.5 hover:bg-love-pink-500 focus:outline-none focus:ring-4 focus:ring-love-pink-100 [&::-webkit-details-marker]:hidden" aria-haspopup="menu">
-                        {{ mb_strtoupper(mb_substr(auth()->user()->name, 0, 1)) }}
+                    <summary class="flex h-11 w-11 cursor-pointer list-none items-center justify-center overflow-hidden rounded-full bg-slate-900 text-sm font-extrabold text-white shadow-[0_18px_40px_-24px_rgba(15,23,42,0.8)] transition hover:-translate-y-0.5 hover:bg-love-pink-500 focus:outline-none focus:ring-4 focus:ring-love-pink-100 [&::-webkit-details-marker]:hidden" aria-haspopup="menu">
+                        <img class="{{ $profilePhotoUrl ? '' : 'hidden' }} h-full w-full object-cover" src="{{ $profilePhotoUrl ?? '' }}" alt="{{ auth()->user()->name }} profile photo" data-profile-photo-preview-image>
+                        <span class="{{ $profilePhotoUrl ? 'hidden' : '' }}" data-profile-photo-preview-fallback>
+                            {{ mb_strtoupper(mb_substr(auth()->user()->name, 0, 1)) }}
+                        </span>
                     </summary>
 
                     <div class="absolute right-0 top-full z-50 hidden w-64 pt-3 group-open:block">
                         <div class="rounded-2xl border border-white/80 bg-white p-2 shadow-[0_24px_70px_-36px_rgba(15,23,42,0.42)]">
-                            <div class="px-3 py-2">
-                                <p class="truncate text-sm font-extrabold text-slate-900">{{ auth()->user()->name }}</p>
-                                <p class="truncate text-xs font-medium text-slate-500">{{ auth()->user()->email }}</p>
+                            <div class="flex items-center gap-3 px-3 py-2">
+                                <span class="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-love-pink-100 text-sm font-extrabold text-love-pink-500">
+                                    <img class="{{ $profilePhotoUrl ? '' : 'hidden' }} h-full w-full object-cover" src="{{ $profilePhotoUrl ?? '' }}" alt="{{ auth()->user()->name }} profile photo" data-profile-photo-preview-image>
+                                    <span class="{{ $profilePhotoUrl ? 'hidden' : '' }}" data-profile-photo-preview-fallback>
+                                        {{ mb_strtoupper(mb_substr(auth()->user()->name, 0, 1)) }}
+                                    </span>
+                                </span>
+                                <span class="min-w-0">
+                                    <p class="truncate text-sm font-extrabold text-slate-900">{{ auth()->user()->name }}</p>
+                                    <p class="truncate text-xs font-medium text-slate-500">{{ auth()->user()->email }}</p>
+                                </span>
                             </div>
                             <a class="block rounded-xl px-3 py-2 text-sm font-semibold text-slate-600 transition hover:bg-love-pink-100 hover:text-love-pink-500" href="{{ route('orders.index') }}">View orders</a>
                             <a class="block rounded-xl px-3 py-2 text-sm font-semibold text-slate-600 transition hover:bg-love-pink-100 hover:text-love-pink-500" href="{{ route('account') }}">Account settings</a>

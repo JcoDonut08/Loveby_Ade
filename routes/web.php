@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AccountController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\Auth\PasswordResetOtpController;
@@ -26,7 +27,8 @@ Route::patch('/cart/items/{slug}', [CartController::class, 'update'])->name('car
 Route::delete('/cart/items/{slug}', [CartController::class, 'destroy'])->name('cart.items.destroy');
 Route::view('/orders/confirmed', 'pages.orders.confirmed')->name('orders.confirmed');
 Route::middleware('auth')->group(function (): void {
-    Route::view('/account', 'pages.account')->name('account');
+    Route::get('/account', [AccountController::class, 'index'])->name('account');
+    Route::patch('/account', [AccountController::class, 'update'])->name('account.update');
     Route::view('/orders', 'pages.orders.index')->name('orders.index');
     Route::view('/delivered-products', 'pages.delivered_products')->name('delivered-products.index');
     Route::post('/logout', LogoutController::class)->name('logout');

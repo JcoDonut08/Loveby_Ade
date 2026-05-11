@@ -340,6 +340,45 @@ const initializeContactForms = () => {
     });
 };
 
+const initializeAccountProfilePhotoPreviews = () => {
+    document.querySelectorAll('[data-profile-photo-input]').forEach((input) => {
+        if (!(input instanceof HTMLInputElement) || input.dataset.initialized === 'true') {
+            return;
+        }
+
+        let previewUrl;
+
+        input.addEventListener('change', () => {
+            const file = input.files?.[0];
+
+            if (!file) {
+                return;
+            }
+
+            if (previewUrl) {
+                URL.revokeObjectURL(previewUrl);
+            }
+
+            previewUrl = URL.createObjectURL(file);
+
+            document.querySelectorAll('[data-profile-photo-preview-image]').forEach((image) => {
+                if (!(image instanceof HTMLImageElement)) {
+                    return;
+                }
+
+                image.src = previewUrl;
+                image.classList.remove('hidden');
+            });
+
+            document.querySelectorAll('[data-profile-photo-preview-fallback]').forEach((fallback) => {
+                fallback.classList.add('hidden');
+            });
+        });
+
+        input.dataset.initialized = 'true';
+    });
+};
+
 const initializeOtpInputs = () => {
     document.querySelectorAll('[data-otp-inputs]').forEach((group) => {
         if (!(group instanceof HTMLElement) || group.dataset.initialized === 'true') {
@@ -820,6 +859,7 @@ const initializeStorefrontInteractions = () => {
     initializeReviewForms();
     initializeAutoFilterForms();
     initializeContactForms();
+    initializeAccountProfilePhotoPreviews();
     initializeOtpInputs();
     initializeFavoriteToggles();
     initializeAddToCartButtons();
