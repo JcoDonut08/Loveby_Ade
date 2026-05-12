@@ -2,9 +2,7 @@
     $cartCount = app(\App\Services\CartService::class)->count(request());
     $favoriteCount = app(\App\Services\FavoriteService::class)->count(request());
     $authenticatedUser = auth()->user();
-    $profilePhotoUrl = $authenticatedUser?->profile_photo_path
-        ? asset('storage/'.$authenticatedUser->profile_photo_path)
-        : null;
+    $profilePhotoUrl = $authenticatedUser?->profilePhotoUrl();
 @endphp
 
 <header class="fixed inset-x-0 top-0 z-50 border-b border-white/70 bg-white/90 shadow-[0_16px_40px_-32px_rgba(15,23,42,0.45)] backdrop-blur-xl">

@@ -19,9 +19,7 @@ class AccountController extends Controller
 
         return view('pages.account', [
             'user' => $user,
-            'profilePhotoUrl' => $user->profile_photo_path
-                ? asset('storage/'.$user->profile_photo_path)
-                : null,
+            'profilePhotoUrl' => $user->profilePhotoUrl(),
         ]);
     }
 

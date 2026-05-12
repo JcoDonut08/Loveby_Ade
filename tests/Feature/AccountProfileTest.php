@@ -81,12 +81,36 @@ test('the account controller uses the current app URL for stored profile photos'
     expect($view->getData()['profilePhotoUrl'])->toBe(asset('storage/profile-photos/jco.png'));
 });
 
+test('the account controller uses google avatar when no profile photo was uploaded', function () {
+    $user = User::factory()->create([
+        'profile_photo_path' => null,
+        'google_avatar_url' => 'https://example.com/google-avatar.png',
+    ]);
+
+    $this->actingAs($user);
+    $view = app(AccountController::class)->index();
+
+    expect($view->getData()['profilePhotoUrl'])->toBe('https://example.com/google-avatar.png');
+});
+
+test('uploaded profile photos take priority over google avatars', function () {
+    $user = User::factory()->create([
+        'profile_photo_path' => 'profile-photos/uploaded.png',
+        'google_avatar_url' => 'https://example.com/google-avatar.png',
+    ]);
+
+    $this->actingAs($user);
+    $view = app(AccountController::class)->index();
+
+    expect($view->getData()['profilePhotoUrl'])->toBe(asset('storage/profile-photos/uploaded.png'));
+});
+
 test('the storefront header renders saved profile photos when one exists', function () {
     $view = file_get_contents(resource_path('views/components/home/store-header.blade.php'));
 
     expect($view)
         ->toContain('$profilePhotoUrl')
-        ->toContain("asset('storage/'.")
+        ->toContain('profilePhotoUrl()')
         ->toContain('data-profile-photo-preview-image')
         ->toContain('data-profile-photo-preview-fallback');
 });

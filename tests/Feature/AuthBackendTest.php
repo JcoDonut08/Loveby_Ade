@@ -7,6 +7,8 @@ use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use Laravel\Socialite\Facades\Socialite;
+use Laravel\Socialite\Two\User as SocialiteUser;
 
 uses(LazilyRefreshDatabase::class);
 
@@ -46,6 +48,58 @@ test('remember me creates the recaller cookie on login', function () {
     ])
         ->assertRedirect(route('home'))
         ->assertCookie(Auth::guard()->getRecallerName());
+});
+
+test('google login redirects to google account selection', function () {
+    Socialite::fake('google');
+
+    $this->get(route('auth.google.redirect'))
+        ->assertRedirect('https://socialite.fake/google/authorize');
+});
+
+test('google callback creates and authenticates a user', function () {
+    Socialite::fake('google', googleUser([
+        'id' => 'google-user-123',
+        'name' => 'Google Baker',
+        'email' => 'google-baker@example.com',
+        'avatar' => 'https://example.com/avatar.png',
+    ]));
+
+    $this->get(route('auth.google.callback'))
+        ->assertRedirect(route('home'));
+
+    $createdUser = User::query()->where('email', 'google-baker@example.com')->firstOrFail();
+
+    $this->assertAuthenticatedAs($createdUser);
+    expect($createdUser)
+        ->google_id->toBe('google-user-123')
+        ->google_avatar_url->toBe('https://example.com/avatar.png')
+        ->email_verified_at->not->toBeNull();
+});
+
+test('google callback links an existing email account', function () {
+    $existingUser = User::factory()->create([
+        'email' => 'linked@example.com',
+        'google_id' => null,
+        'email_verified_at' => null,
+    ]);
+
+    Socialite::fake('google', googleUser([
+        'id' => 'linked-google-user',
+        'name' => 'Linked Baker',
+        'email' => 'linked@example.com',
+        'avatar' => 'https://example.com/linked.png',
+    ]));
+
+    $this->get(route('auth.google.callback'))
+        ->assertRedirect(route('home'));
+
+    expect($existingUser->refresh())
+        ->google_id->toBe('linked-google-user')
+        ->google_avatar_url->toBe('https://example.com/linked.png')
+        ->email_verified_at->not->toBeNull();
+
+    $this->assertAuthenticatedAs($existingUser);
 });
 
 test('signup sends an otp and creates the user after verification', function () {
@@ -109,3 +163,15 @@ test('forgot password otp allows the user to change their password', function ()
 
     expect(Hash::check('new-secret-password', $user->refresh()->password))->toBeTrue();
 });
+
+function googleUser(array $attributes): SocialiteUser
+{
+    return (new SocialiteUser)
+        ->setRaw($attributes)
+        ->map([
+            'id' => $attributes['id'],
+            'name' => $attributes['name'],
+            'email' => $attributes['email'],
+            'avatar' => $attributes['avatar'],
+        ]);
+}

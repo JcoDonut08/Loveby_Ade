@@ -27,9 +27,18 @@ test('login renders a real submit form', function () {
     $this->get(route('login'))
         ->assertSuccessful()
         ->assertSee('action="'.route('login.store').'"', false)
+        ->assertSee('href="'.route('auth.google.redirect').'"', false)
+        ->assertSee('Login with Google')
         ->assertSee('name="remember"', false)
         ->assertSee('value="1"', false)
         ->assertSee('type="submit"', false);
+});
+
+test('register renders google signup link', function () {
+    $this->get(route('register'))
+        ->assertSuccessful()
+        ->assertSee('href="'.route('auth.google.redirect').'"', false)
+        ->assertSee('Sign up with Google');
 });
 
 test('registration otp page renders six digit verification inputs', function () {

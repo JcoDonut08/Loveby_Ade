@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AccountController;
+use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\Auth\PasswordResetOtpController;
@@ -39,19 +40,60 @@ Route::middleware('auth')->group(function (): void {
 
 Route::middleware('guest')->group(function (): void {
     Route::get('/login', [LoginController::class, 'show'])->name('login');
-    Route::post('/login', [LoginController::class, 'store'])->middleware('throttle:5,1')->name('login.store');
+
+    Route::post('/login', [LoginController::class, 'store'])
+        ->middleware('throttle:5,1')
+        ->name('login.store');
+
+    Route::get('/auth/google/redirect', [GoogleAuthController::class, 'redirect'])
+        ->middleware('throttle:10,1')
+        ->name('auth.google.redirect');
+
+    Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])
+        ->middleware('throttle:10,1')
+        ->name('auth.google.callback');
+
     Route::get('/register', [RegisteredUserController::class, 'show'])->name('register');
-    Route::post('/register', [RegisteredUserController::class, 'store'])->middleware('throttle:5,1')->name('register.store');
-    Route::get('/register/otp', [RegisteredUserController::class, 'showOtp'])->name('register.otp');
-    Route::post('/register/otp', [RegisteredUserController::class, 'verifyOtp'])->middleware('throttle:5,1')->name('register.otp.verify');
-    Route::post('/register/otp/resend', [RegisteredUserController::class, 'resendOtp'])->middleware('throttle:3,1')->name('register.otp.resend');
-    Route::get('/forgot-password', [PasswordResetOtpController::class, 'showEmailForm'])->name('password.request');
-    Route::post('/forgot-password', [PasswordResetOtpController::class, 'sendOtp'])->middleware('throttle:5,1')->name('password.email');
-    Route::get('/password/otp', [PasswordResetOtpController::class, 'showOtp'])->name('password.otp');
-    Route::post('/password/otp', [PasswordResetOtpController::class, 'verifyOtp'])->middleware('throttle:5,1')->name('password.otp.verify');
-    Route::post('/password/otp/resend', [PasswordResetOtpController::class, 'resendOtp'])->middleware('throttle:3,1')->name('password.otp.resend');
-    Route::get('/password/reset', [PasswordResetOtpController::class, 'showResetForm'])->name('password.reset');
-    Route::put('/password/reset', [PasswordResetOtpController::class, 'reset'])->middleware('throttle:5,1')->name('password.update');
+
+    Route::post('/register', [RegisteredUserController::class, 'store'])
+        ->middleware('throttle:5,1')
+        ->name('register.store');
+
+    Route::get('/register/otp', [RegisteredUserController::class, 'showOtp'])
+        ->name('register.otp');
+
+    Route::post('/register/otp', [RegisteredUserController::class, 'verifyOtp'])
+        ->middleware('throttle:5,1')
+        ->name('register.otp.verify');
+
+    Route::post('/register/otp/resend', [RegisteredUserController::class, 'resendOtp'])
+        ->middleware('throttle:3,1')
+        ->name('register.otp.resend');
+
+    Route::get('/forgot-password', [PasswordResetOtpController::class, 'showEmailForm'])
+        ->name('password.request');
+
+    Route::post('/forgot-password', [PasswordResetOtpController::class, 'sendOtp'])
+        ->middleware('throttle:5,1')
+        ->name('password.email');
+
+    Route::get('/password/otp', [PasswordResetOtpController::class, 'showOtp'])
+        ->name('password.otp');
+
+    Route::post('/password/otp', [PasswordResetOtpController::class, 'verifyOtp'])
+        ->middleware('throttle:5,1')
+        ->name('password.otp.verify');
+
+    Route::post('/password/otp/resend', [PasswordResetOtpController::class, 'resendOtp'])
+        ->middleware('throttle:3,1')
+        ->name('password.otp.resend');
+
+    Route::get('/password/reset', [PasswordResetOtpController::class, 'showResetForm'])
+        ->name('password.reset');
+
+    Route::put('/password/reset', [PasswordResetOtpController::class, 'reset'])
+        ->middleware('throttle:5,1')
+        ->name('password.update');
 });
 
 Route::redirect('/admin', '/admin/dashboard')->name('admin.home');
