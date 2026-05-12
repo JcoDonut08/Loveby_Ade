@@ -7,6 +7,7 @@ use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\Auth\PasswordResetOtpController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\CartController;
+use App\Http\Controllers\ContactController;
 use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\SearchController;
@@ -16,7 +17,10 @@ Route::view('/', 'welcome')->name('home');
 Route::get('/products', [ProductController::class, 'index'])->name('products.index');
 Route::get('/products/pastel-donut-box', [ProductController::class, 'showDefault'])->name('products.show');
 Route::get('/products/{slug}', [ProductController::class, 'show'])->name('products.show-by-slug');
-Route::view('/contact', 'pages.contact')->name('contact');
+Route::get('/contact', [ContactController::class, 'index'])->name('contact');
+Route::post('/contact', [ContactController::class, 'store'])
+    ->middleware('throttle:5,1')
+    ->name('contact.store');
 Route::get('/search/suggestions', SearchController::class)->name('search.suggestions');
 Route::delete('/search/recent', [SearchController::class, 'destroyRecent'])->name('search.recent.destroy');
 Route::view('/notifications', 'pages.notifications')->name('notifications');

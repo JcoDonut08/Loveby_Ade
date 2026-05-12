@@ -27,7 +27,7 @@
                         </p>
 
                         <div class="mt-8 grid gap-4">
-                            <a class="group flex items-center gap-4 rounded-2xl border border-love-pink-100 bg-love-pink-100/55 p-4 transition hover:border-love-pink-200 hover:bg-love-pink-100" href="mailto:hello@lovebyade.test">
+                            <a class="group flex items-center gap-4 rounded-2xl border border-love-pink-100 bg-love-pink-100/55 p-4 transition hover:border-love-pink-200 hover:bg-love-pink-100" href="mailto:{{ $adminEmail }}">
                                 <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white text-love-pink-500">
                                     <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M4.75 6.75h14.5v10.5H4.75z" />
@@ -36,7 +36,7 @@
                                 </span>
                                 <span>
                                     <span class="block text-sm font-bold text-slate-950">Email admin</span>
-                                    <span class="mt-1 block text-sm text-slate-500 group-hover:text-slate-700">hello@lovebyade.test</span>
+                                    <span class="mt-1 block break-all text-sm text-slate-500 group-hover:text-slate-700">{{ $adminEmail }}</span>
                                 </span>
                             </a>
 
@@ -66,44 +66,67 @@
                             <h2 class="mt-2 text-3xl font-bold text-slate-950">Contact form</h2>
                         </div>
 
-                        <form class="mt-7 grid gap-5" data-contact-email="hello@lovebyade.test" data-contact-form>
+                        @if (session('status'))
+                            <div class="mt-6 rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700">
+                                {{ session('status') }}
+                            </div>
+                        @endif
+
+                        <form class="mt-7 grid gap-5" action="{{ route('contact.store') }}" method="POST">
+                            @csrf
+
                             <div class="grid gap-5 md:grid-cols-2">
-                                <label class="grid gap-2 text-sm font-semibold text-slate-700">
+                                <label class="grid gap-2 text-sm font-semibold text-slate-700" for="contact-name">
                                     Full name
-                                    <input class="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-love-pink-300 focus:ring-4 focus:ring-love-pink-100" name="name" type="text" autocomplete="name" placeholder="Your name" required>
+                                    <input class="rounded-xl border border-slate-200 px-4 py-3 text-sm font-medium outline-none transition placeholder:text-slate-400 focus:border-love-pink-300 focus:ring-4 focus:ring-love-pink-100 {{ $contactUsesAuthenticatedUser ? 'bg-slate-100 text-slate-500' : 'bg-white text-slate-900' }}" id="contact-name" name="name" type="text" value="{{ old('name', $contactUserName) }}" autocomplete="name" placeholder="Your name" @readonly($contactUsesAuthenticatedUser) required>
+                                    @error('name')
+                                        <span class="text-xs font-medium text-red-500">{{ $message }}</span>
+                                    @enderror
                                 </label>
 
-                                <label class="grid gap-2 text-sm font-semibold text-slate-700">
+                                <label class="grid gap-2 text-sm font-semibold text-slate-700" for="contact-email">
                                     Email address
-                                    <input class="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-love-pink-300 focus:ring-4 focus:ring-love-pink-100" name="email" type="email" autocomplete="email" placeholder="you@example.com" required>
+                                    <input class="rounded-xl border border-slate-200 px-4 py-3 text-sm font-medium outline-none transition placeholder:text-slate-400 focus:border-love-pink-300 focus:ring-4 focus:ring-love-pink-100 {{ $contactUsesAuthenticatedUser ? 'bg-slate-100 text-slate-500' : 'bg-white text-slate-900' }}" id="contact-email" name="email" type="email" value="{{ old('email', $contactUserEmail) }}" autocomplete="email" placeholder="you@example.com" @readonly($contactUsesAuthenticatedUser) required>
+                                    @error('email')
+                                        <span class="text-xs font-medium text-red-500">{{ $message }}</span>
+                                    @enderror
                                 </label>
                             </div>
 
                             <div class="grid gap-5 md:grid-cols-2">
-                                <label class="grid gap-2 text-sm font-semibold text-slate-700">
+                                <label class="grid gap-2 text-sm font-semibold text-slate-700" for="contact-concern">
                                     Concern type
-                                    <select class="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-900 outline-none transition focus:border-love-pink-300 focus:ring-4 focus:ring-love-pink-100" name="concern" required>
+                                    <select class="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-900 outline-none transition focus:border-love-pink-300 focus:ring-4 focus:ring-love-pink-100" id="contact-concern" name="concern" required>
                                         <option value="">Choose a concern</option>
-                                        <option>Order follow-up</option>
-                                        <option>Product question</option>
-                                        <option>Custom dessert request</option>
-                                        <option>Payment or delivery help</option>
+                                        <option @selected(old('concern') === 'Order follow-up')>Order follow-up</option>
+                                        <option @selected(old('concern') === 'Product question')>Product question</option>
+                                        <option @selected(old('concern') === 'Custom dessert request')>Custom dessert request</option>
+                                        <option @selected(old('concern') === 'Payment or delivery help')>Payment or delivery help</option>
                                     </select>
+                                    @error('concern')
+                                        <span class="text-xs font-medium text-red-500">{{ $message }}</span>
+                                    @enderror
                                 </label>
 
-                                <label class="grid gap-2 text-sm font-semibold text-slate-700">
+                                <label class="grid gap-2 text-sm font-semibold text-slate-700" for="contact-order-number">
                                     Order number
-                                    <input class="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-love-pink-300 focus:ring-4 focus:ring-love-pink-100" name="order_number" type="text" placeholder="Optional">
+                                    <input class="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-love-pink-300 focus:ring-4 focus:ring-love-pink-100" id="contact-order-number" name="order_number" type="text" value="{{ old('order_number') }}" placeholder="Optional">
+                                    @error('order_number')
+                                        <span class="text-xs font-medium text-red-500">{{ $message }}</span>
+                                    @enderror
                                 </label>
                             </div>
 
-                            <label class="grid gap-2 text-sm font-semibold text-slate-700">
+                            <label class="grid gap-2 text-sm font-semibold text-slate-700" for="contact-message">
                                 Message
-                                <textarea class="min-h-44 resize-y rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm leading-7 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-love-pink-300 focus:ring-4 focus:ring-love-pink-100" name="message" placeholder="Tell the admin how we can help." required></textarea>
+                                <textarea class="min-h-44 resize-y rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm leading-7 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-love-pink-300 focus:ring-4 focus:ring-love-pink-100" id="contact-message" name="message" placeholder="Tell the admin how we can help." required>{{ old('message') }}</textarea>
+                                @error('message')
+                                    <span class="text-xs font-medium text-red-500">{{ $message }}</span>
+                                @enderror
                             </label>
 
                             <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                                <p class="text-sm font-semibold text-love-blue-500 opacity-0" data-contact-form-status>Message ready for admin.</p>
+                                <p class="text-sm font-semibold text-love-blue-500">Messages are sent to {{ $adminEmail }}.</p>
                                 <button class="inline-flex items-center justify-center rounded-xl bg-slate-900 px-6 py-3 text-sm font-semibold text-white shadow-[0_18px_34px_-24px_rgba(15,23,42,0.8)] transition hover:-translate-y-0.5 hover:bg-love-pink-500" type="submit">
                                     Send message
                                 </button>
