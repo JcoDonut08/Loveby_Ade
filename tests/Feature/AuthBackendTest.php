@@ -104,11 +104,12 @@ test('google callback links an existing email account', function () {
 
 test('signup sends an otp and creates the user after verification', function () {
     Mail::fake();
+    $password = 'SweetCake#2026';
 
     $this->post(route('register.store'), [
         'username' => 'Luna Cakes',
         'email' => 'luna@example.com',
-        'password' => 'secret-password',
+        'password' => $password,
     ])->assertRedirect(route('register.otp'));
 
     Mail::assertQueued(OtpCodeMail::class);
@@ -128,10 +129,25 @@ test('signup sends an otp and creates the user after verification', function () 
 
     $this->post(route('login.store'), [
         'email' => 'luna@example.com',
-        'password' => 'secret-password',
+        'password' => $password,
     ])->assertRedirect(route('home'));
 
     $this->assertAuthenticatedAs($createdUser);
+});
+
+test('signup rejects weak passwords', function () {
+    Mail::fake();
+
+    $this->from(route('register'))
+        ->post(route('register.store'), [
+            'username' => 'Weak Password User',
+            'email' => 'weak-password@example.com',
+            'password' => 'secret-password',
+        ])
+        ->assertRedirect(route('register'))
+        ->assertSessionHasErrors('password');
+
+    Mail::assertNothingQueued();
 });
 
 test('forgot password otp allows the user to change their password', function () {
