@@ -1,7 +1,8 @@
 <?php
 
 test('admin notifications page renders paginated notification controls', function () {
-    $this->get(route('admin.notifications'))
+    $this->actingAs(adminUser())
+        ->get(route('admin.notifications'))
         ->assertSuccessful()
         ->assertSee('Notifications')
         ->assertSee('Everything happening across your shop.')

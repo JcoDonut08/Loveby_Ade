@@ -25,70 +25,58 @@
                         Thanks for ordering
                     </h1>
                     <p class="mt-3 max-w-xl text-base leading-7 text-slate-500">
-                        We appreciate your order. We're currently preparing your desserts and will send your confirmation very soon.
+                        We appreciate your order. Your desserts are now pending admin review before preparation and delivery updates begin.
                     </p>
 
-                    <div class="mt-10">
-                        <p class="text-sm font-extrabold text-slate-950">Tracking number</p>
-                        <p class="mt-2 text-sm font-semibold text-love-blue-500">LBA-51547878755545848512</p>
-                    </div>
+                    @if ($order)
+                        <div class="mt-10">
+                            <p class="text-sm font-extrabold text-slate-950">Tracking number</p>
+                            <p class="mt-2 text-sm font-semibold text-love-blue-500">{{ $order->order_number }}</p>
+                        </div>
 
-                    <div class="mt-7 divide-y divide-slate-200 border-y border-slate-200">
-                        <article class="grid grid-cols-[6rem_minmax(0,1fr)_auto] gap-5 py-6">
-                            <img class="aspect-square w-24 rounded-md bg-slate-100 object-cover" src="https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=300&q=80" alt="Pastel Donut Box">
-                            <div class="min-w-0">
-                                <h2 class="text-sm font-extrabold text-slate-950">Pastel Donut Box</h2>
-                                <p class="mt-1 text-sm font-medium text-slate-500">Assorted pastel donuts</p>
-                                <p class="mt-2 text-sm font-medium text-slate-500">Qty 2</p>
+                        <div class="mt-7 divide-y divide-slate-200 border-y border-slate-200">
+                            @foreach ($order->items as $item)
+                                <article class="grid grid-cols-[6rem_minmax(0,1fr)_auto] gap-5 py-6">
+                                    <img class="aspect-square w-24 rounded-md bg-slate-100 object-cover" src="{{ $item->product_image }}" alt="{{ $item->product_title }}">
+                                    <div class="min-w-0">
+                                        <h2 class="text-sm font-extrabold text-slate-950">{{ $item->product_title }}</h2>
+                                        <p class="mt-1 text-sm font-medium text-slate-500">{{ $item->category }}</p>
+                                        <p class="mt-2 text-sm font-medium text-slate-500">Qty {{ $item->quantity }}</p>
+                                    </div>
+                                    <p class="text-sm font-extrabold text-slate-950">&#8369;{{ number_format((float) $item->line_total, 2) }}</p>
+                                </article>
+                            @endforeach
+                        </div>
+
+                        <dl class="mt-6 space-y-5">
+                            <div class="flex items-center justify-between gap-4 text-sm font-medium text-slate-500">
+                                <dt>Subtotal</dt>
+                                <dd class="font-extrabold text-slate-950">&#8369;{{ number_format((float) $order->subtotal, 2) }}</dd>
                             </div>
-                            <p class="text-sm font-extrabold text-slate-950">&#8369;240.00</p>
-                        </article>
-
-                        <article class="grid grid-cols-[6rem_minmax(0,1fr)_auto] gap-5 py-6">
-                            <img class="aspect-square w-24 rounded-md bg-slate-100 object-cover" src="https://images.unsplash.com/photo-1499636136210-6f4ee915583e?auto=format&fit=crop&w=300&q=80" alt="Chocolate Chip Cookies">
-                            <div class="min-w-0">
-                                <h2 class="text-sm font-extrabold text-slate-950">Chocolate Chip Cookies</h2>
-                                <p class="mt-1 text-sm font-medium text-slate-500">Classic cookie pack</p>
-                                <p class="mt-2 text-sm font-medium text-slate-500">Qty 1</p>
+                            <div class="flex items-center justify-between gap-4 text-sm font-medium text-slate-500">
+                                <dt>Shipping</dt>
+                                <dd class="font-extrabold text-slate-950">&#8369;{{ number_format((float) $order->delivery_fee, 2) }}</dd>
                             </div>
-                            <p class="text-sm font-extrabold text-slate-950">&#8369;90.00</p>
-                        </article>
-
-                        <article class="grid grid-cols-[6rem_minmax(0,1fr)_auto] gap-5 py-6">
-                            <img class="aspect-square w-24 rounded-md bg-slate-100 object-cover" src="https://images.unsplash.com/photo-1551024601-bec78aea704b?auto=format&fit=crop&w=300&q=80" alt="Mini Cake Cups">
-                            <div class="min-w-0">
-                                <h2 class="text-sm font-extrabold text-slate-950">Mini Cake Cups</h2>
-                                <p class="mt-1 text-sm font-medium text-slate-500">Box of mini cake cups</p>
-                                <p class="mt-2 text-sm font-medium text-slate-500">Qty 1</p>
+                            <div class="flex items-center justify-between gap-4 text-sm font-medium text-slate-500">
+                                <dt>Promo discount</dt>
+                                <dd class="font-extrabold text-slate-950">&#8369;{{ number_format((float) $order->discount, 2) }}</dd>
                             </div>
-                            <p class="text-sm font-extrabold text-slate-950">&#8369;150.00</p>
-                        </article>
-                    </div>
-
-                    <dl class="mt-6 space-y-5">
-                        <div class="flex items-center justify-between gap-4 text-sm font-medium text-slate-500">
-                            <dt>Subtotal</dt>
-                            <dd class="font-extrabold text-slate-950">&#8369;480.00</dd>
+                            <div class="flex items-center justify-between gap-4 border-t border-slate-200 pt-6 text-base font-extrabold text-slate-950">
+                                <dt>Total</dt>
+                                <dd>&#8369;{{ number_format((float) $order->total, 2) }}</dd>
+                            </div>
+                        </dl>
+                    @else
+                        <div class="mt-10 rounded-xl border border-slate-200 bg-slate-50 p-5 text-sm font-semibold text-slate-600">
+                            Your latest order details will appear here right after checkout.
                         </div>
-                        <div class="flex items-center justify-between gap-4 text-sm font-medium text-slate-500">
-                            <dt>Shipping</dt>
-                            <dd class="font-extrabold text-slate-950">&#8369;0.00</dd>
-                        </div>
-                        <div class="flex items-center justify-between gap-4 text-sm font-medium text-slate-500">
-                            <dt>Promo discount</dt>
-                            <dd class="font-extrabold text-slate-950">&#8369;0.00</dd>
-                        </div>
-                        <div class="flex items-center justify-between gap-4 border-t border-slate-200 pt-6 text-base font-extrabold text-slate-950">
-                            <dt>Total</dt>
-                            <dd>&#8369;480.00</dd>
-                        </div>
-                    </dl>
+                    @endif
 
                     <div class="mt-8 flex flex-col gap-3 sm:flex-row">
                         <a class="inline-flex items-center justify-center rounded-full bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-love-pink-500" href="{{ route('products.index') }}">
                             Continue shopping
                         </a>
-                        <a class="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-6 py-3 text-sm font-semibold text-slate-600 transition hover:-translate-y-0.5 hover:border-love-blue-200 hover:text-love-blue-500" href="{{ route('notifications') }}">
+                        <a class="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-6 py-3 text-sm font-semibold text-slate-600 transition hover:-translate-y-0.5 hover:border-love-blue-200 hover:text-love-blue-500" href="{{ route('orders.index') }}">
                             View updates
                         </a>
                     </div>

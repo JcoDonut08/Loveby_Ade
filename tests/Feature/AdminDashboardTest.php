@@ -1,7 +1,8 @@
 <?php
 
 test('admin dashboard renders the redesigned overview sections', function () {
-    $this->get(route('admin.dashboard'))
+    $this->actingAs(adminUser())
+        ->get(route('admin.dashboard'))
         ->assertSuccessful()
         ->assertSee('Dashboard')
         ->assertSee('Revenue')

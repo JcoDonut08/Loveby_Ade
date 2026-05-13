@@ -165,11 +165,19 @@ const initializeCheckoutFlow = () => {
 
         page.querySelector('[data-place-order]')?.addEventListener('click', () => {
             updateReview();
-            setStep(4);
 
-            window.setTimeout(() => {
-                window.location.assign(page.dataset.confirmUrl || '/orders/confirm');
-            }, 1800);
+            if (!form.reportValidity()) {
+                return;
+            }
+
+            const button = page.querySelector('[data-place-order]');
+
+            if (button instanceof HTMLButtonElement) {
+                button.disabled = true;
+                button.textContent = 'Placing order...';
+            }
+
+            form.requestSubmit();
         });
 
         setStep(1);

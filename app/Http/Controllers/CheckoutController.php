@@ -2,13 +2,19 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreCheckoutRequest;
 use App\Services\CartService;
+use App\Services\CheckoutService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class CheckoutController extends Controller
 {
-    public function __construct(private CartService $cart) {}
+    public function __construct(
+        private CartService $cart,
+        private CheckoutService $checkout,
+    ) {}
 
     public function index(Request $request): View
     {
@@ -26,6 +32,15 @@ class CheckoutController extends Controller
             'formattedDiscount' => $this->formatPeso($discount),
             'formattedTotal' => $this->formatPeso($total),
         ]);
+    }
+
+    public function store(StoreCheckoutRequest $request): RedirectResponse
+    {
+        $order = $this->checkout->createOrder($request, $request->validated());
+
+        return redirect()
+            ->route('orders.confirmed')
+            ->with('last_order_id', $order->id);
     }
 
     private function formatPeso(float $amount): string

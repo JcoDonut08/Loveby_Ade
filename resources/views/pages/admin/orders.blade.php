@@ -21,15 +21,24 @@
                 </div>
 
                 <div class="flex items-center gap-3">
-                    <label class="relative min-w-0 flex-1 sm:w-96 sm:flex-none" for="admin-order-search">
+                    <form class="relative min-w-0 flex-1 sm:w-96 sm:flex-none" method="GET" action="{{ route('admin.orders') }}">
+                        @if (request()->filled('status'))
+                            <input type="hidden" name="status" value="{{ request('status') }}">
+                        @endif
+                        @if (request()->filled('page_size'))
+                            <input type="hidden" name="page_size" value="{{ request('page_size') }}">
+                        @endif
+
+                        <label for="admin-order-search">
                         <span class="pointer-events-none absolute inset-y-0 left-4 flex items-center text-[#9a6c7b]">
                             <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                                 <circle cx="11" cy="11" r="6.5" />
                                 <path stroke-linecap="round" d="m16 16 4.5 4.5" />
                             </svg>
                         </span>
-                        <input class="h-12 w-full rounded-full border border-love-pink-100 bg-white/88 px-12 text-sm font-medium text-[#512438] outline-none transition placeholder:text-[#9a6c7b] focus:border-love-pink-300 focus:ring-4 focus:ring-love-pink-100/80" id="admin-order-search" type="search" placeholder="Search orders, customers, desserts..." data-order-search>
-                    </label>
+                        <input class="h-12 w-full rounded-full border border-love-pink-100 bg-white/88 px-12 text-sm font-medium text-[#512438] outline-none transition placeholder:text-[#9a6c7b] focus:border-love-pink-300 focus:ring-4 focus:ring-love-pink-100/80" id="admin-order-search" type="search" name="search" value="{{ request('search') }}" placeholder="Search orders, customers, desserts..." data-order-search>
+                        </label>
+                    </form>
 
                     <button class="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-[#512438] transition hover:bg-love-pink-100 focus:outline-none focus:ring-4 focus:ring-love-pink-100" type="button" aria-label="View notifications">
                         <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
@@ -51,7 +60,7 @@
         </header>
 
         <main class="px-4 py-4 sm:px-6 lg:px-10">
-            <x-admin.orders-section />
+            <x-admin.orders-section :orders="$orders" :status-counts="$statusCounts" :statuses="$statuses" />
         </main>
     </div>
 @endsection

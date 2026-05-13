@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\User;
+use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Tests\TestCase;
 
 /*
@@ -14,7 +16,7 @@ use Tests\TestCase;
 */
 
 pest()->extend(TestCase::class)
-    // ->use(Illuminate\Foundation\Testing\RefreshDatabase::class)
+    ->use(LazilyRefreshDatabase::class)
     ->in('Feature');
 
 /*
@@ -46,4 +48,9 @@ expect()->extend('toBeOne', function () {
 function something()
 {
     // ..
+}
+
+function adminUser(): User
+{
+    return User::factory()->admin()->create();
 }

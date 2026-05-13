@@ -1,5 +1,8 @@
 <?php
 
+use App\Models\Order;
+use App\Models\User;
+
 test('storefront header links to customer shopping utilities', function () {
     $this->get(route('home'))
         ->assertSuccessful()
@@ -52,15 +55,29 @@ test('cart page renders responsive cart controls subtotal promo code and empty s
 });
 
 test('order confirmation page renders thank you message order items and totals', function () {
-    $this->get(route('orders.confirmed'))
+    $user = User::factory()->create();
+    $order = Order::factory()->for($user)->create([
+        'order_number' => 'LBA-515478',
+    ]);
+    $order->items()->create([
+        'product_slug' => 'pastel-donut-box',
+        'product_title' => 'Pastel Donut Box',
+        'category' => 'Donuts',
+        'product_image' => 'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=300&q=80',
+        'unit_price' => 120,
+        'quantity' => 2,
+        'line_total' => 240,
+    ]);
+
+    $this->actingAs($user)
+        ->withSession(['last_order_id' => $order->id])
+        ->get(route('orders.confirmed'))
         ->assertSuccessful()
         ->assertSee('Payment successful')
         ->assertSee('Thanks for ordering')
         ->assertSee('Tracking number')
-        ->assertSee('LBA-51547878755545848512')
+        ->assertSee('LBA-515478')
         ->assertSee('Pastel Donut Box')
-        ->assertSee('Chocolate Chip Cookies')
-        ->assertSee('Mini Cake Cups')
         ->assertSee('Total')
         ->assertSee('Continue shopping');
 });

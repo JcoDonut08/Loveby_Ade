@@ -1,7 +1,8 @@
 <?php
 
 test('admin chat inbox renders the AI active conversation workspace', function () {
-    $this->get(route('admin.chat-inbox'))
+    $this->actingAs(adminUser())
+        ->get(route('admin.chat-inbox'))
         ->assertSuccessful()
         ->assertSee('Chat Inbox')
         ->assertSee('AI-assisted customer conversations for orders, delivery, and custom desserts.')

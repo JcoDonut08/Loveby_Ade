@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\AccountController;
+use App\Http\Controllers\Admin\OrderController as AdminOrderController;
+use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\LogoutController;
@@ -10,11 +12,14 @@ use App\Http\Controllers\CartController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\FavoriteController;
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\SearchController;
+use App\Http\Middleware\EnsureUserIsAdmin;
 use Illuminate\Support\Facades\Route;
 
-Route::view('/', 'welcome')->name('home');
+Route::get('/', HomeController::class)->name('home');
 Route::get('/products', [ProductController::class, 'index'])->name('products.index');
 Route::get('/products/pastel-donut-box', [ProductController::class, 'showDefault'])->name('products.show');
 Route::get('/products/{slug}', [ProductController::class, 'show'])->name('products.show-by-slug');
@@ -35,12 +40,13 @@ Route::post('/cart/items', [CartController::class, 'store'])->name('cart.items.s
 Route::patch('/cart/items/{slug}', [CartController::class, 'update'])->name('cart.items.update');
 Route::delete('/cart/items/{slug}', [CartController::class, 'destroy'])->name('cart.items.destroy');
 Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout');
-Route::view('/orders/confirm', 'pages.orders.confirmed')->name('orders.confirm');
-Route::view('/orders/confirmed', 'pages.orders.confirmed')->name('orders.confirmed');
 Route::middleware('auth')->group(function (): void {
     Route::get('/account', [AccountController::class, 'index'])->name('account');
     Route::patch('/account', [AccountController::class, 'update'])->name('account.update');
-    Route::view('/orders', 'pages.orders.index')->name('orders.index');
+    Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
+    Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
+    Route::redirect('/orders/confirm', '/orders/confirmed')->name('orders.confirm');
+    Route::get('/orders/confirmed', [OrderController::class, 'confirmed'])->name('orders.confirmed');
     Route::view('/delivered-products', 'pages.delivered_products')->name('delivered-products.index');
     Route::post('/logout', LogoutController::class)->name('logout');
 });
@@ -103,11 +109,17 @@ Route::middleware('guest')->group(function (): void {
         ->name('password.update');
 });
 
-Route::redirect('/admin', '/admin/dashboard')->name('admin.home');
-Route::prefix('admin')->name('admin.')->group(function (): void {
+Route::middleware(EnsureUserIsAdmin::class)->group(function (): void {
+    Route::redirect('/admin', '/admin/dashboard')->name('admin.home');
+});
+Route::prefix('admin')->name('admin.')->middleware(EnsureUserIsAdmin::class)->group(function (): void {
     Route::view('/dashboard', 'pages.admin.dashboard')->name('dashboard');
-    Route::view('/orders', 'pages.admin.orders')->name('orders');
-    Route::view('/products', 'pages.admin.products')->name('products');
+    Route::get('/orders', [AdminOrderController::class, 'index'])->name('orders');
+    Route::patch('/orders/{order}', [AdminOrderController::class, 'update'])->name('orders.update');
+    Route::get('/products', [AdminProductController::class, 'index'])->name('products');
+    Route::post('/products', [AdminProductController::class, 'store'])->name('products.store');
+    Route::patch('/products/{product}', [AdminProductController::class, 'update'])->name('products.update');
+    Route::delete('/products/{product}', [AdminProductController::class, 'destroy'])->name('products.destroy');
     Route::view('/customers', 'pages.admin.customers')->name('customers');
     Route::view('/promotions', 'pages.admin.promotions')->name('promotions');
     Route::view('/chat-inbox', 'pages.admin.chat_inbox')->name('chat-inbox');

@@ -28,6 +28,7 @@ class User extends Authenticatable
         'contact_number',
         'address',
         'password',
+        'role',
         'profile_photo_path',
         'google_avatar_url',
     ];
@@ -70,6 +71,19 @@ class User extends Authenticatable
     public function favoriteItems(): HasMany
     {
         return $this->hasMany(FavoriteItem::class);
+    }
+
+    /**
+     * @return HasMany<Order, $this>
+     */
+    public function orders(): HasMany
+    {
+        return $this->hasMany(Order::class);
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
     }
 
     public function profilePhotoUrl(): ?string

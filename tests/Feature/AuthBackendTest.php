@@ -50,6 +50,20 @@ test('remember me creates the recaller cookie on login', function () {
         ->assertCookie(Auth::guard()->getRecallerName());
 });
 
+test('an admin is redirected to the dashboard after login', function () {
+    $admin = User::factory()->admin()->create([
+        'email' => 'admin@example.com',
+        'password' => 'secret-password',
+    ]);
+
+    $this->post(route('login.store'), [
+        'email' => 'admin@example.com',
+        'password' => 'secret-password',
+    ])->assertRedirect(route('admin.dashboard'));
+
+    $this->assertAuthenticatedAs($admin);
+});
+
 test('google login redirects to google account selection', function () {
     Socialite::fake('google');
 

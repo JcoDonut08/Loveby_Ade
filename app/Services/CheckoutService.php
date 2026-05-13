@@ -1,0 +1,107 @@
+<?php
+
+namespace App\Services;
+
+use App\Models\Order;
+use App\Models\Product;
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
+
+class CheckoutService
+{
+    public function __construct(private CartService $cart) {}
+
+    /**
+     * @param  array{full_name: string, contact_number: string, email_address: string, complete_address: string, delivery_notes?: string|null, payment_method: string}  $data
+     */
+    public function createOrder(Request $request, array $data): Order
+    {
+        $user = $request->user();
+
+        if (! $user instanceof User) {
+            throw ValidationException::withMessages([
+                'checkout' => 'Please log in before placing an order.',
+            ]);
+        }
+
+        $cart = $this->cart->summary($request);
+
+        if ($cart['count'] < 1) {
+            throw ValidationException::withMessages([
+                'cart' => 'Your cart is empty.',
+            ]);
+        }
+
+        return DB::transaction(function () use ($request, $user, $data, $cart): Order {
+            $deliveryFee = $cart['count'] > 0 ? 60.00 : 0.00;
+            $discount = 0.00;
+            $subtotal = (float) $cart['subtotal'];
+            $total = $subtotal + $deliveryFee - $discount;
+
+            $order = Order::query()->create([
+                'order_number' => $this->makeOrderNumber(),
+                'user_id' => $user->id,
+                'status' => Order::STATUS_PENDING,
+                'full_name' => $data['full_name'],
+                'contact_number' => $data['contact_number'],
+                'email_address' => $data['email_address'],
+                'complete_address' => $data['complete_address'],
+                'delivery_notes' => $data['delivery_notes'] ?? null,
+                'payment_method' => $data['payment_method'],
+                'subtotal' => $subtotal,
+                'delivery_fee' => $deliveryFee,
+                'discount' => $discount,
+                'total' => $total,
+            ]);
+
+            foreach ($cart['items'] as $item) {
+                $product = Product::query()
+                    ->where('slug', $item['slug'])
+                    ->lockForUpdate()
+                    ->first();
+
+                $quantity = (int) $item['quantity'];
+
+                if ($product instanceof Product && $product->stock < $quantity) {
+                    throw ValidationException::withMessages([
+                        'cart' => $product->title.' does not have enough stock.',
+                    ]);
+                }
+
+                $order->items()->create([
+                    'product_id' => $product?->id,
+                    'product_slug' => $item['slug'],
+                    'product_title' => $item['title'],
+                    'category' => $item['category'],
+                    'product_image' => $item['image'],
+                    'unit_price' => $item['price'],
+                    'quantity' => $quantity,
+                    'line_total' => $item['line_total'],
+                ]);
+
+                if ($product instanceof Product) {
+                    $product->forceFill([
+                        'stock' => max(0, $product->stock - $quantity),
+                        'sold' => $product->sold + $quantity,
+                    ])->save();
+                }
+            }
+
+            $this->cart->clear($request);
+
+            return $order->load('items');
+        });
+    }
+
+    private function makeOrderNumber(): string
+    {
+        do {
+            $orderNumber = 'LBA-'.now()->format('ymd').'-'.Str::upper(Str::random(6));
+        } while (Order::query()->where('order_number', $orderNumber)->exists());
+
+        return $orderNumber;
+    }
+}

@@ -1,7 +1,8 @@
 <?php
 
 test('admin customers page renders the customer management workspace', function () {
-    $this->get(route('admin.customers'))
+    $this->actingAs(adminUser())
+        ->get(route('admin.customers'))
         ->assertSuccessful()
         ->assertSee('Customers')
         ->assertSee('Review customer profiles, purchases, spending, and activity.')

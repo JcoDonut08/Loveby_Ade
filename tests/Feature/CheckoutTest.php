@@ -1,5 +1,8 @@
 <?php
 
+use App\Models\Order;
+use App\Models\User;
+
 test('checkout page renders shipping payment review and confirmation steps', function () {
     $this->postJson(route('cart.items.store'), [
         'slug' => 'pastel-donut-box',
@@ -34,8 +37,35 @@ test('checkout page renders shipping payment review and confirmation steps', fun
 });
 
 test('orders confirm alias renders the confirmation page', function () {
-    $this->get(route('orders.confirm'))
-        ->assertSuccessful()
-        ->assertSee('Thanks for ordering')
-        ->assertSee('Tracking number');
+    $this->actingAs(User::factory()->create())
+        ->get(route('orders.confirm'))
+        ->assertRedirect(route('orders.confirmed'));
+});
+
+test('authenticated customer can place an order from the cart', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)
+        ->postJson(route('cart.items.store'), [
+            'slug' => 'pastel-donut-box',
+            'quantity' => 2,
+        ])
+        ->assertSuccessful();
+
+    $this->actingAs($user)
+        ->post(route('checkout.store'), [
+            'full_name' => 'Ade Santos',
+            'contact_number' => '09171234567',
+            'email_address' => 'ade@example.com',
+            'complete_address' => '123 Bakery Lane',
+            'delivery_notes' => 'Ring the bell.',
+            'payment_method' => 'Cash on Delivery',
+        ])
+        ->assertRedirect(route('orders.confirmed'));
+
+    $order = Order::query()->whereBelongsTo($user)->with('items')->firstOrFail();
+
+    expect($order->status)->toBe(Order::STATUS_PENDING)
+        ->and($order->items)->toHaveCount(1)
+        ->and($order->items->first()->product_title)->toBe('Pastel Donut Box');
 });

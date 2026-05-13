@@ -1,7 +1,8 @@
 <?php
 
 test('admin account page renders editable profile controls', function () {
-    $this->get(route('admin.account'))
+    $this->actingAs(adminUser())
+        ->get(route('admin.account'))
         ->assertSuccessful()
         ->assertSee('Account')
         ->assertSee('Manage your admin profile and access.')

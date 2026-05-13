@@ -1,7 +1,8 @@
 <?php
 
 test('admin reports page renders report generation cards', function () {
-    $this->get(route('admin.reports'))
+    $this->actingAs(adminUser())
+        ->get(route('admin.reports'))
         ->assertSuccessful()
         ->assertSee('Reports')
         ->assertSee('Export and share business reports.')

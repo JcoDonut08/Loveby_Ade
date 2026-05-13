@@ -17,6 +17,10 @@ export const initializeAdminOrderManagement = () => {
             return;
         }
 
+        if (section.dataset.backendOrders === 'true') {
+            return;
+        }
+
         const orders = cloneOrders();
         const state = {
             filter: 'all',

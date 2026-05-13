@@ -2,7 +2,12 @@
 
 namespace App\Services;
 
+use App\Models\OrderItem;
+use App\Models\Product;
+use App\Models\User;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class ProductCatalog
@@ -12,7 +17,13 @@ class ProductCatalog
      */
     public function all(): Collection
     {
-        return collect($this->products())
+        $databaseProducts = $this->databaseProducts();
+
+        if ($databaseProducts->isNotEmpty()) {
+            return $databaseProducts;
+        }
+
+        return collect(self::defaultProducts())
             ->map(fn (array $product): array => $this->decorateProduct($product))
             ->values();
     }
@@ -103,7 +114,7 @@ class ProductCatalog
     /**
      * @return array<int, array<string, mixed>>
      */
-    private function products(): array
+    public static function defaultProducts(): array
     {
         return [
             [
@@ -239,6 +250,83 @@ class ProductCatalog
                 'description' => 'A smooth iced latte with caramel sweetness, made for slow browsing, dessert pairings, and afternoon cravings.',
             ],
         ];
+    }
+
+    /**
+     * @return Collection<int, array<string, mixed>>
+     */
+    public function trending(int $limit = 4): Collection
+    {
+        return $this->all()
+            ->sortByDesc('sold')
+            ->take($limit)
+            ->values();
+    }
+
+    /**
+     * @return Collection<int, array<string, mixed>>
+     */
+    public function recommendedFor(?User $user, int $limit = 4): Collection
+    {
+        if (! $user instanceof User || ! Schema::hasTable('order_items')) {
+            return $this->trending($limit);
+        }
+
+        $category = OrderItem::query()
+            ->whereHas('order', fn ($query) => $query->whereBelongsTo($user))
+            ->selectRaw('category, SUM(quantity) as total_quantity')
+            ->groupBy('category')
+            ->orderByDesc('total_quantity')
+            ->value('category');
+
+        if (! is_string($category)) {
+            return $this->trending($limit);
+        }
+
+        $purchasedSlugs = OrderItem::query()
+            ->whereHas('order', fn ($query) => $query->whereBelongsTo($user))
+            ->pluck('product_slug')
+            ->all();
+
+        $recommended = $this->all()
+            ->where('category', $category)
+            ->reject(fn (array $product): bool => in_array($product['slug'], $purchasedSlugs, true))
+            ->sortByDesc('sold')
+            ->take($limit)
+            ->values();
+
+        return $recommended->isNotEmpty()
+            ? $recommended
+            : $this->trending($limit);
+    }
+
+    /**
+     * @return Collection<int, array<string, mixed>>
+     */
+    private function databaseProducts(): Collection
+    {
+        if (! Schema::hasTable('products')) {
+            return collect();
+        }
+
+        return Product::query()
+            ->where('is_active', true)
+            ->latest()
+            ->get()
+            ->map(fn (Product $product): array => $this->decorateProduct([
+                'slug' => $product->slug,
+                'title' => $product->title,
+                'category' => $product->category,
+                'price' => (float) $product->price,
+                'sold' => $product->sold,
+                'stock' => $product->stock,
+                'rating' => (float) $product->rating,
+                'image' => $product->image_path
+                    ? Storage::disk('public')->url($product->image_path)
+                    : ($product->image_url ?: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=900&q=80'),
+                'description' => $product->description,
+            ]))
+            ->values();
     }
 
     /**

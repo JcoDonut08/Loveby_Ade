@@ -1,7 +1,8 @@
 <?php
 
 test('admin analytics page renders filters summary cards and paginated reports', function () {
-    $this->get(route('admin.analytics'))
+    $this->actingAs(adminUser())
+        ->get(route('admin.analytics'))
         ->assertSuccessful()
         ->assertSee('Analytics')
         ->assertSee('Date range')

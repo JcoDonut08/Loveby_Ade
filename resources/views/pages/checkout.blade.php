@@ -28,19 +28,27 @@
                 <x-checkout.progress :steps="$steps" />
             </div>
 
-            <form class="mt-8" data-checkout-form>
+            <form class="mt-8" method="POST" action="{{ route('checkout.store') }}" data-checkout-form>
+                @csrf
+
+                @if ($errors->any())
+                    <div class="mb-6 rounded-2xl border border-rose-100 bg-rose-50 px-5 py-4 text-sm font-semibold text-rose-600">
+                        {{ $errors->first() }}
+                    </div>
+                @endif
+
                 <section class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_25rem]" data-checkout-step="1">
                     <div class="rounded-2xl border border-white/80 bg-white/92 p-6 shadow-[0_24px_58px_-38px_rgba(15,23,42,0.32)]">
                         <h2 class="text-2xl font-extrabold text-slate-950">Shipping Details</h2>
                         <p class="mt-2 text-sm leading-6 text-slate-500">Tell us where to send your freshly prepared treats.</p>
 
                         <div class="mt-6 grid gap-5 sm:grid-cols-2">
-                            <x-checkout.field id="full-name" label="Full name" name="full_name" placeholder="Ade Santos" required />
-                            <x-checkout.field id="contact-number" label="Contact number" name="contact_number" type="tel" placeholder="09XX XXX XXXX" required />
-                            <x-checkout.field id="email-address" label="Email address" name="email_address" type="email" placeholder="you@example.com" required />
-                            <x-checkout.field id="complete-address" label="Complete address" name="complete_address" placeholder="House, street, barangay, city" required />
+                            <x-checkout.field id="full-name" label="Full name" name="full_name" :value="old('full_name', auth()->user()?->name)" placeholder="Ade Santos" required />
+                            <x-checkout.field id="contact-number" label="Contact number" name="contact_number" :value="old('contact_number', auth()->user()?->contact_number)" type="tel" placeholder="09XX XXX XXXX" required />
+                            <x-checkout.field id="email-address" label="Email address" name="email_address" :value="old('email_address', auth()->user()?->email)" type="email" placeholder="you@example.com" required />
+                            <x-checkout.field id="complete-address" label="Complete address" name="complete_address" :value="old('complete_address', auth()->user()?->address)" placeholder="House, street, barangay, city" required />
                             <div class="sm:col-span-2">
-                                <x-checkout.field id="delivery-notes" label="Delivery notes" name="delivery_notes" placeholder="Gate color, landmark, preferred handoff notes" textarea />
+                                <x-checkout.field id="delivery-notes" label="Delivery notes" name="delivery_notes" :value="old('delivery_notes')" placeholder="Gate color, landmark, preferred handoff notes" textarea />
                             </div>
                         </div>
 
@@ -252,7 +260,7 @@
                             <button class="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-6 py-3.5 text-sm font-semibold text-slate-600 transition hover:-translate-y-0.5 hover:border-love-blue-200 hover:text-love-blue-500 focus:outline-none focus:ring-4 focus:ring-love-blue-100" type="button" data-checkout-back>
                                 Back
                             </button>
-                            <button class="inline-flex items-center justify-center rounded-full bg-slate-900 px-6 py-3.5 text-sm font-semibold text-white shadow-[0_18px_34px_-24px_rgba(15,23,42,0.8)] transition hover:-translate-y-0.5 hover:bg-love-pink-500 focus:outline-none focus:ring-4 focus:ring-love-pink-100" type="button" data-place-order>
+                            <button class="inline-flex items-center justify-center rounded-full bg-slate-900 px-6 py-3.5 text-sm font-semibold text-white shadow-[0_18px_34px_-24px_rgba(15,23,42,0.8)] transition hover:-translate-y-0.5 hover:bg-love-pink-500 focus:outline-none focus:ring-4 focus:ring-love-pink-100 disabled:cursor-wait disabled:opacity-70" type="button" data-place-order>
                                 Place Order
                             </button>
                         </div>

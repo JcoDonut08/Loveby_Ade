@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use App\Services\CartService;
 use App\Services\FavoriteService;
 use App\Services\GoogleAccountService;
@@ -105,7 +106,12 @@ class GoogleAuthController extends Controller
         $this->cart->mergeSessionIntoUser($request->session(), $user);
         $this->favorites->mergeSessionIntoUser($request->session(), $user);
 
-        return redirect()->intended(route('home'));
+        return redirect()->intended(route($this->homeRouteFor($user)));
+    }
+
+    private function homeRouteFor(?User $user): string
+    {
+        return $user?->isAdmin() === true ? 'admin.dashboard' : 'home';
     }
 
     private function googleProvider()

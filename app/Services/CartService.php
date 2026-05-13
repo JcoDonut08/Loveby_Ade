@@ -53,6 +53,7 @@ class CartService
                     'price' => (float) $product['price'],
                     'formatted_price' => $this->formatPeso((float) $product['price']),
                     'image' => $product['image'],
+                    'category' => $product['category'],
                     'quantity' => $safeQuantity,
                     'stock' => (int) $product['stock'],
                     'note' => $product['category'].' dessert',

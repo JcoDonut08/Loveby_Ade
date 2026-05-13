@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Models\User;
 use App\Services\CartService;
 use App\Services\FavoriteService;
 use Illuminate\Http\RedirectResponse;
@@ -21,7 +22,7 @@ class LoginController extends Controller
     public function show(): View|RedirectResponse
     {
         if (Auth::check()) {
-            return redirect()->route('home');
+            return redirect()->route($this->homeRouteFor(Auth::user()));
         }
 
         return view('pages.auth.login');
@@ -39,6 +40,11 @@ class LoginController extends Controller
         $this->cart->mergeSessionIntoUser($request->session(), $request->user());
         $this->favorites->mergeSessionIntoUser($request->session(), $request->user());
 
-        return redirect()->intended(route('home'));
+        return redirect()->intended(route($this->homeRouteFor($request->user())));
+    }
+
+    private function homeRouteFor(?User $user): string
+    {
+        return $user?->isAdmin() === true ? 'admin.dashboard' : 'home';
     }
 }

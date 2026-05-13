@@ -1,12 +1,25 @@
 <?php
 
+use App\Models\Order;
 use App\Models\User;
-use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
-
-uses(LazilyRefreshDatabase::class);
 
 test('authenticated users can view customer order cards with admin aligned statuses', function () {
     $user = User::factory()->create();
+    $order = Order::factory()->for($user)->create([
+        'order_number' => 'LBA-3508',
+        'full_name' => 'Mia Reyes',
+        'complete_address' => '24 Sampaguita Lane, Makati City',
+        'status' => Order::STATUS_PENDING,
+    ]);
+    $order->items()->create([
+        'product_slug' => 'pastel-donut-box',
+        'product_title' => 'Pastel Donut Box',
+        'category' => 'Donuts',
+        'product_image' => 'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=320&q=80',
+        'unit_price' => 120,
+        'quantity' => 3,
+        'line_total' => 360,
+    ]);
 
     $this->actingAs($user)
         ->get(route('orders.index'))
@@ -20,7 +33,6 @@ test('authenticated users can view customer order cards with admin aligned statu
         ->assertSee('Mark for Delivery')
         ->assertSee('Out for Delivery')
         ->assertSee('Delivered')
-        ->assertSee('Cancelled reason: Duplicate order.')
         ->assertSee('data-customer-orders', false)
         ->assertSee('data-customer-order-card', false)
         ->assertSee('data-order-progress-segment', false)

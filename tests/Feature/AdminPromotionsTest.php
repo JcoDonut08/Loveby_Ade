@@ -1,7 +1,8 @@
 <?php
 
 test('admin promotions page renders the front-end promo workspace', function () {
-    $this->get(route('admin.promotions'))
+    $this->actingAs(adminUser())
+        ->get(route('admin.promotions'))
         ->assertSuccessful()
         ->assertSee('Promotions')
         ->assertSee('Create discounts to delight customers.')

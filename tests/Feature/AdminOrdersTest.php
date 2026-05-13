@@ -1,7 +1,37 @@
 <?php
 
+use App\Models\Order;
+use App\Models\User;
+
 test('admin orders page renders the order management workspace', function () {
-    $this->get(route('admin.orders'))
+    $customer = User::factory()->create();
+    $order = Order::factory()->for($customer)->create([
+        'full_name' => 'Mia Reyes',
+        'email_address' => 'mia@example.com',
+        'status' => Order::STATUS_PENDING,
+        'created_at' => now()->setDate(2026, 5, 4)->setTime(10, 24),
+    ]);
+    $order->items()->create([
+        'product_slug' => 'pastel-donut-box',
+        'product_title' => 'Pastel Donut Box',
+        'category' => 'Donuts',
+        'product_image' => 'https://example.com/donut.jpg',
+        'unit_price' => 120,
+        'quantity' => 2,
+        'line_total' => 240,
+    ]);
+    $order->items()->create([
+        'product_slug' => 'ube-cake',
+        'product_title' => 'Ube Cake',
+        'category' => 'Cakes',
+        'product_image' => 'https://example.com/ube.jpg',
+        'unit_price' => 180,
+        'quantity' => 1,
+        'line_total' => 180,
+    ]);
+
+    $this->actingAs(adminUser())
+        ->get(route('admin.orders'))
         ->assertSuccessful()
         ->assertSee('Order Management')
         ->assertSee('Track, confirm, prepare, and manage customer dessert orders.')
@@ -11,6 +41,8 @@ test('admin orders page renders the order management workspace', function () {
         ->assertSee('Delivered Orders')
         ->assertSee('Cancelled Orders')
         ->assertSee('Customer Dessert Orders')
+        ->assertSee('New pending order')
+        ->assertSee('Rows per page')
         ->assertSee('Order ID')
         ->assertSee('Customer Name')
         ->assertSee('Products')
@@ -19,55 +51,40 @@ test('admin orders page renders the order management workspace', function () {
         ->assertSee('Date Ordered')
         ->assertSee('Status')
         ->assertSee('Actions')
-        ->assertSee('Add Order')
-        ->assertSee('Record a walk-in dessert order for this table.')
-        ->assertSee('Customer name')
-        ->assertSee('Product')
-        ->assertSee('Total amount')
-        ->assertSee('Date ordered')
-        ->assertSee('All')
+        ->assertSee('Mia Reyes')
+        ->assertDontSee('mia@example.com')
+        ->assertSee('Pastel Donut Box')
+        ->assertSee('+1 more')
+        ->assertSee('May 4, 2026, 10:24 AM')
         ->assertSee('Pending')
-        ->assertSee('Preparing')
         ->assertSee('Delivered')
         ->assertSee('Cancelled')
-        ->assertSee('Order table pagination', false)
-        ->assertSee('Rows per page')
-        ->assertSee('5 rows')
-        ->assertSee('10 rows')
-        ->assertSee('20 rows')
-        ->assertSee('Previous')
-        ->assertSee('Next')
+        ->assertSee('Approve order')
         ->assertSee('Cancel Order')
-        ->assertSee('Why are you cancelling this order?')
-        ->assertSee('Product unavailable')
-        ->assertSee('Invalid order details')
-        ->assertSee('Customer requested cancellation')
-        ->assertSee('Shop cannot fulfill order')
-        ->assertSee('Duplicate order')
-        ->assertSee('Keep Order')
-        ->assertSee('Confirm Cancellation')
         ->assertSee('Order Details')
         ->assertSee('data-admin-order-management', false)
-        ->assertSee('data-add-order', false)
-        ->assertSee('data-add-order-modal', false)
-        ->assertSee('data-add-order-form', false)
-        ->assertSee('data-add-order-id', false)
-        ->assertSee('data-add-customer-name', false)
-        ->assertSee('data-add-product', false)
-        ->assertSee('data-add-quantity', false)
-        ->assertSee('data-add-total', false)
-        ->assertSee('data-add-date', false)
+        ->assertSee('data-backend-orders="true"', false)
         ->assertSee('data-order-search', false)
-        ->assertSee('data-order-table-body', false)
-        ->assertSee('data-order-page-size', false)
-        ->assertSee('data-order-pagination-status', false)
-        ->assertSee('data-order-page-buttons', false)
-        ->assertSee('data-cancel-modal', false)
-        ->assertSee('data-order-details', false)
-        ->assertSee('data-order-toast-region', false)
         ->assertSee('href="'.route('admin.orders').'" aria-current="page"', false)
         ->assertDontSee('href="'.route('admin.dashboard').'" aria-current="page"', false)
-        ->assertDontSee('Update Status')
         ->assertDontSee('Print Receipt')
         ->assertDontSee('Payment method');
+});
+
+test('regular users cannot access admin routes', function () {
+    $this->actingAs(User::factory()->create())
+        ->get(route('admin.orders'))
+        ->assertForbidden();
+});
+
+test('admin can update order status', function () {
+    $order = Order::factory()->create();
+
+    $this->actingAs(adminUser())
+        ->patch(route('admin.orders.update', $order), [
+            'status' => Order::STATUS_PREPARING,
+        ])
+        ->assertRedirect(route('admin.orders'));
+
+    expect($order->refresh()->status)->toBe(Order::STATUS_PREPARING);
 });
