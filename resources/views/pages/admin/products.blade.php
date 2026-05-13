@@ -36,7 +36,7 @@
                                 <path stroke-linecap="round" d="m16 16 4.5 4.5" />
                             </svg>
                         </span>
-                        <input class="h-12 w-full rounded-full border border-love-pink-100 bg-white/88 px-12 text-sm font-medium text-[#512438] outline-none transition placeholder:text-[#9a6c7b] focus:border-love-pink-300 focus:ring-4 focus:ring-love-pink-100/80" id="admin-product-global-search" type="search" name="search" value="{{ request('search') }}" placeholder="Search orders, products, customers...">
+                        <input class="h-12 w-full rounded-full border border-love-pink-100 bg-white/88 px-12 text-sm font-medium text-[#512438] outline-none transition placeholder:text-[#9a6c7b] focus:border-love-pink-300 focus:ring-4 focus:ring-love-pink-100/80" id="admin-product-global-search" type="search" name="global_search" value="{{ request('search') }}" placeholder="Search orders, products, customers...">
                         </label>
                     </form>
 

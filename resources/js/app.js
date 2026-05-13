@@ -4,7 +4,9 @@ import { initializeAdminCustomers } from './admin-customers';
 import { initializeAdminDashboard } from './admin-dashboard';
 import { initializeAdminNotifications } from './admin-notifications';
 import { initializeAdminOrderManagement } from './admin-orders';
+import { initializeAdminOrderModals } from './admin-orders-modals';
 import { initializeAdminProducts } from './admin-products';
+import { initializeAdminProductModals } from './admin-products-modals';
 import { initializeCheckoutFlow } from './checkout';
 
 const initializePasswordToggles = () => {
@@ -1081,7 +1083,9 @@ const initializeStorefrontInteractions = () => {
     initializeCheckoutFlow();
     initializeAdminDashboard();
     initializeAdminOrderManagement();
+    initializeAdminOrderModals();
     initializeAdminProducts();
+    initializeAdminProductModals();
     initializeAdminCustomers();
     initializeAdminNotifications();
     initializeAdminAnalytics();

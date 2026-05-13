@@ -66,7 +66,6 @@ export const initializeAdminProducts = () => {
         const grid = section.querySelector('[data-product-grid]');
         const emptyState = section.querySelector('[data-product-empty]');
         const searchInput = section.querySelector('[data-product-search]');
-        const globalSearchInput = document.querySelector('[data-product-global-search]');
         const modal = section.querySelector('[data-product-modal]');
         const form = section.querySelector('[data-product-form]');
         const modalTitle = section.querySelector('[data-product-modal-title]');
@@ -110,10 +109,6 @@ export const initializeAdminProducts = () => {
 
             if (searchInput instanceof HTMLInputElement) {
                 searchInput.value = '';
-            }
-
-            if (globalSearchInput instanceof HTMLInputElement) {
-                globalSearchInput.value = '';
             }
         };
 
@@ -181,18 +176,9 @@ export const initializeAdminProducts = () => {
             renderProductPagination({ section, state, totalRows });
         };
 
-        const setSearch = (value, sourceInput) => {
+        const setSearch = (value) => {
             state.search = value.trim();
             state.page = 1;
-
-            if (searchInput instanceof HTMLInputElement && sourceInput !== searchInput) {
-                searchInput.value = value;
-            }
-
-            if (globalSearchInput instanceof HTMLInputElement && sourceInput !== globalSearchInput) {
-                globalSearchInput.value = value;
-            }
-
             renderAll();
         };
 
@@ -278,11 +264,7 @@ export const initializeAdminProducts = () => {
         });
 
         if (searchInput instanceof HTMLInputElement) {
-            searchInput.addEventListener('input', () => setSearch(searchInput.value, searchInput));
-        }
-
-        if (globalSearchInput instanceof HTMLInputElement) {
-            globalSearchInput.addEventListener('input', () => setSearch(globalSearchInput.value, globalSearchInput));
+            searchInput.addEventListener('input', () => setSearch(searchInput.value));
         }
 
         grid.addEventListener('click', (event) => {

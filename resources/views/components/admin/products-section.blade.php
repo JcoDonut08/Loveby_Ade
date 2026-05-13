@@ -43,7 +43,7 @@
     $actionTooltip = 'pointer-events-none absolute bottom-full left-1/2 z-20 mb-2 min-w-max -translate-x-1/2 translate-y-1 rounded-lg bg-[#3b1728] px-2.5 py-1 text-xs font-extrabold text-white opacity-0 shadow-lg transition group-hover/action:translate-y-0 group-hover/action:opacity-100 group-focus-visible/action:translate-y-0 group-focus-visible/action:opacity-100';
 @endphp
 
-<section class="grid gap-5">
+<section class="grid gap-5" data-admin-products data-backend-products="true">
     @if (session('status'))
         <div class="rounded-[1.25rem] border border-emerald-100 bg-emerald-50 px-5 py-4 text-sm font-extrabold text-emerald-700">
             {{ session('status') }}
@@ -64,7 +64,7 @@
                             <path stroke-linecap="round" d="m16 16 4.5 4.5" />
                         </svg>
                     </span>
-                    <input class="h-12 w-full rounded-full border border-love-pink-100 bg-love-cream px-12 text-sm font-medium text-[#512438] outline-none transition placeholder:text-[#9a6c7b] focus:border-love-pink-300 focus:bg-white focus:ring-4 focus:ring-love-pink-100/80" id="admin-product-search" type="search" name="search" value="{{ request('search') }}" placeholder="Search desserts...">
+                    <input class="h-12 w-full rounded-full border border-love-pink-100 bg-love-cream px-12 text-sm font-medium text-[#512438] outline-none transition placeholder:text-[#9a6c7b] focus:border-love-pink-300 focus:bg-white focus:ring-4 focus:ring-love-pink-100/80" id="admin-product-search" type="search" name="search" value="{{ request('search') }}" placeholder="Search desserts..." data-product-search>
                 </label>
             </form>
 
@@ -233,7 +233,12 @@
                         <span class="mt-3 text-sm font-extrabold text-[#512438]">Choose a product image</span>
                         <span class="mt-1 text-xs font-medium text-[#9a6c7b]">JPG, PNG, or WebP.</span>
                     </span>
-                    <input class="sr-only" id="catalog-product-image" type="file" name="image" accept="image/*">
+                    <input class="sr-only" id="catalog-product-image" type="file" name="image" accept="image/*" data-product-images>
+                    <div class="mt-3 grid gap-3 sm:grid-cols-4" data-product-image-preview>
+                        <div class="rounded-[1.25rem] border border-dashed border-love-pink-200 bg-love-cream p-4 text-sm font-bold text-[#9a6c7b] sm:col-span-4">
+                            No image selected yet.
+                        </div>
+                    </div>
                     @error('image')
                         <span class="mt-1 block text-xs font-bold text-rose-500">{{ $message }}</span>
                     @enderror
@@ -292,110 +297,4 @@
             </form>
         </section>
     </div>
-
-    <script>
-        (() => {
-            const modal = document.querySelector('[data-product-server-modal]');
-            const openButton = document.querySelector('[data-product-server-open]');
-            const closeButtons = document.querySelectorAll('[data-product-server-close]');
-            const form = document.querySelector('[data-product-server-form]');
-            const methodInput = document.querySelector('[data-product-form-method]');
-            const modalTitle = document.querySelector('[data-product-modal-title]');
-            const saveButton = document.querySelector('[data-product-save]');
-
-            if (!modal || !openButton || !(form instanceof HTMLFormElement)) {
-                return;
-            }
-
-            const setFieldValue = (name, value) => {
-                const field = form.querySelector(`[data-product-field="${name}"]`);
-
-                if (field instanceof HTMLInputElement || field instanceof HTMLTextAreaElement || field instanceof HTMLSelectElement) {
-                    field.value = value ?? '';
-                }
-            };
-
-            const openModal = () => {
-                modal.classList.remove('hidden');
-                modal.classList.add('flex');
-                modal.setAttribute('aria-hidden', 'false');
-                document.body.classList.add('overflow-hidden');
-            };
-
-            const openAddModal = () => {
-                form.reset();
-                form.action = form.dataset.productStoreAction || form.action;
-
-                if (methodInput instanceof HTMLInputElement) {
-                    methodInput.disabled = true;
-                }
-
-                if (modalTitle) {
-                    modalTitle.textContent = 'Add product';
-                }
-
-                if (saveButton) {
-                    saveButton.textContent = 'Save product';
-                }
-
-                openModal();
-            };
-
-            const openEditModal = (payload) => {
-                form.reset();
-                form.action = payload.action || form.action;
-
-                if (methodInput instanceof HTMLInputElement) {
-                    methodInput.disabled = false;
-                }
-
-                setFieldValue('title', payload.title);
-                setFieldValue('description', payload.description);
-                setFieldValue('category', payload.category);
-                setFieldValue('price', payload.price);
-                setFieldValue('stock', payload.stock);
-
-                if (modalTitle) {
-                    modalTitle.textContent = 'Edit product';
-                }
-
-                if (saveButton) {
-                    saveButton.textContent = 'Update product';
-                }
-
-                openModal();
-            };
-
-            const closeModal = () => {
-                modal.classList.add('hidden');
-                modal.classList.remove('flex');
-                modal.setAttribute('aria-hidden', 'true');
-                document.body.classList.remove('overflow-hidden');
-            };
-
-            openButton.addEventListener('click', openAddModal);
-            document.querySelectorAll('[data-product-edit]').forEach((button) => {
-                button.addEventListener('click', () => {
-                    try {
-                        openEditModal(JSON.parse(button.dataset.productPayload || '{}'));
-                    } catch (error) {
-                        openAddModal();
-                    }
-                });
-            });
-            document.querySelectorAll('[data-product-delete-form]').forEach((deleteForm) => {
-                deleteForm.addEventListener('submit', (event) => {
-                    if (!window.confirm('Delete this product?')) {
-                        event.preventDefault();
-                    }
-                });
-            });
-            closeButtons.forEach((button) => button.addEventListener('click', closeModal));
-            document.addEventListener('keydown', (event) => {
-                if (event.key === 'Escape') {
-                    closeModal();
-                }
-            });
-        })();
-    </script>
 </section>
