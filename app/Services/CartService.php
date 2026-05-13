@@ -97,6 +97,21 @@ class CartService
         return $this->summary($request);
     }
 
+    public function clear(Request $request): void
+    {
+        $user = $request->user();
+
+        if ($user instanceof User) {
+            CartItem::query()
+                ->whereBelongsTo($user)
+                ->delete();
+
+            return;
+        }
+
+        $request->session()->forget(self::SESSION_KEY);
+    }
+
     public function count(Request $request): int
     {
         return (int) array_sum($this->quantities($request));

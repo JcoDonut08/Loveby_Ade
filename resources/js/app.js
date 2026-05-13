@@ -5,6 +5,7 @@ import { initializeAdminDashboard } from './admin-dashboard';
 import { initializeAdminNotifications } from './admin-notifications';
 import { initializeAdminOrderManagement } from './admin-orders';
 import { initializeAdminProducts } from './admin-products';
+import { initializeCheckoutFlow } from './checkout';
 
 const initializePasswordToggles = () => {
     document.querySelectorAll('[data-password-toggle]').forEach((toggle) => {
@@ -1077,6 +1078,7 @@ const initializeStorefrontInteractions = () => {
     initializeAddToCartButtons();
     initializeCartPages();
     initializeCheckoutLoginModal();
+    initializeCheckoutFlow();
     initializeAdminDashboard();
     initializeAdminOrderManagement();
     initializeAdminProducts();

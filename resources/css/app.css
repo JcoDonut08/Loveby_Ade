@@ -26,3 +26,26 @@
     --color-love-orange-500: #f97316;
     --color-love-cream: #fff8f6;
 }
+
+@keyframes error-illustration-float {
+    0%,
+    100% {
+        transform: translateY(0) rotate(-1deg);
+    }
+
+    50% {
+        transform: translateY(-0.45rem) rotate(1.5deg);
+    }
+}
+
+.error-illustration-motion {
+    animation: error-illustration-float 3.4s ease-in-out infinite;
+    transform-origin: center;
+    will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .error-illustration-motion {
+        animation: none;
+    }
+}

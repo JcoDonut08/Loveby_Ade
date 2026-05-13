@@ -7,6 +7,7 @@ use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\Auth\PasswordResetOtpController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\CartController;
+use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\ProductController;
@@ -33,6 +34,8 @@ Route::get('/cart/summary', [CartController::class, 'summary'])->name('cart.summ
 Route::post('/cart/items', [CartController::class, 'store'])->name('cart.items.store');
 Route::patch('/cart/items/{slug}', [CartController::class, 'update'])->name('cart.items.update');
 Route::delete('/cart/items/{slug}', [CartController::class, 'destroy'])->name('cart.items.destroy');
+Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout');
+Route::view('/orders/confirm', 'pages.orders.confirmed')->name('orders.confirm');
 Route::view('/orders/confirmed', 'pages.orders.confirmed')->name('orders.confirmed');
 Route::middleware('auth')->group(function (): void {
     Route::get('/account', [AccountController::class, 'index'])->name('account');

@@ -11,9 +11,9 @@
     <div class="overflow-hidden rounded-2xl border border-white/80 bg-white/94 shadow-[0_24px_58px_-38px_rgba(15,23,42,0.32)]">
         <div class="grid gap-0 lg:grid-cols-[1.05fr_0.95fr] lg:items-stretch">
             <div class="flex flex-col gap-4 p-4 sm:p-5" data-product-gallery>
-                <div class="flex-1 overflow-hidden rounded-xl bg-slate-100">
+                <div class="aspect-[3/2] overflow-hidden rounded-xl bg-slate-100">
                     <img
-                        class="h-full min-h-[24rem] w-full object-cover sm:min-h-[32rem] lg:min-h-full"
+                        class="h-full w-full object-cover"
                         src="{{ $mainGalleryItem['image'] }}"
                         alt="{{ $mainGalleryItem['alt'] }}"
                         data-product-main-image

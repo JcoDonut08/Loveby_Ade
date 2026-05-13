@@ -15,11 +15,8 @@
     <div class="flex h-full flex-col">
         <div class="border-b border-love-pink-100 px-5 py-6">
             <a class="flex items-center gap-4" href="{{ route('home') }}" aria-label="Go to Loveby_Ade homepage">
-                <span class="flex h-[3.25rem] w-[3.25rem] items-center justify-center rounded-[1.15rem] bg-love-pink-400 text-white shadow-[0_18px_34px_-22px_rgba(236,72,153,0.75)]">
-                    <svg class="h-7 w-7" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                        <path d="M8 8h8l-.7 10.25a2 2 0 0 1-2 1.75h-2.6a2 2 0 0 1-2-1.75L8 8Z" fill="#38bdf8" stroke="#512438" stroke-width="1.6" />
-                        <path d="M7.25 8h9.5M10 8V6.75a2 2 0 0 1 4 0V8M10.25 11h3.5M10.5 14h3" stroke="#512438" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
-                    </svg>
+                <span class="flex h-[3.25rem] w-[3.25rem] items-center justify-center overflow-hidden rounded-full border border-white bg-white p-px shadow-[0_10px_24px_-18px_rgba(236,72,153,0.55)] ring-1 ring-white">
+                    <img class="h-full w-full rounded-full object-cover" src="{{ asset('images/lovebyadelogo.png') }}" alt="Loveby_Ade logo">
                 </span>
                 <span class="min-w-0">
                     <span class="block truncate font-display text-xl font-bold leading-none text-[#3b1728]">Loveby_Ade</span>

@@ -105,6 +105,32 @@ test('store header search includes youtube style autocomplete hooks', function (
         ->toContain('Search recommendations');
 });
 
+test('storefront brand mark uses the uploaded logo image', function () {
+    expect(public_path('images/lovebyadelogo.png'))->toBeFile();
+
+    $this->get(route('products.index'))
+        ->assertSuccessful()
+        ->assertSee('rel="icon" type="image/png"', false)
+        ->assertSee('images/lovebyadelogo.png', false)
+        ->assertSee('alt="Loveby_Ade logo"', false);
+});
+
+test('admin sidebar uses the uploaded logo image', function () {
+    $view = file_get_contents(resource_path('views/components/admin/sidebar.blade.php'));
+
+    expect($view)
+        ->toContain("asset('images/lovebyadelogo.png')")
+        ->toContain('alt="Loveby_Ade logo"');
+});
+
+test('admin layout uses the uploaded logo image as the page icon', function () {
+    $view = file_get_contents(resource_path('views/layouts/admin.blade.php'));
+
+    expect($view)
+        ->toContain('rel="icon" type="image/png"')
+        ->toContain("asset('images/lovebyadelogo.png')");
+});
+
 test('product index can filter by the homepage coffees and shakes category', function () {
     $this->get(route('products.index', [
         'category' => 'Coffees / Shakes',
@@ -121,5 +147,7 @@ test('dynamic product overview renders selected product details', function () {
         ->assertSee('Chocolate Chip Cookies')
         ->assertSee('Golden cookies with soft centers')
         ->assertSee('226 sold')
+        ->assertSee('aspect-[3/2]', false)
+        ->assertDontSee('min-h-[32rem]', false)
         ->assertSee('You may also like');
 });

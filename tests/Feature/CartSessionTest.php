@@ -45,7 +45,7 @@ test('cart items stay after the guest logs in', function () {
         ->assertSuccessful()
         ->assertSee('Chocolate Chip Cookies')
         ->assertSee('Proceed to checkout')
-        ->assertSee('href="'.route('orders.confirmed').'"', false)
+        ->assertSee('href="'.route('checkout').'"', false)
         ->assertDontSee('Please log in to continue checkout.');
 
     $this->assertModelExists(CartItem::query()->whereBelongsTo($user)->where('product_slug', 'chocolate-chip-cookies')->firstOrFail());
@@ -79,7 +79,7 @@ test('authenticated cart items stay after logout and logging back in', function 
         ->assertSuccessful()
         ->assertSee('Pastel Donut Box')
         ->assertSee('1 item')
-        ->assertSee('href="'.route('orders.confirmed').'"', false);
+        ->assertSee('href="'.route('checkout').'"', false);
 });
 
 test('cart quantities can be updated and removed from the session', function () {

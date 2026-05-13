@@ -9,7 +9,8 @@ test('404 page uses the custom not found screen with an image', function () {
         ->assertNotFound()
         ->assertSee('404')
         ->assertSee('Page not found')
-        ->assertSee('<img', false);
+        ->assertSee('<img', false)
+        ->assertSee('data-error-illustration', false);
 });
 
 test('403 page uses the custom access denied screen with an image', function () {
@@ -21,7 +22,8 @@ test('403 page uses the custom access denied screen with an image', function () 
         ->assertForbidden()
         ->assertSee('403')
         ->assertSee('Access denied')
-        ->assertSee('<img', false);
+        ->assertSee('<img', false)
+        ->assertSee('data-error-illustration', false);
 });
 
 test('500 page uses the custom server error screen with an image', function () {
@@ -33,7 +35,8 @@ test('500 page uses the custom server error screen with an image', function () {
         ->assertStatus(500)
         ->assertSee('500')
         ->assertSee('Server error')
-        ->assertSee('<img', false);
+        ->assertSee('<img', false)
+        ->assertSee('data-error-illustration', false);
 });
 
 test('503 page uses the custom service unavailable screen with an image', function () {
@@ -45,5 +48,6 @@ test('503 page uses the custom service unavailable screen with an image', functi
         ->assertStatus(503)
         ->assertSee('503')
         ->assertSee('Service unavailable')
-        ->assertSee('<img', false);
+        ->assertSee('<img', false)
+        ->assertSee('data-error-illustration', false);
 });

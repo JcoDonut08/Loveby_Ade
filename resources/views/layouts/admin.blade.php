@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>@yield('title', 'Loveby_Ade Admin')</title>
     <meta name="description" content="@yield('description', 'Loveby_Ade admin workspace.')">
+    <link rel="icon" type="image/png" href="{{ asset('images/lovebyadelogo.png') }}">
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700,800|playfair-display:600,700" rel="stylesheet" />
     @vite(['resources/css/app.css', 'resources/js/app.js'])

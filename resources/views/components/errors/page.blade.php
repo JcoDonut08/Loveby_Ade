@@ -37,7 +37,7 @@
                         </div>
                     </div>
 
-                    <div class="flex h-32 w-32 shrink-0 items-center justify-center rounded-[2rem] border border-love-blue-100 bg-[linear-gradient(180deg,#ffffff_0%,#fdf2f8_100%)] shadow-[0_18px_42px_-28px_rgba(15,23,42,0.22)] sm:h-40 sm:w-40">
+                    <div class="error-illustration-motion flex h-32 w-32 shrink-0 items-center justify-center rounded-[2rem] border border-love-blue-100 bg-[linear-gradient(180deg,#ffffff_0%,#fdf2f8_100%)] shadow-[0_18px_42px_-28px_rgba(15,23,42,0.22)] sm:h-40 sm:w-40" data-error-illustration>
                         <img class="h-24 w-24 object-contain sm:h-30 sm:w-30" src="{{ $image }}" alt="{{ $imageAlt }}">
                     </div>
                 </div>
