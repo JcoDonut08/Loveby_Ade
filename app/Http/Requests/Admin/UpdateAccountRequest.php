@@ -1,11 +1,12 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Admin;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\File;
 
-class StoreCheckoutRequest extends FormRequest
+class UpdateAccountRequest extends FormRequest
 {
     protected function prepareForValidation(): void
     {
@@ -13,7 +14,7 @@ class StoreCheckoutRequest extends FormRequest
 
         $this->merge([
             'contact_number_digits' => $digits,
-            'contact_number' => '+63-'.$digits,
+            'contact_number' => $digits === '' ? null : '+63-'.$digits,
         ]);
     }
 
@@ -22,24 +23,33 @@ class StoreCheckoutRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return $this->user() !== null;
+        return $this->user()?->isAdmin() === true;
     }
 
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, mixed>
+     * @return array<string, list<mixed>>
      */
     public function rules(): array
     {
         return [
-            'full_name' => ['required', 'string', 'max:120'],
-            'contact_number_digits' => ['required', 'digits:10'],
-            'contact_number' => ['required', 'regex:/^\+63-\d{10}$/'],
-            'email_address' => ['required', 'email', 'max:255'],
-            'complete_address' => ['required', 'string', 'max:1000'],
-            'delivery_notes' => ['nullable', 'string', 'max:1000'],
-            'payment_method' => ['required', Rule::in(['GCash', 'PayMaya', 'Cash on Delivery'])],
+            'name' => ['required', 'string', 'max:255'],
+            'email' => [
+                'required',
+                'email',
+                'max:255',
+                Rule::unique('users', 'email')->ignore($this->user()),
+            ],
+            'contact_number_digits' => ['nullable', 'digits:10'],
+            'contact_number' => ['nullable', 'regex:/^\+63-\d{10}$/'],
+            'address' => ['nullable', 'string', 'max:500'],
+            'profile_photo' => [
+                'nullable',
+                File::image()
+                    ->types(['jpg', 'jpeg', 'png', 'webp'])
+                    ->max('25mb'),
+            ],
         ];
     }
 

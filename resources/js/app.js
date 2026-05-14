@@ -592,6 +592,22 @@ const initializeAccountProfilePhotoPreviews = () => {
     });
 };
 
+const initializePhilippinePhoneInputs = () => {
+    document.querySelectorAll('[data-phone-digits]').forEach((input) => {
+        if (!(input instanceof HTMLInputElement) || input.dataset.initialized === 'true') {
+            return;
+        }
+
+        const normalize = () => {
+            input.value = input.value.replace(/\D/g, '').slice(0, 10);
+        };
+
+        input.addEventListener('input', normalize);
+        normalize();
+        input.dataset.initialized = 'true';
+    });
+};
+
 const initializeOtpInputs = () => {
     document.querySelectorAll('[data-otp-inputs]').forEach((group) => {
         if (!(group instanceof HTMLElement) || group.dataset.initialized === 'true') {
@@ -1075,6 +1091,7 @@ const initializeStorefrontInteractions = () => {
     initializeSearchAutocomplete();
     initializeContactForms();
     initializeAccountProfilePhotoPreviews();
+    initializePhilippinePhoneInputs();
     initializeOtpInputs();
     initializeFavoriteToggles();
     initializeAddToCartButtons();

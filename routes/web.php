@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AccountController;
+use App\Http\Controllers\Admin\AccountController as AdminAccountController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Auth\GoogleAuthController;
@@ -17,38 +18,45 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\SearchController;
 use App\Http\Middleware\EnsureUserIsAdmin;
+use App\Http\Middleware\RedirectAdminToDashboard;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', HomeController::class)->name('home');
-Route::get('/products', [ProductController::class, 'index'])->name('products.index');
-Route::get('/products/pastel-donut-box', [ProductController::class, 'showDefault'])->name('products.show');
-Route::get('/products/{slug}', [ProductController::class, 'show'])->name('products.show-by-slug');
-Route::get('/contact', [ContactController::class, 'index'])->name('contact');
-Route::post('/contact', [ContactController::class, 'store'])
-    ->middleware('throttle:5,1')
-    ->name('contact.store');
-Route::get('/search/suggestions', SearchController::class)->name('search.suggestions');
-Route::delete('/search/recent', [SearchController::class, 'destroyRecent'])->name('search.recent.destroy');
-Route::view('/notifications', 'pages.notifications')->name('notifications');
-Route::get('/favorites', [FavoriteController::class, 'index'])->name('favorites');
-Route::get('/favorites/summary', [FavoriteController::class, 'summary'])->name('favorites.summary');
-Route::post('/favorites/items', [FavoriteController::class, 'store'])->name('favorites.items.store');
-Route::delete('/favorites/items/{slug}', [FavoriteController::class, 'destroy'])->name('favorites.items.destroy');
-Route::get('/cart', [CartController::class, 'index'])->name('cart');
-Route::get('/cart/summary', [CartController::class, 'summary'])->name('cart.summary');
-Route::post('/cart/items', [CartController::class, 'store'])->name('cart.items.store');
-Route::patch('/cart/items/{slug}', [CartController::class, 'update'])->name('cart.items.update');
-Route::delete('/cart/items/{slug}', [CartController::class, 'destroy'])->name('cart.items.destroy');
-Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout');
 Route::middleware('auth')->group(function (): void {
-    Route::get('/account', [AccountController::class, 'index'])->name('account');
-    Route::patch('/account', [AccountController::class, 'update'])->name('account.update');
-    Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
-    Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
-    Route::redirect('/orders/confirm', '/orders/confirmed')->name('orders.confirm');
-    Route::get('/orders/confirmed', [OrderController::class, 'confirmed'])->name('orders.confirmed');
-    Route::view('/delivered-products', 'pages.delivered_products')->name('delivered-products.index');
     Route::post('/logout', LogoutController::class)->name('logout');
+});
+
+Route::middleware(RedirectAdminToDashboard::class)->group(function (): void {
+    Route::get('/', HomeController::class)->name('home');
+    Route::get('/products', [ProductController::class, 'index'])->name('products.index');
+    Route::get('/products/pastel-donut-box', [ProductController::class, 'showDefault'])->name('products.show');
+    Route::get('/products/{slug}', [ProductController::class, 'show'])->name('products.show-by-slug');
+    Route::get('/contact', [ContactController::class, 'index'])->name('contact');
+    Route::post('/contact', [ContactController::class, 'store'])
+        ->middleware('throttle:5,1')
+        ->name('contact.store');
+    Route::get('/search/suggestions', SearchController::class)->name('search.suggestions');
+    Route::delete('/search/recent', [SearchController::class, 'destroyRecent'])->name('search.recent.destroy');
+    Route::view('/notifications', 'pages.notifications')->name('notifications');
+    Route::get('/favorites', [FavoriteController::class, 'index'])->name('favorites');
+    Route::get('/favorites/summary', [FavoriteController::class, 'summary'])->name('favorites.summary');
+    Route::post('/favorites/items', [FavoriteController::class, 'store'])->name('favorites.items.store');
+    Route::delete('/favorites/items/{slug}', [FavoriteController::class, 'destroy'])->name('favorites.items.destroy');
+    Route::get('/cart', [CartController::class, 'index'])->name('cart');
+    Route::get('/cart/summary', [CartController::class, 'summary'])->name('cart.summary');
+    Route::post('/cart/items', [CartController::class, 'store'])->name('cart.items.store');
+    Route::patch('/cart/items/{slug}', [CartController::class, 'update'])->name('cart.items.update');
+    Route::delete('/cart/items/{slug}', [CartController::class, 'destroy'])->name('cart.items.destroy');
+    Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout');
+
+    Route::middleware('auth')->group(function (): void {
+        Route::get('/account', [AccountController::class, 'index'])->name('account');
+        Route::patch('/account', [AccountController::class, 'update'])->name('account.update');
+        Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
+        Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
+        Route::redirect('/orders/confirm', '/orders/confirmed')->name('orders.confirm');
+        Route::get('/orders/confirmed', [OrderController::class, 'confirmed'])->name('orders.confirmed');
+        Route::view('/delivered-products', 'pages.delivered_products')->name('delivered-products.index');
+    });
 });
 
 Route::middleware('guest')->group(function (): void {
@@ -126,5 +134,6 @@ Route::prefix('admin')->name('admin.')->middleware(EnsureUserIsAdmin::class)->gr
     Route::view('/notifications', 'pages.admin.notifications')->name('notifications');
     Route::view('/analytics', 'pages.admin.analytics')->name('analytics');
     Route::view('/reports', 'pages.admin.reports')->name('reports');
-    Route::view('/account', 'pages.admin.account')->name('account');
+    Route::get('/account', [AdminAccountController::class, 'index'])->name('account');
+    Route::patch('/account', [AdminAccountController::class, 'update'])->name('account.update');
 });

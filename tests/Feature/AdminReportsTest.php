@@ -1,12 +1,14 @@
 <?php
 
 test('admin reports page renders report generation cards', function () {
-    $this->actingAs(adminUser())
+    $admin = adminUser();
+
+    $this->actingAs($admin)
         ->get(route('admin.reports'))
         ->assertSuccessful()
         ->assertSee('Reports')
         ->assertSee('Export and share business reports.')
-        ->assertSee('Ade Sweet')
+        ->assertSee($admin->name)
         ->assertSee('Generate reports')
         ->assertSee('Pick a date range and download in your favorite format')
         ->assertSee('From')

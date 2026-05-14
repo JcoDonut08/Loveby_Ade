@@ -29,6 +29,15 @@ test('admin orders page renders the order management workspace', function () {
         'quantity' => 1,
         'line_total' => 180,
     ]);
+    $order->items()->create([
+        'product_slug' => 'vanilla-cream-puffs',
+        'product_title' => 'Vanilla Cream Puffs',
+        'category' => 'Pastries',
+        'product_image' => 'https://example.com/vanilla.jpg',
+        'unit_price' => 80,
+        'quantity' => 1,
+        'line_total' => 80,
+    ]);
 
     $this->actingAs(adminUser())
         ->get(route('admin.orders'))
@@ -54,7 +63,7 @@ test('admin orders page renders the order management workspace', function () {
         ->assertSee('Mia Reyes')
         ->assertDontSee('mia@example.com')
         ->assertSee('Pastel Donut Box')
-        ->assertSee('+1 more')
+        ->assertSee('+2 more')
         ->assertSee('May 4, 2026, 10:24 AM')
         ->assertSee('Pending')
         ->assertSee('Delivered')
@@ -62,6 +71,10 @@ test('admin orders page renders the order management workspace', function () {
         ->assertSee('Approve order')
         ->assertSee('Cancel Order')
         ->assertSee('Order Details')
+        ->assertSee('data-admin-details-open', false)
+        ->assertSee('data-details-template="order-details-'.$order->getKey().'"', false)
+        ->assertSee('Show 1 more')
+        ->assertSee('data-details-extra-product', false)
         ->assertSee('data-admin-order-management', false)
         ->assertSee('data-backend-orders="true"', false)
         ->assertSee('data-order-search', false)

@@ -14,7 +14,7 @@
 <aside class="border-b border-love-pink-100/80 bg-white/90 shadow-[18px_0_45px_-38px_rgba(83,35,57,0.38)] backdrop-blur-xl lg:sticky lg:top-0 lg:h-screen lg:border-b-0 lg:border-r">
     <div class="flex h-full flex-col">
         <div class="border-b border-love-pink-100 px-5 py-6">
-            <a class="flex items-center gap-4" href="{{ route('home') }}" aria-label="Go to Loveby_Ade homepage">
+            <a class="flex items-center gap-4" href="{{ route('admin.dashboard') }}" aria-label="Go to Loveby_Ade admin dashboard">
                 <span class="flex h-[3.25rem] w-[3.25rem] items-center justify-center overflow-hidden rounded-full border border-white bg-white p-px shadow-[0_10px_24px_-18px_rgba(236,72,153,0.55)] ring-1 ring-white">
                     <img class="h-full w-full rounded-full object-cover" src="{{ asset('images/lovebyadelogo.png') }}" alt="Loveby_Ade logo">
                 </span>
@@ -57,9 +57,9 @@
 
         <div class="border-t border-love-pink-100 px-5 py-5">
             <div class="flex items-center gap-4">
-                <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-love-pink-400 text-sm font-extrabold text-white">AD</span>
+                <x-admin.profile-avatar class="h-12 w-12 text-sm" />
                 <span class="min-w-0">
-                    <span class="block truncate text-base font-extrabold text-[#512438]">Ade Sweet</span>
+                    <span class="block truncate text-base font-extrabold text-[#512438]">{{ auth()->user()?->name ?? 'Admin' }}</span>
                     <span class="mt-0.5 block truncate text-xs font-medium text-[#9a6c7b]">Owner - Loveby_Ade</span>
                 </span>
             </div>

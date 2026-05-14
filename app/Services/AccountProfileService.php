@@ -9,11 +9,11 @@ use Illuminate\Support\Facades\Storage;
 class AccountProfileService
 {
     /**
-     * @param  array{name: string, contact_number?: string|null, address?: string|null}  $attributes
+     * @param  array{name: string, email?: string, contact_number?: string|null, address?: string|null}  $attributes
      */
     public function update(User $user, array $attributes, ?UploadedFile $profilePhoto): void
     {
-        unset($attributes['profile_photo']);
+        unset($attributes['contact_number_digits'], $attributes['profile_photo']);
         $oldProfilePhotoPath = null;
 
         if ($profilePhoto !== null) {

@@ -396,7 +396,7 @@
                     <h3 class="mb-3 text-base font-extrabold text-[#3b1728]">Ordered products</h3>
                     <ul class="grid gap-3">
                         @foreach ($order->items as $item)
-                            <li class="flex items-center justify-between gap-3 rounded-[1.25rem] border border-love-pink-100 bg-white p-3">
+                            <li class="{{ $loop->index >= 2 ? 'hidden' : 'flex' }} items-center justify-between gap-3 rounded-[1.25rem] border border-love-pink-100 bg-white p-3" @if ($loop->index >= 2) data-details-extra-product @endif>
                                 <div class="flex min-w-0 items-center gap-3">
                                     <img class="h-14 w-14 shrink-0 rounded-xl object-cover ring-1 ring-love-pink-100" src="{{ $itemImage($item) }}" alt="{{ $item->product_title }} thumbnail" loading="lazy">
                                     <div class="min-w-0"><p class="truncate text-sm font-extrabold text-[#512438]">{{ $item->product_title }}</p><p class="mt-1 text-xs font-bold text-[#9a6c7b]">Quantity {{ $item->quantity }}</p></div>
@@ -405,6 +405,11 @@
                             </li>
                         @endforeach
                     </ul>
+                    @if ($order->items->count() > 2)
+                        <button class="mt-3 inline-flex h-10 items-center justify-center rounded-full border border-love-pink-100 bg-white px-4 text-sm font-extrabold text-[#512438] transition hover:bg-love-pink-100 hover:text-love-pink-500 focus:outline-none focus:ring-4 focus:ring-love-pink-100" type="button" data-details-show-more>
+                            Show {{ $order->items->count() - 2 }} more
+                        </button>
+                    @endif
                 </section>
                 <div class="grid gap-3 rounded-[1.25rem] border border-love-pink-100 bg-love-cream p-4">
                     <div class="flex items-center justify-between gap-4 text-sm font-bold text-[#9a6c7b]"><span>Subtotal</span><span>&#8369;{{ number_format((float) $order->subtotal, 2) }}</span></div>

@@ -38,7 +38,7 @@
                         <span class="absolute -right-0.5 top-0 flex h-5 min-w-5 items-center justify-center rounded-full bg-love-blue-300 px-1 text-xs font-extrabold text-[#512438]">3</span>
                     </button>
 
-                    <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-love-pink-400 text-sm font-extrabold text-white shadow-[0_18px_35px_-24px_rgba(236,72,153,0.75)]">AD</span>
+                    <x-admin.profile-avatar class="h-12 w-12 text-sm shadow-[0_18px_35px_-24px_rgba(236,72,153,0.75)]" />
                 </div>
             </div>
         </header>

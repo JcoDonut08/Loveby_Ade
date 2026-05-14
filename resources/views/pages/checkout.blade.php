@@ -11,6 +11,19 @@
         3 => 'Order Review',
         4 => 'Confirmation',
     ];
+    $phoneDigits = function (?string $value): string {
+        $digits = preg_replace('/\D/', '', (string) $value) ?: '';
+
+        if (str_starts_with($digits, '63') && strlen($digits) === 12) {
+            return substr($digits, 2);
+        }
+
+        if (str_starts_with($digits, '0') && strlen($digits) === 11) {
+            return substr($digits, 1);
+        }
+
+        return $digits;
+    };
 @endphp
 
 @section('content')
@@ -44,7 +57,16 @@
 
                         <div class="mt-6 grid gap-5 sm:grid-cols-2">
                             <x-checkout.field id="full-name" label="Full name" name="full_name" :value="old('full_name', auth()->user()?->name)" placeholder="Ade Santos" required />
-                            <x-checkout.field id="contact-number" label="Contact number" name="contact_number" :value="old('contact_number', auth()->user()?->contact_number)" type="tel" placeholder="09XX XXX XXXX" required />
+                            <div>
+                                <label class="block text-sm font-extrabold text-slate-700" for="contact-number">Contact number</label>
+                                <span class="mt-2 flex items-center rounded-xl border border-love-pink-100 bg-white px-4 py-3 text-sm font-semibold text-slate-900 transition focus-within:border-love-pink-300 focus-within:ring-4 focus-within:ring-love-pink-100">
+                                    <span class="shrink-0 text-slate-900">+63-</span>
+                                    <input class="min-w-0 flex-1 bg-transparent text-sm font-semibold text-slate-900 outline-none placeholder:text-slate-400" id="contact-number" name="contact_number_digits" type="tel" value="{{ old('contact_number_digits', $phoneDigits(auth()->user()?->contact_number)) }}" inputmode="numeric" maxlength="10" pattern="[0-9]{10}" autocomplete="tel-national" placeholder="0000000000" required data-phone-digits data-phone-prefix="+63-" data-checkout-input="contact_number">
+                                </span>
+                                @if ($errors->has('contact_number_digits') || $errors->has('contact_number'))
+                                    <span class="mt-2 block text-xs font-medium text-red-500">{{ $errors->first('contact_number_digits') ?: $errors->first('contact_number') }}</span>
+                                @endif
+                            </div>
                             <x-checkout.field id="email-address" label="Email address" name="email_address" :value="old('email_address', auth()->user()?->email)" type="email" placeholder="you@example.com" required />
                             <x-checkout.field id="complete-address" label="Complete address" name="complete_address" :value="old('complete_address', auth()->user()?->address)" placeholder="House, street, barangay, city" required />
                             <div class="sm:col-span-2">

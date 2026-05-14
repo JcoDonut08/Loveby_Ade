@@ -56,6 +56,39 @@ export const initializeAdminOrderModals = () => {
             button.addEventListener('click', () => hideLayer(cancelModal));
         });
 
+        section.querySelectorAll('[data-admin-details-open]').forEach((button) => {
+            button.addEventListener('click', () => {
+                const templateId = button.dataset.detailsTemplate || '';
+                const template = document.getElementById(templateId);
+
+                if (!(template instanceof HTMLTemplateElement) || !(detailsContent instanceof HTMLElement)) {
+                    return;
+                }
+
+                if (detailsTitle instanceof HTMLElement) {
+                    detailsTitle.textContent = button.dataset.detailsHeading || 'Order';
+                }
+
+                detailsContent.replaceChildren(template.content.cloneNode(true));
+                showLayer(detailsModal);
+            });
+        });
+
+        detailsContent?.addEventListener('click', (event) => {
+            const button = event.target instanceof Element ? event.target.closest('[data-details-show-more]') : null;
+
+            if (!(button instanceof HTMLButtonElement) || !(detailsContent instanceof HTMLElement)) {
+                return;
+            }
+
+            detailsContent.querySelectorAll('[data-details-extra-product]').forEach((product) => {
+                product.classList.remove('hidden');
+                product.classList.add('flex');
+            });
+
+            button.remove();
+        });
+
         section.querySelectorAll('[data-details-close]').forEach((button) => {
             button.addEventListener('click', () => hideLayer(detailsModal));
         });

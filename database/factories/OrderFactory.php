@@ -23,7 +23,7 @@ class OrderFactory extends Factory
             'user_id' => User::factory(),
             'status' => Order::STATUS_PENDING,
             'full_name' => fake()->name(),
-            'contact_number' => '09'.fake()->numerify('#########'),
+            'contact_number' => '+63-9'.fake()->numerify('#########'),
             'email_address' => fake()->safeEmail(),
             'complete_address' => fake()->address(),
             'delivery_notes' => fake()->optional()->sentence(),

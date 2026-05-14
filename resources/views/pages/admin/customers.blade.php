@@ -40,9 +40,9 @@
                     </button>
 
                     <div class="flex h-12 shrink-0 items-center gap-3 rounded-full border border-love-pink-100 bg-white/88 py-1 pl-1 pr-4 shadow-[0_18px_35px_-28px_rgba(81,36,56,0.35)]">
-                        <span class="flex h-10 w-10 items-center justify-center rounded-full bg-love-pink-400 text-sm font-extrabold text-white">AD</span>
+                        <x-admin.profile-avatar class="h-10 w-10 text-sm" />
                         <span class="hidden text-left sm:block">
-                            <span class="block text-sm font-extrabold leading-tight text-[#512438]">Ade Sweet</span>
+                            <span class="block text-sm font-extrabold leading-tight text-[#512438]">{{ auth()->user()?->name ?? 'Admin' }}</span>
                             <span class="block text-xs font-medium leading-tight text-[#9a6c7b]">Admin</span>
                         </span>
                     </div>

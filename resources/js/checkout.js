@@ -90,7 +90,11 @@ const initializeCheckoutFlow = () => {
 
                 if (target instanceof HTMLElement) {
                     const fallback = input.name === 'delivery_notes' ? 'No delivery notes' : 'Not provided';
-                    target.textContent = input.value.trim() || fallback;
+                    const value = input.dataset.phonePrefix && input.value.trim()
+                        ? `${input.dataset.phonePrefix}${input.value.trim()}`
+                        : input.value.trim();
+
+                    target.textContent = value || fallback;
                 }
             });
 

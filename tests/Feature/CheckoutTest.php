@@ -17,6 +17,9 @@ test('checkout page renders shipping payment review and confirmation steps', fun
         ->assertSee('Confirmation')
         ->assertSee('Full name')
         ->assertSee('Contact number')
+        ->assertSee('+63-', false)
+        ->assertSee('placeholder="0000000000"', false)
+        ->assertSee('name="contact_number_digits"', false)
         ->assertSee('Email address')
         ->assertSee('Complete address')
         ->assertSee('Delivery notes')
@@ -55,7 +58,7 @@ test('authenticated customer can place an order from the cart', function () {
     $this->actingAs($user)
         ->post(route('checkout.store'), [
             'full_name' => 'Ade Santos',
-            'contact_number' => '09171234567',
+            'contact_number_digits' => '9171234567',
             'email_address' => 'ade@example.com',
             'complete_address' => '123 Bakery Lane',
             'delivery_notes' => 'Ring the bell.',
@@ -66,6 +69,22 @@ test('authenticated customer can place an order from the cart', function () {
     $order = Order::query()->whereBelongsTo($user)->with('items')->firstOrFail();
 
     expect($order->status)->toBe(Order::STATUS_PENDING)
+        ->and($order->contact_number)->toBe('+63-9171234567')
         ->and($order->items)->toHaveCount(1)
         ->and($order->items->first()->product_title)->toBe('Pastel Donut Box');
+});
+
+test('checkout rejects phone numbers outside the fixed philippine format', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)
+        ->post(route('checkout.store'), [
+            'full_name' => 'Ade Santos',
+            'contact_number_digits' => '917123',
+            'email_address' => 'ade@example.com',
+            'complete_address' => '123 Bakery Lane',
+            'delivery_notes' => 'Ring the bell.',
+            'payment_method' => 'Cash on Delivery',
+        ])
+        ->assertSessionHasErrors('contact_number_digits');
 });
