@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\Admin\AccountController as AdminAccountController;
+use App\Http\Controllers\Admin\CustomerController as AdminCustomerController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Auth\GoogleAuthController;
@@ -128,7 +129,7 @@ Route::prefix('admin')->name('admin.')->middleware(EnsureUserIsAdmin::class)->gr
     Route::post('/products', [AdminProductController::class, 'store'])->name('products.store');
     Route::patch('/products/{product}', [AdminProductController::class, 'update'])->name('products.update');
     Route::delete('/products/{product}', [AdminProductController::class, 'destroy'])->name('products.destroy');
-    Route::view('/customers', 'pages.admin.customers')->name('customers');
+    Route::get('/customers', [AdminCustomerController::class, 'index'])->name('customers');
     Route::view('/promotions', 'pages.admin.promotions')->name('promotions');
     Route::view('/chat-inbox', 'pages.admin.chat_inbox')->name('chat-inbox');
     Route::view('/notifications', 'pages.admin.notifications')->name('notifications');

@@ -1,7 +1,9 @@
 <?php
 
 use App\Models\Order;
+use App\Models\Product;
 use App\Models\User;
+use App\Services\ProductCatalog;
 
 test('storefront header links to customer shopping utilities', function () {
     $this->get(route('home'))
@@ -80,4 +82,54 @@ test('order confirmation page renders thank you message order items and totals',
         ->assertSee('Pastel Donut Box')
         ->assertSee('Total')
         ->assertSee('Continue shopping');
+});
+
+test('homepage recommendations fill four products from frequent purchase category', function () {
+    $user = User::factory()->create();
+    $products = collect([
+        ['slug' => 'strawberry-cake', 'title' => 'Strawberry Cake', 'sold' => 25],
+        ['slug' => 'ube-cake', 'title' => 'Ube Cake', 'sold' => 20],
+        ['slug' => 'mango-cake', 'title' => 'Mango Cake', 'sold' => 15],
+        ['slug' => 'vanilla-cake', 'title' => 'Vanilla Cake', 'sold' => 10],
+    ])->map(fn (array $product): Product => Product::factory()->create([
+        ...$product,
+        'category' => 'Cakes',
+        'is_active' => true,
+    ]));
+    Product::factory()->create([
+        'slug' => 'latte',
+        'title' => 'Latte',
+        'category' => 'Coffees / Shakes',
+        'sold' => 50,
+        'is_active' => true,
+    ]);
+    $order = Order::factory()->for($user)->create();
+
+    $products->take(3)->each(function (Product $product) use ($order): void {
+        $order->items()->create([
+            'product_id' => $product->id,
+            'product_slug' => $product->slug,
+            'product_title' => $product->title,
+            'category' => 'Cakes',
+            'unit_price' => 120,
+            'quantity' => 1,
+            'line_total' => 120,
+        ]);
+    });
+
+    $recommendations = app(ProductCatalog::class)
+        ->recommendedFor($user, 4)
+        ->pluck('slug')
+        ->all();
+
+    expect($recommendations)->toHaveCount(4)
+        ->and($recommendations)->toContain('vanilla-cake')
+        ->and($recommendations)->toContain('strawberry-cake')
+        ->and($recommendations)->not->toContain('latte');
+
+    $this->actingAs($user)
+        ->get(route('home'))
+        ->assertSuccessful()
+        ->assertSee('Recommended for you')
+        ->assertSee('Vanilla Cake');
 });

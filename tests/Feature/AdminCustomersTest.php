@@ -1,5 +1,8 @@
 <?php
 
+use App\Models\Order;
+use App\Models\User;
+
 test('admin customers page renders the customer management workspace', function () {
     $this->actingAs(adminUser())
         ->get(route('admin.customers'))
@@ -44,4 +47,38 @@ test('admin customers page renders the customer management workspace', function 
         ->assertDontSee('href="'.route('admin.dashboard').'" aria-current="page"', false)
         ->assertDontSee('href="'.route('admin.orders').'" aria-current="page"', false)
         ->assertDontSee('href="'.route('admin.products').'" aria-current="page"', false);
+});
+
+test('admin customers page uses real customer and order data', function () {
+    $customer = User::factory()->create([
+        'name' => 'Mia Reyes',
+        'email' => 'mia.reyes@example.com',
+        'contact_number' => '+63-9172841930',
+        'created_at' => now()->subMonth(),
+    ]);
+    $order = Order::factory()->for($customer)->create([
+        'order_number' => 'LBA-3508',
+        'status' => Order::STATUS_DELIVERED,
+        'total' => 1170,
+        'created_at' => now()->subDay(),
+    ]);
+    $order->items()->create([
+        'product_slug' => 'strawberry-cream-cake',
+        'product_title' => 'Strawberry Cream Cake',
+        'category' => 'Cakes',
+        'unit_price' => 840,
+        'quantity' => 1,
+        'line_total' => 840,
+    ]);
+
+    $this->actingAs(adminUser())
+        ->get(route('admin.customers'))
+        ->assertSuccessful()
+        ->assertSee('Mia Reyes')
+        ->assertSee('mia.reyes@example.com')
+        ->assertSee('LBA-3508')
+        ->assertSee('Strawberry Cream Cake')
+        ->assertSee('data-customers', false)
+        ->assertDontSee('Mika Santos')
+        ->assertDontSee('mock customers shown');
 });

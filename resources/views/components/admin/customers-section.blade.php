@@ -1,4 +1,10 @@
+@props([
+    'customers' => [],
+])
+
 @php
+    $customerPayload = e(json_encode($customers));
+
     $summaryCards = [
         ['key' => 'total', 'title' => 'Total Customers', 'tone' => 'border-love-pink-100 bg-white text-love-pink-500'],
         ['key' => 'top_spender', 'title' => 'Top Spenders', 'tone' => 'border-emerald-100 bg-emerald-50 text-emerald-600'],
@@ -14,7 +20,7 @@
     ];
 @endphp
 
-<section class="grid gap-6" data-admin-customers>
+<section class="grid gap-6" data-admin-customers data-customers='{!! $customerPayload !!}'>
     <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4" aria-label="Customer summary">
         @foreach ($summaryCards as $card)
             <article class="rounded-[1.25rem] border p-5 shadow-[0_22px_55px_-44px_rgba(81,36,56,0.42)] transition hover:-translate-y-0.5 {{ $card['tone'] }}">

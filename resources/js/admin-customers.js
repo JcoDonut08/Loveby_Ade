@@ -1,15 +1,24 @@
-import { mockCustomers } from './admin-customers-data';
 import { getPagedCustomers, initializeCustomerPaginationControls, renderCustomerPagination } from './admin-customers-pagination';
 import { getCustomerSpend, renderCustomerCard, renderCustomerDetails } from './admin-customers-renderers';
 
 const filterActiveClasses = ['bg-love-pink-400', 'text-white', 'shadow-[0_14px_28px_-20px_rgba(236,72,153,0.9)]'];
 const filterInactiveClasses = ['border', 'border-love-pink-100', 'bg-love-cream', 'text-[#512438]', 'hover:bg-love-pink-100', 'hover:text-love-pink-500'];
 
-const cloneCustomers = () => mockCustomers.map((customer) => ({
-    ...customer,
-    orders: customer.orders.map((order) => ({ ...order })),
-    activity: [...customer.activity],
-}));
+const customersFromSection = (section) => {
+    try {
+        const customers = JSON.parse(section.dataset.customers || '[]');
+
+        return Array.isArray(customers)
+            ? customers.map((customer) => ({
+                ...customer,
+                orders: Array.isArray(customer.orders) ? customer.orders.map((order) => ({ ...order })) : [],
+                activity: Array.isArray(customer.activity) ? [...customer.activity] : [],
+            }))
+            : [];
+    } catch {
+        return [];
+    }
+};
 
 export const initializeAdminCustomers = () => {
     document.querySelectorAll('[data-admin-customers]').forEach((section) => {
@@ -17,7 +26,7 @@ export const initializeAdminCustomers = () => {
             return;
         }
 
-        const customers = cloneCustomers();
+        const customers = customersFromSection(section);
         const state = {
             filter: 'all',
             search: '',
@@ -111,7 +120,7 @@ export const initializeAdminCustomers = () => {
             }
 
             if (resultCount instanceof HTMLElement) {
-                resultCount.textContent = `${visibleCustomers.length} of ${customers.length} mock customers shown`;
+                resultCount.textContent = `${visibleCustomers.length} of ${customers.length} customers shown`;
             }
         };
 

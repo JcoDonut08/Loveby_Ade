@@ -288,16 +288,30 @@ class ProductCatalog
             ->pluck('product_slug')
             ->all();
 
-        $recommended = $this->all()
+        $products = $this->all();
+        $categoryProducts = $products
             ->where('category', $category)
-            ->reject(fn (array $product): bool => in_array($product['slug'], $purchasedSlugs, true))
             ->sortByDesc('sold')
+            ->values();
+
+        $recommended = $categoryProducts
+            ->reject(fn (array $product): bool => in_array($product['slug'], $purchasedSlugs, true))
+            ->concat($categoryProducts->filter(fn (array $product): bool => in_array($product['slug'], $purchasedSlugs, true)))
+            ->unique('slug')
             ->take($limit)
             ->values();
 
-        return $recommended->isNotEmpty()
-            ? $recommended
-            : $this->trending($limit);
+        if ($recommended->count() >= $limit) {
+            return $recommended;
+        }
+
+        return $recommended
+            ->concat($products
+                ->reject(fn (array $product): bool => $recommended->pluck('slug')->contains($product['slug']))
+                ->sortByDesc('sold'))
+            ->unique('slug')
+            ->take($limit)
+            ->values();
     }
 
     /**

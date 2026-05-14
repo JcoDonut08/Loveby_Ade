@@ -51,7 +51,7 @@
         </header>
 
         <main class="px-4 py-4 sm:px-6 lg:px-10">
-            <x-admin.customers-section />
+            <x-admin.customers-section :customers="$customers" />
         </main>
     </div>
 @endsection
