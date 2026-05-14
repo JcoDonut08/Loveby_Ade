@@ -11,10 +11,11 @@ class ProductManagementService
 {
     /**
      * @param  array{title: string, description: string, category: string, price: numeric, stock: int|string}  $data
+     * @param  array<int, UploadedFile>  $images
      */
-    public function create(array $data, ?UploadedFile $image): Product
+    public function create(array $data, array $images): Product
     {
-        $imagePath = $image?->store('products', 'public');
+        $imagePaths = $this->storeImages($images);
 
         return Product::query()->create([
             'slug' => $this->uniqueSlug($data['title']),
@@ -25,24 +26,46 @@ class ProductManagementService
             'stock' => (int) $data['stock'],
             'sold' => 0,
             'rating' => 0,
-            'image_path' => $imagePath,
+            'image_path' => $imagePaths[0] ?? null,
+            'product_images' => $imagePaths,
             'is_active' => true,
         ]);
     }
 
     /**
      * @param  array{title: string, description: string, category: string, price: numeric, stock: int|string}  $data
+     * @param  array<int, UploadedFile>  $images
+     * @param  array<int, string>|null  $existingImagePaths
      */
-    public function update(Product $product, array $data, ?UploadedFile $image): Product
+    public function update(Product $product, array $data, array $images, ?array $existingImagePaths = null): Product
     {
-        $imagePath = $product->image_path;
+        $currentImagePaths = $this->currentImagePaths($product);
 
-        if ($image instanceof UploadedFile) {
-            if ($product->image_path) {
-                Storage::disk('public')->delete($product->image_path);
-            }
+        if ($existingImagePaths === null && $images !== []) {
+            $this->deleteStoredImages($product);
 
-            $imagePath = $image->store('products', 'public');
+            $imagePaths = $this->storeImages($images);
+        } elseif ($existingImagePaths !== null) {
+            $imagePaths = collect($existingImagePaths)
+                ->filter(fn (string $path): bool => in_array($path, $currentImagePaths, true))
+                ->unique()
+                ->take(4)
+                ->values()
+                ->all();
+
+            $imagePaths = [
+                ...$imagePaths,
+                ...$this->storeImages($images, 4 - count($imagePaths)),
+            ];
+
+            Storage::disk('public')->delete(
+                collect($currentImagePaths)
+                    ->diff($imagePaths)
+                    ->values()
+                    ->all()
+            );
+        } else {
+            $imagePaths = $currentImagePaths;
         }
 
         $product->update([
@@ -52,7 +75,8 @@ class ProductManagementService
             'category' => $data['category'],
             'price' => $data['price'],
             'stock' => (int) $data['stock'],
-            'image_path' => $imagePath,
+            'image_path' => $imagePaths[0] ?? null,
+            'product_images' => $imagePaths,
         ]);
 
         return $product;
@@ -60,11 +84,46 @@ class ProductManagementService
 
     public function delete(Product $product): void
     {
-        if ($product->image_path) {
-            Storage::disk('public')->delete($product->image_path);
-        }
+        $this->deleteStoredImages($product);
 
         $product->delete();
+    }
+
+    /**
+     * @param  array<int, UploadedFile>  $images
+     * @return array<int, string>
+     */
+    private function storeImages(array $images, int $limit = 4): array
+    {
+        return collect($images)
+            ->filter(fn (mixed $image): bool => $image instanceof UploadedFile)
+            ->take(max(0, $limit))
+            ->map(fn (UploadedFile $image): string => $image->store('products', 'public'))
+            ->values()
+            ->all();
+    }
+
+    private function deleteStoredImages(Product $product): void
+    {
+        $paths = collect($this->currentImagePaths($product));
+
+        if ($paths->isNotEmpty()) {
+            Storage::disk('public')->delete($paths->all());
+        }
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function currentImagePaths(Product $product): array
+    {
+        return collect($product->product_images ?: [])
+            ->when($product->image_path, fn ($paths) => $paths->prepend($product->image_path))
+            ->filter()
+            ->unique()
+            ->take(4)
+            ->values()
+            ->all();
     }
 
     private function uniqueSlug(string $title, ?Product $ignoreProduct = null): string

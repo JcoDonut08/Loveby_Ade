@@ -313,20 +313,54 @@ class ProductCatalog
             ->where('is_active', true)
             ->latest()
             ->get()
-            ->map(fn (Product $product): array => $this->decorateProduct([
-                'slug' => $product->slug,
-                'title' => $product->title,
-                'category' => $product->category,
-                'price' => (float) $product->price,
-                'sold' => $product->sold,
-                'stock' => $product->stock,
-                'rating' => (float) $product->rating,
-                'image' => $product->image_path
-                    ? Storage::disk('public')->url($product->image_path)
-                    : ($product->image_url ?: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=900&q=80'),
-                'description' => $product->description,
-            ]))
+            ->map(function (Product $product): array {
+                $gallery = $this->productGallery($product);
+
+                return $this->decorateProduct([
+                    'slug' => $product->slug,
+                    'title' => $product->title,
+                    'category' => $product->category,
+                    'price' => (float) $product->price,
+                    'sold' => $product->sold,
+                    'stock' => $product->stock,
+                    'rating' => (float) $product->rating,
+                    'image' => $gallery[0]['image'] ?? ($product->image_url ?: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=900&q=80'),
+                    'description' => $product->description,
+                    'gallery' => $gallery,
+                ]);
+            })
             ->values();
+    }
+
+    /**
+     * @return array<int, array{image: string, thumbnail: string, alt: string}>
+     */
+    private function productGallery(Product $product): array
+    {
+        $paths = collect($product->product_images ?: [])
+            ->when($product->image_path, fn ($paths) => $paths->prepend($product->image_path))
+            ->filter()
+            ->unique()
+            ->take(4)
+            ->values();
+
+        if ($paths->isEmpty()) {
+            $image = $product->image_url ?: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=900&q=80';
+
+            return [[
+                'image' => Str::replace('w=900', 'w=1200', $image),
+                'thumbnail' => Str::replace('w=900', 'w=240', $image),
+                'alt' => $product->title.' product photo',
+            ]];
+        }
+
+        return $paths
+            ->map(fn (string $path): array => [
+                'image' => Storage::disk('public')->url($path),
+                'thumbnail' => Storage::disk('public')->url($path),
+                'alt' => $product->title.' product photo',
+            ])
+            ->all();
     }
 
     /**

@@ -25,6 +25,7 @@ class Product extends Model
         'stock',
         'rating',
         'image_path',
+        'product_images',
         'image_url',
         'is_active',
     ];
@@ -39,6 +40,7 @@ class Product extends Model
             'sold' => 'integer',
             'stock' => 'integer',
             'rating' => 'decimal:1',
+            'product_images' => 'array',
             'is_active' => 'boolean',
         ];
     }

@@ -6,6 +6,7 @@ use App\Services\ProductCatalog;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\File;
 
 class StoreProductRequest extends FormRequest
 {
@@ -30,7 +31,21 @@ class StoreProductRequest extends FormRequest
             'category' => ['required', 'string', Rule::in(ProductCatalog::availableCategories())],
             'price' => ['required', 'numeric', 'min:1', 'max:999999'],
             'stock' => ['required', 'integer', 'min:0', 'max:999999'],
-            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'images' => ['nullable', 'array', 'max:4'],
+            'images.*' => [
+                'nullable',
+                File::image()
+                    ->types(['jpg', 'jpeg', 'png', 'webp'])
+                    ->max('2mb'),
+            ],
+            'existing_images' => ['nullable', 'array', 'max:4'],
+            'existing_images.*' => ['nullable', 'string', 'max:255'],
+            'image' => [
+                'nullable',
+                File::image()
+                    ->types(['jpg', 'jpeg', 'png', 'webp'])
+                    ->max('2mb'),
+            ],
         ];
     }
 }

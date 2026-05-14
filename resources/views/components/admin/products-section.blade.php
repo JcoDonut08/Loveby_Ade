@@ -19,7 +19,27 @@
         return $query;
     };
 
-    $imageFor = function ($product): string {
+    $imagePathsFor = function ($product): array {
+        return collect($product->product_images ?: [])
+            ->when($product->image_path, fn ($paths) => $paths->prepend($product->image_path))
+            ->filter()
+            ->unique()
+            ->take(4)
+            ->values()
+            ->all();
+    };
+
+    $imageUrlFor = function (string $path): string {
+        return Storage::disk('public')->url($path);
+    };
+
+    $imageFor = function ($product) use ($imagePathsFor, $imageUrlFor): string {
+        $imagePaths = $imagePathsFor($product);
+
+        if ($imagePaths !== []) {
+            return $imageUrlFor($imagePaths[0]);
+        }
+
         if ($product->image_path) {
             return Storage::disk('public')->url($product->image_path);
         }
@@ -52,7 +72,7 @@
 
     <div class="rounded-[1.25rem] border border-love-pink-100/70 bg-white/96 p-4 shadow-[0_22px_55px_-44px_rgba(81,36,56,0.42)] sm:p-5">
         <div class="flex flex-col gap-4 2xl:flex-row 2xl:items-center 2xl:justify-between">
-            <form class="relative w-full max-w-2xl" method="GET" action="{{ route('admin.products') }}">
+            <form class="relative w-full max-w-2xl" method="GET" action="{{ route('admin.products') }}" data-product-search-form>
                 @if (request()->filled('category'))
                     <input type="hidden" name="category" value="{{ request('category') }}">
                 @endif
@@ -90,10 +110,16 @@
         </div>
     </div>
 
-    <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+    <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4" data-product-results-grid>
         @forelse ($products as $product)
             @php
                 $stock = $stockMeta($product->stock);
+                $imagePaths = $imagePathsFor($product);
+                $imagePayload = collect($imagePaths)->map(fn (string $path): array => [
+                    'path' => $path,
+                    'src' => $imageUrlFor($path),
+                    'alt' => $product->title.' product photo',
+                ])->all();
                 $productPayload = e(json_encode([
                     'action' => route('admin.products.update', $product),
                     'title' => $product->title,
@@ -101,10 +127,11 @@
                     'category' => $product->category,
                     'price' => (float) $product->price,
                     'stock' => $product->stock,
+                    'images' => $imagePayload,
                 ]));
             @endphp
 
-            <article class="overflow-hidden rounded-[1.25rem] border border-love-pink-100/70 bg-white/96 shadow-[0_22px_55px_-44px_rgba(81,36,56,0.42)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_30px_70px_-46px_rgba(244,114,168,0.45)]">
+            <article class="overflow-hidden rounded-[1.25rem] border border-love-pink-100/70 bg-white/96 shadow-[0_22px_55px_-44px_rgba(81,36,56,0.42)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_30px_70px_-46px_rgba(244,114,168,0.45)]" data-product-result>
                 <div class="relative aspect-[4/3] overflow-hidden bg-[#fff4f7]">
                     <img class="h-full w-full object-cover transition duration-500 hover:scale-[1.04]" src="{{ $imageFor($product) }}" alt="{{ $product->title }}" loading="lazy">
                     <span class="absolute right-3 top-3 inline-flex items-center justify-center rounded-full border px-3 py-1 text-xs font-extrabold uppercase tracking-wide {{ $stock['class'] }}">
@@ -224,24 +251,25 @@
                 <input type="hidden" name="_method" value="PATCH" data-product-form-method disabled>
 
                 <label class="block" for="catalog-product-image">
-                    <span class="text-sm font-extrabold text-[#512438]">Upload image</span>
+                    <span class="text-sm font-extrabold text-[#512438]">Upload images</span>
                     <span class="mt-2 flex min-h-36 cursor-pointer flex-col items-center justify-center rounded-[1.25rem] border border-dashed border-love-pink-200 bg-love-cream px-4 py-6 text-center transition hover:border-love-pink-300 hover:bg-white">
                         <svg class="h-8 w-8 text-love-pink-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 15.25V4.75M8.25 8.25 12 4.5l3.75 3.75" />
                             <path stroke-linecap="round" stroke-linejoin="round" d="M5.75 14.75v3.5h12.5v-3.5" />
                         </svg>
-                        <span class="mt-3 text-sm font-extrabold text-[#512438]">Choose a product image</span>
-                        <span class="mt-1 text-xs font-medium text-[#9a6c7b]">JPG, PNG, or WebP.</span>
+                        <span class="mt-3 text-sm font-extrabold text-[#512438]">Choose one or more product images</span>
+                        <span class="mt-1 text-xs font-medium text-[#9a6c7b]">JPG, PNG, or WebP. Maximum of 4 images.</span>
                     </span>
-                    <input class="sr-only" id="catalog-product-image" type="file" name="image" accept="image/*" data-product-images>
+                    <input class="sr-only" id="catalog-product-image" type="file" name="images[]" accept="image/jpeg,image/png,image/webp" multiple data-product-images>
+                    <div data-product-existing-images></div>
                     <div class="mt-3 grid gap-3 sm:grid-cols-4" data-product-image-preview>
                         <div class="rounded-[1.25rem] border border-dashed border-love-pink-200 bg-love-cream p-4 text-sm font-bold text-[#9a6c7b] sm:col-span-4">
                             No image selected yet.
                         </div>
                     </div>
-                    @error('image')
-                        <span class="mt-1 block text-xs font-bold text-rose-500">{{ $message }}</span>
-                    @enderror
+                    @if ($errors->has('images') || $errors->has('images.*') || $errors->has('image'))
+                        <span class="mt-1 block text-xs font-bold text-rose-500">{{ $errors->first('images') ?: ($errors->first('images.*') ?: $errors->first('image')) }}</span>
+                    @endif
                 </label>
 
                 <label class="block" for="catalog-product-name">
