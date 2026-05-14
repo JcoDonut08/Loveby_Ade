@@ -43,7 +43,7 @@ const getSegmentBadge = (customer) => {
     }
 
     return {
-        label: 'Active Today',
+        label: 'Regular Customer',
         className: 'border-love-blue-100 bg-love-blue-100/80 text-[#23445c]',
     };
 };

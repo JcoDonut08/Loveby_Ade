@@ -49,26 +49,20 @@ export const initializeAdminCustomers = () => {
 
         const findCustomer = (customerId) => customers.find((customer) => customer.id === customerId);
 
-        const isActiveToday = (customer) => ['today', 'minutes', 'hours'].some((term) => customer.lastActive.toLowerCase().includes(term));
-
         const getCounts = () => customers.reduce((counts, customer) => {
+            counts.total += 1;
             counts.all += 1;
 
-            if (customer.segment === 'top_spender' || customer.segment === 'new_customer') {
+            if (customer.segment === 'top_spender' || customer.segment === 'regular_customer' || customer.segment === 'new_customer') {
                 counts[customer.segment] += 1;
             }
 
-            if (isActiveToday(customer)) {
-                counts.active_today += 1;
-            }
-
             return counts;
-        }, { all: 0, top_spender: 0, active_today: 0, new_customer: 0 });
+        }, { total: 0, all: 0, top_spender: 0, regular_customer: 0, new_customer: 0 });
 
         const getVisibleCustomers = () => customers.filter((customer) => {
             const matchesFilter = state.filter === 'all'
-                || customer.segment === state.filter
-                || (state.filter === 'active_today' && isActiveToday(customer));
+                || customer.segment === state.filter;
             const haystack = [
                 customer.id,
                 customer.name,

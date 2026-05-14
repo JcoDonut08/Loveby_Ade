@@ -18,7 +18,9 @@ class AdminCustomerDirectory
     public function customers(): array
     {
         $users = User::query()
-            ->where('role', '!=', 'admin')
+            ->where(fn ($query) => $query
+                ->where('role', '!=', 'admin')
+                ->orWhereNull('role'))
             ->with(['orders' => fn ($query) => $query
                 ->with('items')
                 ->latest()])
@@ -43,8 +45,11 @@ class AdminCustomerDirectory
             return [];
         }
 
+        $activeAfter = now()->subMinutes((int) config('session.lifetime', 120))->timestamp;
+
         return DB::table('sessions')
             ->whereIn('user_id', $userIds)
+            ->where('last_activity', '>=', $activeAfter)
             ->selectRaw('user_id, MAX(last_activity) as last_activity')
             ->groupBy('user_id')
             ->get()
@@ -60,11 +65,11 @@ class AdminCustomerDirectory
     private function customerPayload(User $user, ?CarbonInterface $lastSessionAt): array
     {
         $orders = $user->orders;
-        $lastOrderAt = $orders->max('created_at');
-        $lastActiveAt = collect([$lastSessionAt, $lastOrderAt, $user->updated_at])
+        $lastActiveAt = collect([$lastSessionAt, $user->last_active_at, $user->updated_at])
             ->filter()
             ->sortDesc()
             ->first();
+        $isActiveNow = $lastSessionAt instanceof CarbonInterface;
 
         return [
             'id' => 'CUS-'.str_pad((string) $user->id, 4, '0', STR_PAD_LEFT),
@@ -76,8 +81,8 @@ class AdminCustomerDirectory
                 ->map(fn (Order $order): array => $this->orderPayload($order))
                 ->values()
                 ->all(),
-            'activity' => $this->activityFor($user, $lastActiveAt),
-            'lastActive' => $this->lastActiveLabel($lastActiveAt),
+            'activity' => $this->activityFor($user, $lastActiveAt, $isActiveNow),
+            'lastActive' => $isActiveNow ? 'Active now' : $this->lastActiveLabel($lastActiveAt),
             'joined' => $user->created_at?->format('F j, Y') ?? 'Unknown',
             'segment' => $this->segmentFor($user),
         ];
@@ -102,7 +107,7 @@ class AdminCustomerDirectory
     /**
      * @return array<int, string>
      */
-    private function activityFor(User $user, ?CarbonInterface $lastActiveAt): array
+    private function activityFor(User $user, ?CarbonInterface $lastActiveAt, bool $isActiveNow): array
     {
         $latestOrder = $user->orders->first();
         $favoriteCategory = $user->orders
@@ -115,7 +120,7 @@ class AdminCustomerDirectory
         return collect([
             $latestOrder instanceof Order ? 'Placed order '.$latestOrder->order_number.' '.$this->lastActiveLabel($latestOrder->created_at) : null,
             is_string($favoriteCategory) ? 'Frequently buys '.$favoriteCategory : null,
-            $lastActiveAt instanceof CarbonInterface ? 'Last activity '.$this->lastActiveLabel($lastActiveAt) : 'Created account without purchase activity yet',
+            $isActiveNow ? 'Customer is active now' : ($lastActiveAt instanceof CarbonInterface ? 'Last activity '.$this->lastActiveLabel($lastActiveAt) : 'Created account without purchase activity yet'),
         ])
             ->filter()
             ->values()
@@ -124,17 +129,17 @@ class AdminCustomerDirectory
 
     private function segmentFor(User $user): string
     {
-        if ($user->created_at?->greaterThanOrEqualTo(now()->subDays(7)) === true) {
-            return 'new_customer';
-        }
-
         $spent = $user->orders->sum(fn (Order $order): float => (float) $order->total);
 
-        if ($spent >= 500) {
+        if ($spent >= 1000) {
             return 'top_spender';
         }
 
-        return 'active_today';
+        if ($spent > 0) {
+            return 'regular_customer';
+        }
+
+        return 'new_customer';
     }
 
     private function lastActiveLabel(?CarbonInterface $lastActiveAt): string

@@ -8,14 +8,14 @@
     $summaryCards = [
         ['key' => 'total', 'title' => 'Total Customers', 'tone' => 'border-love-pink-100 bg-white text-love-pink-500'],
         ['key' => 'top_spender', 'title' => 'Top Spenders', 'tone' => 'border-emerald-100 bg-emerald-50 text-emerald-600'],
-        ['key' => 'active_today', 'title' => 'Active Today', 'tone' => 'border-love-blue-100 bg-love-blue-100/80 text-[#23445c]'],
+        ['key' => 'regular_customer', 'title' => 'Regular Customers', 'tone' => 'border-love-blue-100 bg-love-blue-100/80 text-[#23445c]'],
         ['key' => 'new_customer', 'title' => 'New Customers', 'tone' => 'border-amber-100 bg-amber-50 text-[#7a4b21]'],
     ];
 
     $filters = [
         ['key' => 'all', 'label' => 'All'],
         ['key' => 'top_spender', 'label' => 'Top Spender'],
-        ['key' => 'active_today', 'label' => 'Active Today'],
+        ['key' => 'regular_customer', 'label' => 'Regular Customer'],
         ['key' => 'new_customer', 'label' => 'New Customer'],
     ];
 @endphp
@@ -45,7 +45,7 @@
                                 </svg>
                                 @break
 
-                            @case('active_today')
+                            @case('regular_customer')
                                 <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M5.75 12.5h3l2-5.25 3.5 10.5 2-5.25h2" />
                                 </svg>

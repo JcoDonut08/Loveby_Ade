@@ -2,6 +2,8 @@
 
 use App\Models\Order;
 use App\Models\User;
+use App\Services\AdminCustomerDirectory;
+use Illuminate\Support\Facades\DB;
 
 test('admin customers page renders the customer management workspace', function () {
     $this->actingAs(adminUser())
@@ -11,12 +13,13 @@ test('admin customers page renders the customer management workspace', function 
         ->assertSee('Review customer profiles, purchases, spending, and activity.')
         ->assertSee('Total Customers')
         ->assertSee('Top Spenders')
-        ->assertSee('Active Today')
+        ->assertSee('Regular Customers')
         ->assertSee('New Customers')
         ->assertSee('Customer List')
         ->assertSee('Search customers...')
         ->assertSee('All')
         ->assertSee('Top Spender')
+        ->assertSee('Regular Customer')
         ->assertSee('New Customer')
         ->assertSee('Customer list pagination', false)
         ->assertSee('Customers per page')
@@ -31,7 +34,7 @@ test('admin customers page renders the customer management workspace', function 
         ->assertSee('data-customer-search', false)
         ->assertSee('data-customer-filter="all"', false)
         ->assertSee('data-customer-filter="top_spender"', false)
-        ->assertSee('data-customer-filter="active_today"', false)
+        ->assertSee('data-customer-filter="regular_customer"', false)
         ->assertSee('data-customer-list', false)
         ->assertSee('data-customer-summary-count="total"', false)
         ->assertSee('data-customer-result-count', false)
@@ -44,9 +47,51 @@ test('admin customers page renders the customer management workspace', function 
         ->assertSee('href="'.route('admin.customers').'" aria-current="page"', false)
         ->assertDontSee('Top Fan')
         ->assertDontSee('data-customer-filter="top_fan"', false)
+        ->assertDontSee('data-customer-filter="active_today"', false)
         ->assertDontSee('href="'.route('admin.dashboard').'" aria-current="page"', false)
         ->assertDontSee('href="'.route('admin.orders').'" aria-current="page"', false)
         ->assertDontSee('href="'.route('admin.products').'" aria-current="page"', false);
+});
+
+test('admin customer segments are exclusive and add up to all customers', function () {
+    $topSpender = User::factory()->create(['created_at' => now()->subMonth()]);
+    Order::factory()->for($topSpender)->create(['total' => 1000]);
+
+    $regularCustomer = User::factory()->create(['created_at' => now()->subMonth()]);
+    Order::factory()->for($regularCustomer)->create(['total' => 250]);
+
+    User::factory()->create(['created_at' => now()->subMonth()]);
+
+    $customers = collect(app(AdminCustomerDirectory::class)->customers());
+
+    expect($customers)->toHaveCount(3)
+        ->and($customers->where('segment', 'top_spender'))->toHaveCount(1)
+        ->and($customers->where('segment', 'regular_customer'))->toHaveCount(1)
+        ->and($customers->where('segment', 'new_customer'))->toHaveCount(1);
+});
+
+test('admin customer last active reflects active sessions and logout activity', function () {
+    $activeCustomer = User::factory()->create([
+        'last_active_at' => now()->subHour(),
+    ]);
+    DB::table('sessions')->insert([
+        'id' => 'active-customer-session',
+        'user_id' => $activeCustomer->id,
+        'ip_address' => '127.0.0.1',
+        'user_agent' => 'Pest',
+        'payload' => '',
+        'last_activity' => now()->timestamp,
+    ]);
+
+    $loggedOutCustomer = User::factory()->create([
+        'last_active_at' => now()->subMinutes(15),
+    ]);
+
+    $customers = collect(app(AdminCustomerDirectory::class)->customers())->keyBy('email');
+
+    expect($customers[$activeCustomer->email]['lastActive'])->toBe('Active now')
+        ->and($customers[$loggedOutCustomer->email]['lastActive'])->not->toBe('Active now')
+        ->and($customers[$loggedOutCustomer->email]['lastActive'])->toContain('ago');
 });
 
 test('admin customers page uses real customer and order data', function () {
