@@ -5,6 +5,7 @@
     'icon' => 'bag',
     'tone' => 'pink',
     'unread' => false,
+    'readAction' => null,
 ])
 
 @php
@@ -14,12 +15,20 @@
         'green' => 'bg-[#4ade80] text-white',
         'orange' => 'bg-love-orange-400 text-[#512438]',
         'purple' => 'bg-[#c084fc] text-white',
+        'rose' => 'bg-rose-500 text-white',
     ];
 
     $toneClass = $tones[$tone] ?? $tones['pink'];
 @endphp
 
-<article class="grid gap-4 rounded-[1.1rem] bg-white p-4 shadow-[0_18px_38px_-34px_rgba(81,36,56,0.45)] sm:grid-cols-[3.5rem_minmax(0,1fr)_auto] sm:items-center {{ $unread ? 'border-l-4 border-love-pink-400' : 'border border-love-pink-100/70' }}" data-customer-notification-row>
+<article class="relative grid gap-4 rounded-[1.1rem] bg-white p-4 shadow-[0_18px_38px_-34px_rgba(81,36,56,0.45)] transition hover:-translate-y-0.5 hover:shadow-[0_24px_50px_-36px_rgba(81,36,56,0.5)] sm:grid-cols-[3.5rem_minmax(0,1fr)_auto] sm:items-center {{ $unread ? 'border-l-4 border-love-pink-400' : 'border border-love-pink-100/70' }}" data-customer-notification-row>
+    @if ($unread && $readAction)
+        <form class="absolute inset-0 z-10" method="POST" action="{{ $readAction }}">
+            @csrf
+            <button class="h-full w-full cursor-pointer rounded-[1.1rem] text-left focus:outline-none focus:ring-4 focus:ring-love-pink-100" type="submit" aria-label="Mark notification as read"></button>
+        </form>
+    @endif
+
     <span class="flex h-12 w-12 items-center justify-center rounded-[1rem] {{ $toneClass }}">
         @switch($icon)
             @case('payment')
@@ -45,6 +54,20 @@
                 <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M5.75 8.75h12.5M7.75 8.75l1 10.5h6.5l1-10.5M9.25 8.75a2.75 2.75 0 0 1 5.5 0" />
                     <path stroke-linecap="round" d="M9.75 13.25h4.5" />
+                </svg>
+                @break
+
+            @case('check')
+                <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m5.75 12.5 4 4 8.5-9" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M20 12a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z" />
+                </svg>
+                @break
+
+            @case('cancelled')
+                <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m8.75 8.75 6.5 6.5M15.25 8.75l-6.5 6.5" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M20 12a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z" />
                 </svg>
                 @break
 

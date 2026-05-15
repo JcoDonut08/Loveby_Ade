@@ -60,7 +60,7 @@ test('customer can confirm an out for delivery order as delivered', function () 
 
     $this->actingAs($user)
         ->patch(route('orders.confirm-delivery', $order))
-        ->assertRedirect(route('delivered-products.index'));
+        ->assertRedirect(route('orders.index'));
 
     expect($order->refresh()->status)->toBe(Order::STATUS_DELIVERED);
 

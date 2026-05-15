@@ -3,6 +3,10 @@
     $favoriteCount = app(\App\Services\FavoriteService::class)->count(request());
     $authenticatedUser = auth()->user();
     $profilePhotoUrl = $authenticatedUser?->profilePhotoUrl();
+    $notificationUnreadCount = app(\App\Services\CustomerNotificationService::class)->unreadCountFor(
+        $authenticatedUser,
+        session('read_customer_notifications', []),
+    );
 @endphp
 
 <header class="fixed inset-x-0 top-0 z-50 border-b border-white/70 bg-white/90 shadow-[0_16px_40px_-32px_rgba(15,23,42,0.45)] backdrop-blur-xl">
@@ -56,7 +60,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 9.5a5.25 5.25 0 1 1 10.5 0c0 5.25 2.25 6.75 2.25 6.75H4.5s2.25-1.5 2.25-6.75Z" />
                     <path stroke-linecap="round" stroke-linejoin="round" d="M10 19.5a2 2 0 0 0 4 0" />
                 </svg>
-                <span class="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-love-blue-300 px-1 text-xs font-extrabold text-slate-900">4</span>
+                <span class="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-love-blue-300 px-1 text-xs font-extrabold text-slate-900 transition duration-300 {{ $notificationUnreadCount === 0 ? 'hidden' : '' }}" data-notification-nav-count>{{ $notificationUnreadCount }}</span>
             </a>
             <a class="relative flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white/90 text-slate-600 transition hover:-translate-y-0.5 hover:border-love-pink-200 hover:text-love-pink-500" href="{{ route('cart') }}" aria-label="Shopping cart">
                 <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">

@@ -36,7 +36,7 @@ class OrderController extends Controller
         $this->orders->confirmDelivery($order, $this->authenticatedUser($request));
 
         return redirect()
-            ->route('delivered-products.index')
+            ->route('orders.index')
             ->with('status', 'Order confirmed as delivered.');
     }
 

@@ -15,18 +15,83 @@ test('storefront header links to customer shopping utilities', function () {
         ->assertSee('data-favorite-toggle', false);
 });
 
-test('customer notifications page renders order and promo updates with an empty state', function () {
+test('guest notifications page renders an empty state', function () {
     $this->get(route('notifications'))
         ->assertSuccessful()
         ->assertSee('Notifications')
-        ->assertSee('Your order is now being prepared.')
-        ->assertSee('Payment confirmed via GCash.')
-        ->assertSee('New promo: 10% off on cakes today.')
-        ->assertSee('Your delivery is out for delivery.')
-        ->assertSee('Mark all read')
         ->assertSee('No notifications yet')
+        ->assertSee('data-notifications-empty', false)
+        ->assertDontSee('data-customer-notification-row', false);
+});
+
+test('customer notifications page renders real order status updates with order ids', function () {
+    $user = User::factory()->create();
+
+    $preparingOrder = Order::factory()->for($user)->create([
+        'order_number' => 'LBA-3508',
+        'status' => Order::STATUS_PREPARING,
+    ]);
+    $deliveryOrder = Order::factory()->for($user)->create([
+        'order_number' => 'LBA-3510',
+        'status' => Order::STATUS_OUT_FOR_DELIVERY,
+    ]);
+    $cancelledOrder = Order::factory()->for($user)->create([
+        'order_number' => 'LBA-3511',
+        'status' => Order::STATUS_CANCELLED,
+        'cancellation_reason' => 'Product unavailable',
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('notifications'))
+        ->assertSuccessful()
+        ->assertSee('Your Order LBA-3508 has been placed and is waiting for approval.')
+        ->assertSee('Your Order LBA-3508 has been approved and is now being prepared.')
+        ->assertSee('Your Order LBA-3510 is out for delivery.')
+        ->assertSee('Your Order LBA-3511 has been cancelled. Reason: Product unavailable')
+        ->assertSee('Mark all read')
         ->assertSee('data-customer-notification-row', false)
-        ->assertSee('data-notifications-empty', false);
+        ->assertDontSee('No notifications yet');
+
+    expect($preparingOrder->exists)->toBeTrue()
+        ->and($deliveryOrder->exists)->toBeTrue()
+        ->and($cancelledOrder->exists)->toBeTrue();
+});
+
+test('customer can mark order notifications as read', function () {
+    $user = User::factory()->create();
+    $order = Order::factory()->for($user)->create([
+        'order_number' => 'LBA-3512',
+        'status' => Order::STATUS_OUT_FOR_DELIVERY,
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('notifications'))
+        ->assertSuccessful()
+        ->assertSee('data-notification-nav-count>2</span>', false)
+        ->assertSee('Mark notification as read');
+
+    $this->actingAs($user)
+        ->post(route('notifications.read-one', "order-{$order->id}-out-for-delivery"))
+        ->assertRedirect(route('notifications'));
+
+    $response = $this->actingAs($user)
+        ->get(route('notifications'))
+        ->assertSuccessful()
+        ->assertSee('Your Order LBA-3512 is out for delivery.')
+        ->assertSee('data-notification-nav-count>1</span>', false);
+
+    expect(substr_count($response->getContent(), 'border-l-4 border-love-pink-400'))->toBe(1);
+
+    $this->actingAs($user)
+        ->post(route('notifications.read'))
+        ->assertRedirect(route('notifications'));
+
+    $this->actingAs($user)
+        ->get(route('notifications'))
+        ->assertSuccessful()
+        ->assertSee('Your Order LBA-3512 is out for delivery.')
+        ->assertSee('hidden" data-notification-nav-count>0</span>', false)
+        ->assertDontSee('border-l-4 border-love-pink-400', false);
 });
 
 test('favorites page renders saved desserts empty state and removable favorite controls', function () {

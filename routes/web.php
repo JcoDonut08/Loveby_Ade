@@ -16,6 +16,7 @@ use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\SearchController;
@@ -38,7 +39,7 @@ Route::middleware(RedirectAdminToDashboard::class)->group(function (): void {
         ->name('contact.store');
     Route::get('/search/suggestions', SearchController::class)->name('search.suggestions');
     Route::delete('/search/recent', [SearchController::class, 'destroyRecent'])->name('search.recent.destroy');
-    Route::view('/notifications', 'pages.notifications')->name('notifications');
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications');
     Route::get('/favorites', [FavoriteController::class, 'index'])->name('favorites');
     Route::get('/favorites/summary', [FavoriteController::class, 'summary'])->name('favorites.summary');
     Route::post('/favorites/items', [FavoriteController::class, 'store'])->name('favorites.items.store');
@@ -53,6 +54,8 @@ Route::middleware(RedirectAdminToDashboard::class)->group(function (): void {
     Route::middleware('auth')->group(function (): void {
         Route::get('/account', [AccountController::class, 'index'])->name('account');
         Route::patch('/account', [AccountController::class, 'update'])->name('account.update');
+        Route::post('/notifications/read', [NotificationController::class, 'markAllRead'])->name('notifications.read');
+        Route::post('/notifications/{notification}/read', [NotificationController::class, 'markRead'])->name('notifications.read-one');
         Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
         Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
         Route::patch('/orders/{order}/confirm-delivery', [OrderController::class, 'confirmDelivery'])->name('orders.confirm-delivery');
