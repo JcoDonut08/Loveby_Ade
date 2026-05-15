@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Order;
+use App\Models\Product;
 use App\Models\User;
 
 test('checkout page renders shipping payment review and confirmation steps', function () {
@@ -72,6 +73,40 @@ test('authenticated customer can place an order from the cart', function () {
         ->and($order->contact_number)->toBe('+63-9171234567')
         ->and($order->items)->toHaveCount(1)
         ->and($order->items->first()->product_title)->toBe('Pastel Donut Box');
+});
+
+test('checkout keeps the exact cart quantity up to available stock', function () {
+    $user = User::factory()->create();
+    $product = Product::factory()->create([
+        'slug' => 'celebration-cookie-box',
+        'title' => 'Celebration Cookie Box',
+        'stock' => 42,
+        'price' => 75,
+    ]);
+
+    $this->actingAs($user)
+        ->postJson(route('cart.items.store'), [
+            'slug' => 'celebration-cookie-box',
+            'quantity' => 42,
+        ])
+        ->assertSuccessful()
+        ->assertJsonPath('items.0.quantity', 42);
+
+    $this->actingAs($user)
+        ->post(route('checkout.store'), [
+            'full_name' => 'Ade Santos',
+            'contact_number_digits' => '9171234567',
+            'email_address' => 'ade@example.com',
+            'complete_address' => '123 Bakery Lane',
+            'delivery_notes' => 'Ring the bell.',
+            'payment_method' => 'Cash on Delivery',
+        ])
+        ->assertRedirect(route('orders.confirmed'));
+
+    $order = Order::query()->whereBelongsTo($user)->with('items')->firstOrFail();
+
+    expect($order->items->first()->quantity)->toBe(42)
+        ->and($product->fresh()->stock)->toBe(0);
 });
 
 test('checkout rejects phone numbers outside the fixed philippine format', function () {

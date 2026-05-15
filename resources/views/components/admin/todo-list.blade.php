@@ -1,4 +1,4 @@
-<section id="todo-list" class="rounded-[1.25rem] border border-love-pink-100/70 bg-white/96 p-6 shadow-[0_22px_55px_-44px_rgba(81,36,56,0.42)]" data-admin-todo>
+<section id="todo-list" class="flex max-h-[36rem] flex-col overflow-hidden rounded-[1.25rem] border border-love-pink-100/70 bg-white/96 p-6 shadow-[0_22px_55px_-44px_rgba(81,36,56,0.42)]" data-admin-todo>
     <div>
         <h2 class="text-2xl font-extrabold text-[#3b1728]">To do list</h2>
         <p class="mt-1 text-base font-medium text-[#9a6c7b]">Editable admin tasks</p>
@@ -14,7 +14,7 @@
         </button>
     </form>
 
-    <ul class="mt-6 grid gap-3" data-todo-list>
+    <ul class="mt-6 grid max-h-80 gap-3 overflow-y-auto pr-1" data-todo-list>
         <li class="grid grid-cols-[auto_1fr_auto] items-center gap-3 rounded-2xl bg-love-cream p-3" data-todo-item>
             <input class="h-5 w-5 rounded border-love-pink-200 text-love-pink-500 focus:ring-love-pink-300" type="checkbox" data-todo-checkbox>
             <input class="min-w-0 bg-transparent text-sm font-semibold text-[#512438] outline-none" type="text" value="Confirm tomorrow's cake cup inventory" data-todo-title>

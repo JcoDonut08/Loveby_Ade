@@ -4,6 +4,11 @@
 @section('description', 'Loveby_Ade admin dashboard overview.')
 
 @section('content')
+    @php
+        $metrics = $metrics ?? [];
+        $notificationsCount = $notificationsCount ?? 0;
+    @endphp
+
     <div class="min-h-screen bg-[linear-gradient(180deg,#fff8fb_0%,#fff1f6_46%,#fffaf7_100%)]">
         <header class="sticky top-0 z-20 border-b border-love-pink-100/80 bg-white/82 backdrop-blur-xl">
             <div class="flex flex-col gap-4 px-4 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-10">
@@ -35,7 +40,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 9.5a5.25 5.25 0 1 1 10.5 0c0 5.25 2.25 6.75 2.25 6.75H4.5s2.25-1.5 2.25-6.75Z" />
                             <path stroke-linecap="round" stroke-linejoin="round" d="M10 19.5a2 2 0 0 0 4 0" />
                         </svg>
-                        <span class="absolute -right-0.5 top-0 flex h-5 min-w-5 items-center justify-center rounded-full bg-love-blue-300 px-1 text-xs font-extrabold text-[#512438]">3</span>
+                        <span class="absolute -right-0.5 top-0 flex h-5 min-w-5 items-center justify-center rounded-full bg-love-blue-300 px-1 text-xs font-extrabold text-[#512438]">{{ $notificationsCount }}</span>
                     </button>
 
                     <x-admin.profile-avatar class="h-12 w-12 text-sm shadow-[0_18px_35px_-24px_rgba(236,72,153,0.75)]" />
@@ -45,30 +50,35 @@
 
         <main class="px-4 py-4 sm:px-6 lg:px-10">
             <section class="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-                <x-admin.metric-card title="Revenue" value="₱48,290" trend="12.4%" icon="revenue" tone="pink" />
-                <x-admin.metric-card title="Orders" value="1,284" trend="8.2%" icon="orders" tone="purple" />
-                <x-admin.metric-card title="Pending" value="27" trend="3.1%" icon="pending" tone="amber" />
-                <x-admin.metric-card title="Customers" value="642" trend="4.1%" icon="customers" tone="blue" />
-                <x-admin.metric-card title="Avg. order" value="₱37.6" trend="2.3%" icon="average" tone="green" direction="down" />
+                @foreach ($metrics as $metric)
+                    <x-admin.metric-card
+                        :title="$metric['title']"
+                        :value="$metric['value']"
+                        :trend="$metric['trend']"
+                        :icon="$metric['icon']"
+                        :tone="$metric['tone']"
+                        :direction="$metric['direction']"
+                    />
+                @endforeach
             </section>
 
             <div class="mt-6">
-                <x-admin.restock-alert />
+                <x-admin.restock-alert :low-stock="$lowStock" />
             </div>
 
             <section class="mt-7 grid gap-6 2xl:grid-cols-[minmax(0,1.45fr)_minmax(22rem,0.7fr)]">
-                <x-admin.sales-performance />
-                <x-admin.top-desserts />
+                <x-admin.sales-performance :periods="$salesPerformance" />
+                <x-admin.top-desserts :categories="$topDesserts" />
             </section>
 
             <section class="mt-7 grid gap-6 2xl:grid-cols-[minmax(0,1.45fr)_minmax(22rem,0.7fr)]">
-                <x-admin.user-activity />
+                <x-admin.user-activity :activity="$userActivity" />
                 <x-admin.todo-list />
             </section>
 
             <section class="mt-7 grid gap-6 2xl:grid-cols-[minmax(0,1.45fr)_minmax(22rem,0.7fr)]">
-                <x-admin.recent-orders />
-                <x-admin.customer-activity />
+                <x-admin.recent-orders :orders="$recentOrders" />
+                <x-admin.customer-activity :activities="$customerActivity" />
             </section>
         </main>
     </div>

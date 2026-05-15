@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\CartItem;
+use App\Models\Product;
 use App\Models\User;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 
@@ -46,9 +47,34 @@ test('cart items stay after the guest logs in', function () {
         ->assertSee('Chocolate Chip Cookies')
         ->assertSee('Proceed to checkout')
         ->assertSee('href="'.route('checkout').'"', false)
+        ->assertSee('data-cart-checkout-link', false)
         ->assertDontSee('Please log in to continue checkout.');
 
     $this->assertModelExists(CartItem::query()->whereBelongsTo($user)->where('product_slug', 'chocolate-chip-cookies')->firstOrFail());
+});
+
+test('cart quantities can use the available product stock above twenty', function () {
+    Product::factory()->create([
+        'slug' => 'party-cookie-tray',
+        'title' => 'Party Cookie Tray',
+        'stock' => 42,
+        'price' => 50,
+    ]);
+
+    $this->postJson(route('cart.items.store'), [
+        'slug' => 'party-cookie-tray',
+        'quantity' => 42,
+    ])
+        ->assertSuccessful()
+        ->assertJsonPath('count', 42)
+        ->assertJsonPath('items.0.quantity', 42);
+
+    $this->patchJson(route('cart.items.update', 'party-cookie-tray'), [
+        'quantity' => 37,
+    ])
+        ->assertSuccessful()
+        ->assertJsonPath('count', 37)
+        ->assertJsonPath('items.0.quantity', 37);
 });
 
 test('authenticated cart items stay after logout and logging back in', function () {

@@ -3,6 +3,7 @@
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\Admin\AccountController as AdminAccountController;
 use App\Http\Controllers\Admin\CustomerController as AdminCustomerController;
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Auth\GoogleAuthController;
@@ -122,7 +123,7 @@ Route::middleware(EnsureUserIsAdmin::class)->group(function (): void {
     Route::redirect('/admin', '/admin/dashboard')->name('admin.home');
 });
 Route::prefix('admin')->name('admin.')->middleware(EnsureUserIsAdmin::class)->group(function (): void {
-    Route::view('/dashboard', 'pages.admin.dashboard')->name('dashboard');
+    Route::get('/dashboard', AdminDashboardController::class)->name('dashboard');
     Route::get('/orders', [AdminOrderController::class, 'index'])->name('orders');
     Route::post('/orders', [AdminOrderController::class, 'store'])->name('orders.store');
     Route::patch('/orders/{order}', [AdminOrderController::class, 'update'])->name('orders.update');

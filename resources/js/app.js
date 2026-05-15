@@ -943,6 +943,35 @@ const initializeCartPages = () => {
         const itemCount = cartPage.querySelector('[data-cart-item-count]');
         const subtotal = cartPage.querySelector('[data-cart-subtotal]');
         const total = cartPage.querySelector('[data-cart-total]');
+        const pendingCartSyncs = new Set();
+        let cartSyncFailed = false;
+
+        const trackCartSync = (promise) => {
+            const trackedPromise = Promise.resolve(promise)
+                .catch((error) => {
+                    cartSyncFailed = true;
+
+                    throw error;
+                })
+                .finally(() => {
+                    pendingCartSyncs.delete(trackedPromise);
+                });
+
+            trackedPromise.catch(() => {});
+            pendingCartSyncs.add(trackedPromise);
+
+            return trackedPromise;
+        };
+
+        const waitForCartSyncs = async () => {
+            while (pendingCartSyncs.size > 0) {
+                await Promise.allSettled(Array.from(pendingCartSyncs));
+            }
+
+            if (cartSyncFailed) {
+                throw new Error('Cart quantity changes were not saved.');
+            }
+        };
 
         const updateCart = () => {
             let subtotalAmount = 0;
@@ -995,9 +1024,44 @@ const initializeCartPages = () => {
             const remove = item.querySelector('[data-cart-remove]');
 
             if (input instanceof HTMLInputElement) {
-                const setQuantity = async (value, shouldSync = true) => {
+                let nextQuantityToSync = null;
+                let activeQuantitySync;
+
+                const syncLatestQuantity = () => {
+                    const slug = item.dataset.cartSlug;
+
+                    if (!slug) {
+                        return Promise.resolve();
+                    }
+
+                    nextQuantityToSync = Number.parseInt(input.value || '1', 10);
+
+                    if (activeQuantitySync) {
+                        return activeQuantitySync;
+                    }
+
+                    activeQuantitySync = (async () => {
+                        while (nextQuantityToSync !== null) {
+                            const quantity = nextQuantityToSync;
+                            nextQuantityToSync = null;
+
+                            await updateCartItem({
+                                slug,
+                                quantity,
+                            });
+
+                            cartSyncFailed = false;
+                        }
+                    })().finally(() => {
+                        activeQuantitySync = null;
+                    });
+
+                    return trackCartSync(activeQuantitySync);
+                };
+
+                const setQuantity = (value, shouldSync = true) => {
                     const min = Number.parseInt(input.min || '1', 10);
-                    const max = Number.parseInt(input.max || '20', 10);
+                    const max = Number.parseInt(input.max || '65535', 10);
                     const safeValue = Math.min(max, Math.max(min, Number.isNaN(value) ? min : value));
 
                     input.value = safeValue.toString();
@@ -1008,11 +1072,8 @@ const initializeCartPages = () => {
 
                     updateCart();
 
-                    if (shouldSync && item.dataset.cartSlug) {
-                        await updateCartItem({
-                            slug: item.dataset.cartSlug,
-                            quantity: safeValue,
-                        });
+                    if (shouldSync) {
+                        syncLatestQuantity();
                     }
                 };
 
@@ -1038,7 +1099,31 @@ const initializeCartPages = () => {
                 updateCart();
 
                 if (slug) {
-                    await removeCartItem(slug);
+                    trackCartSync(removeCartItem(slug));
+                }
+            });
+        });
+
+        cartPage.querySelectorAll('[data-cart-checkout-link]').forEach((link) => {
+            if (!(link instanceof HTMLAnchorElement)) {
+                return;
+            }
+
+            link.addEventListener('click', async (event) => {
+                if (pendingCartSyncs.size === 0 && !cartSyncFailed) {
+                    return;
+                }
+
+                event.preventDefault();
+                link.setAttribute('aria-busy', 'true');
+                link.classList.add('pointer-events-none', 'opacity-70');
+
+                try {
+                    await waitForCartSyncs();
+                    window.location.href = link.href;
+                } catch {
+                    link.removeAttribute('aria-busy');
+                    link.classList.remove('pointer-events-none', 'opacity-70');
                 }
             });
         });

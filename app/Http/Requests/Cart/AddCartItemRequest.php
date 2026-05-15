@@ -20,7 +20,7 @@ class AddCartItemRequest extends FormRequest
     {
         return [
             'slug' => ['required', 'string', Rule::in($catalog->all()->pluck('slug')->all())],
-            'quantity' => ['nullable', 'integer', 'min:1', 'max:20'],
+            'quantity' => ['nullable', 'integer', 'min:1', 'max:65535'],
         ];
     }
 }
