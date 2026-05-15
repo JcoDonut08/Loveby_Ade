@@ -124,6 +124,7 @@ Route::middleware(EnsureUserIsAdmin::class)->group(function (): void {
 Route::prefix('admin')->name('admin.')->middleware(EnsureUserIsAdmin::class)->group(function (): void {
     Route::view('/dashboard', 'pages.admin.dashboard')->name('dashboard');
     Route::get('/orders', [AdminOrderController::class, 'index'])->name('orders');
+    Route::post('/orders', [AdminOrderController::class, 'store'])->name('orders.store');
     Route::patch('/orders/{order}', [AdminOrderController::class, 'update'])->name('orders.update');
     Route::get('/products', [AdminProductController::class, 'index'])->name('products');
     Route::post('/products', [AdminProductController::class, 'store'])->name('products.store');

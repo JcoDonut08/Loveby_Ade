@@ -30,6 +30,7 @@ class Order extends Model
         'order_number',
         'user_id',
         'status',
+        'is_walk_in',
         'full_name',
         'contact_number',
         'email_address',
@@ -62,6 +63,7 @@ class Order extends Model
             'delivery_fee' => 'decimal:2',
             'discount' => 'decimal:2',
             'total' => 'decimal:2',
+            'is_walk_in' => 'boolean',
         ];
     }
 

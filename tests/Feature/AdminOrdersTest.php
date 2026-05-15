@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Order;
+use App\Models\Product;
 use App\Models\User;
 
 test('admin orders page renders the order management workspace', function () {
@@ -50,6 +51,7 @@ test('admin orders page renders the order management workspace', function () {
         ->assertSee('Delivered Orders')
         ->assertSee('Cancelled Orders')
         ->assertSee('Customer Dessert Orders')
+        ->assertSee('Add Order')
         ->assertSee('New pending order')
         ->assertSee('Rows per page')
         ->assertSee('Order ID')
@@ -68,6 +70,7 @@ test('admin orders page renders the order management workspace', function () {
         ->assertSee('Pending')
         ->assertSee('Delivered')
         ->assertSee('Cancelled')
+        ->assertSee('Walk-In')
         ->assertSee('Approve order')
         ->assertSee('Cancel Order')
         ->assertSee('Order Details')
@@ -82,6 +85,88 @@ test('admin orders page renders the order management workspace', function () {
         ->assertDontSee('href="'.route('admin.dashboard').'" aria-current="page"', false)
         ->assertDontSee('Print Receipt')
         ->assertDontSee('Payment method');
+});
+
+test('admin can add a walk in order with multiple products', function () {
+    $cake = Product::factory()->create([
+        'title' => 'Strawberry Cream Cake',
+        'slug' => 'strawberry-cream-cake',
+        'category' => 'Cakes',
+        'price' => 840,
+    ]);
+    $puffs = Product::factory()->create([
+        'title' => 'Vanilla Cream Puffs',
+        'slug' => 'vanilla-cream-puffs',
+        'category' => 'Pastries',
+        'price' => 120,
+    ]);
+
+    $this->actingAs(adminUser())
+        ->post(route('admin.orders.store'), [
+            'order_number' => 'LBA-350999',
+            'customer_name' => 'Walk In Buyer',
+            'date_ordered' => '2026-05-15T14:42',
+            'products' => [
+                [
+                    'product_id' => $cake->id,
+                    'quantity' => 1,
+                ],
+                [
+                    'product_id' => $puffs->id,
+                    'quantity' => 2,
+                ],
+            ],
+        ])
+        ->assertRedirect(route('admin.orders', ['status' => 'walk_in']));
+
+    $order = Order::query()->where('order_number', 'LBA-350999')->firstOrFail();
+
+    expect($order->is_walk_in)->toBeTrue()
+        ->and($order->full_name)->toBe('Walk In Buyer')
+        ->and((float) $order->total)->toBe(1080.0)
+        ->and($order->items)->toHaveCount(2);
+
+    $this->actingAs(adminUser())
+        ->get(route('admin.orders', ['status' => 'walk_in']))
+        ->assertSuccessful()
+        ->assertSee('Walk In Buyer')
+        ->assertSee('Strawberry Cream Cake')
+        ->assertSee('Mark delivered')
+        ->assertSee('Cancel order')
+        ->assertDontSee('aria-label="Mark for delivery"', false);
+});
+
+test('walk in order product ids are validated before database writes', function () {
+    $this->actingAs(adminUser())
+        ->post(route('admin.orders.store'), [
+            'order_number' => 'LBA-351000',
+            'customer_name' => "' OR 1=1 --",
+            'date_ordered' => '2026-05-15T14:42',
+            'products' => [
+                [
+                    'product_id' => "' OR 1=1 --",
+                    'quantity' => 1,
+                ],
+            ],
+        ])
+        ->assertSessionHasErrors('products.0.product_id');
+
+    expect(Order::query()->where('order_number', 'LBA-351000')->exists())->toBeFalse();
+});
+
+test('walk in orders skip delivery status transitions', function () {
+    $order = Order::factory()->create([
+        'is_walk_in' => true,
+        'status' => Order::STATUS_PENDING,
+    ]);
+
+    $this->actingAs(adminUser())
+        ->patch(route('admin.orders.update', $order), [
+            'status' => Order::STATUS_PREPARING,
+        ])
+        ->assertSessionHasErrors('status');
+
+    expect($order->refresh()->status)->toBe(Order::STATUS_PENDING);
 });
 
 test('regular users cannot access admin routes', function () {

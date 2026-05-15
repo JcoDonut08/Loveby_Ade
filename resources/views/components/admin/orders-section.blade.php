@@ -2,6 +2,8 @@
     'orders',
     'statusCounts',
     'statuses',
+    'products',
+    'walkInOrderNumber',
 ])
 
 @php
@@ -20,6 +22,7 @@
         ['key' => 'out_for_delivery', 'label' => 'Out for Delivery'],
         ['key' => 'delivered', 'label' => 'Delivered'],
         ['key' => 'cancelled', 'label' => 'Cancelled'],
+        ['key' => 'walk_in', 'label' => 'Walk-In'],
     ];
 
     $quickReasons = [
@@ -39,7 +42,8 @@
     ];
 
     $activeStatus = request('status', 'all');
-    $allOrderCount = collect($statusCounts)->sum();
+    $allOrderCount = collect($statusCounts)->except('walk_in')->sum();
+    $showWalkInModal = $errors->has('order_number') || $errors->has('customer_name') || $errors->has('date_ordered') || $errors->has('products') || $errors->has('products.*.product_id') || $errors->has('products.*.quantity');
     $queryForStatus = function (string $status): array {
         $query = request()->except(['page', 'status']);
 
@@ -127,6 +131,12 @@
             </div>
 
             <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+                <button class="inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-full bg-love-pink-400 px-5 text-sm font-extrabold text-white shadow-[0_16px_34px_-22px_rgba(236,72,153,0.9)] transition hover:-translate-y-0.5 hover:bg-love-pink-500 focus:outline-none focus:ring-4 focus:ring-love-pink-100" type="button" data-walk-in-open>
+                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 5.75v12.5M5.75 12h12.5" />
+                    </svg>
+                    <span>Add Order</span>
+                </button>
                 <div class="flex items-center gap-3 rounded-2xl border border-love-pink-100 bg-love-cream px-4 py-3">
                     <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-love-pink-400 text-white">
                         <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 9.5a5.25 5.25 0 1 1 10.5 0c0 5.25 2.25 6.75 2.25 6.75H4.5s2.25-1.5 2.25-6.75Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M10 19.5a2 2 0 0 0 4 0" /></svg>
@@ -218,7 +228,21 @@
                             </td>
                             <td class="rounded-r-[1.25rem] border-y border-r border-love-pink-100 bg-white px-4 py-4 shadow-[0_18px_38px_-34px_rgba(81,36,56,0.5)] transition group-hover/row:-translate-y-0.5 group-hover/row:bg-love-cream">
                                 <div class="flex min-w-36 flex-wrap gap-2">
-                                    @if ($order->status === 'pending')
+                                    @if ($order->is_walk_in && $order->status === 'pending')
+                                        <form method="POST" action="{{ route('admin.orders.update', $order) }}">
+                                            @csrf
+                                            @method('PATCH')
+                                            <input type="hidden" name="status" value="delivered">
+                                            <button class="group/action relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-emerald-100 bg-emerald-50 text-emerald-600 transition hover:-translate-y-0.5 hover:bg-emerald-100 focus:outline-none focus:ring-4 focus:ring-love-pink-100" type="submit" aria-label="Mark delivered">
+                                                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 12.25 10.9 15l4.85-5.5" /><path stroke-linecap="round" stroke-linejoin="round" d="M20 12a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z" /></svg>
+                                                <span class="{{ $tooltipClass }}">Mark delivered</span>
+                                            </button>
+                                        </form>
+                                        <button class="group/action relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-rose-100 bg-rose-50 text-rose-500 transition hover:-translate-y-0.5 hover:bg-rose-100 focus:outline-none focus:ring-4 focus:ring-love-pink-100" type="button" aria-label="Cancel order" data-admin-cancel-open data-cancel-action="{{ route('admin.orders.update', $order) }}">
+                                            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m6.75 6.75 10.5 10.5M17.25 6.75 6.75 17.25" /></svg>
+                                            <span class="{{ $tooltipClass }}">Cancel order</span>
+                                        </button>
+                                    @elseif ($order->status === 'pending')
                                         <form method="POST" action="{{ route('admin.orders.update', $order) }}">
                                             @csrf
                                             @method('PATCH')
@@ -323,6 +347,118 @@
             </div>
         </nav>
     </section>
+
+    <div class="fixed inset-0 z-50 {{ $showWalkInModal ? 'flex' : 'hidden' }} items-center justify-center px-4 py-6" data-walk-in-modal aria-hidden="{{ $showWalkInModal ? 'false' : 'true' }}">
+        <button class="absolute inset-0 bg-[#3b1728]/35 backdrop-blur-sm" type="button" aria-label="Close add order form" data-walk-in-close></button>
+
+        <section class="relative max-h-[calc(100vh-3rem)] w-full max-w-3xl overflow-y-auto rounded-[1.25rem] border border-love-pink-100 bg-white p-6 shadow-[0_30px_80px_-38px_rgba(59,23,40,0.55)]">
+            <div class="flex items-start justify-between gap-4">
+                <div>
+                    <h2 class="text-2xl font-extrabold text-[#3b1728]">Add Order</h2>
+                    <p class="mt-1 text-sm font-medium text-[#9a6c7b]">Record a walk-in dessert order for this table.</p>
+                </div>
+
+                <button class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[#9a6c7b] transition hover:bg-love-pink-100 hover:text-love-pink-500 focus:outline-none focus:ring-4 focus:ring-love-pink-100" type="button" aria-label="Close add order form" data-walk-in-close>
+                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m6.75 6.75 10.5 10.5M17.25 6.75 6.75 17.25" /></svg>
+                </button>
+            </div>
+
+            <form class="mt-6 grid gap-5" method="POST" action="{{ route('admin.orders.store') }}" data-walk-in-form>
+                @csrf
+
+                <label class="block" for="walk-in-order-id">
+                    <span class="text-sm font-extrabold text-[#512438]">Order ID</span>
+                    <input class="mt-2 h-12 w-full rounded-full border border-love-pink-100 bg-love-cream px-4 text-sm font-extrabold text-[#512438] outline-none transition focus:border-love-pink-300 focus:bg-white focus:ring-4 focus:ring-love-pink-100/80" id="walk-in-order-id" type="text" name="order_number" value="{{ old('order_number', $walkInOrderNumber) }}" readonly>
+                    @error('order_number')
+                        <span class="mt-1 block text-xs font-bold text-rose-500">{{ $message }}</span>
+                    @enderror
+                </label>
+
+                <label class="block" for="walk-in-customer-name">
+                    <span class="text-sm font-extrabold text-[#512438]">Customer name</span>
+                    <input class="mt-2 h-12 w-full rounded-full border border-love-pink-100 bg-love-cream px-4 text-sm font-medium text-[#512438] outline-none transition placeholder:text-[#9a6c7b] focus:border-love-pink-300 focus:bg-white focus:ring-4 focus:ring-love-pink-100/80" id="walk-in-customer-name" type="text" name="customer_name" value="{{ old('customer_name') }}" placeholder="Customer name" required>
+                    @error('customer_name')
+                        <span class="mt-1 block text-xs font-bold text-rose-500">{{ $message }}</span>
+                    @enderror
+                </label>
+
+                <div class="grid gap-4" data-walk-in-products>
+                    <div class="grid gap-4 rounded-[1.25rem] border border-love-pink-100 bg-white p-4 sm:grid-cols-2" data-walk-in-product-row>
+                        <label class="block" for="walk-in-product-0">
+                            <span class="text-sm font-extrabold text-[#512438]">Product</span>
+                            <select class="mt-2 h-12 w-full rounded-full border border-love-pink-100 bg-love-cream px-4 text-sm font-extrabold text-[#512438] outline-none transition focus:border-love-pink-300 focus:bg-white focus:ring-4 focus:ring-love-pink-100/80" id="walk-in-product-0" name="products[0][product_id]" required data-walk-in-product-select>
+                                @foreach ($products as $product)
+                                    <option value="{{ $product->id }}" data-price="{{ (float) $product->price }}" @selected((string) old('products.0.product_id') === (string) $product->id)>{{ $product->title }}</option>
+                                @endforeach
+                            </select>
+                        </label>
+
+                        <label class="block" for="walk-in-quantity-0">
+                            <span class="text-sm font-extrabold text-[#512438]">Quantity</span>
+                            <input class="mt-2 h-12 w-full rounded-full border border-love-pink-100 bg-love-cream px-4 text-sm font-extrabold text-[#512438] outline-none transition focus:border-love-pink-300 focus:bg-white focus:ring-4 focus:ring-love-pink-100/80" id="walk-in-quantity-0" type="number" name="products[0][quantity]" min="1" max="999" step="1" value="{{ old('products.0.quantity', 1) }}" required data-walk-in-quantity>
+                        </label>
+
+                        <label class="block sm:col-span-2" for="walk-in-line-total-0">
+                            <span class="text-sm font-extrabold text-[#512438]">Total amount</span>
+                            <input class="mt-2 h-12 w-full rounded-full border border-love-pink-100 bg-love-cream px-4 text-sm font-extrabold text-[#512438] outline-none transition focus:border-love-pink-300 focus:bg-white focus:ring-4 focus:ring-love-pink-100/80" id="walk-in-line-total-0" type="text" value="0.00" readonly data-walk-in-line-total>
+                        </label>
+                    </div>
+                </div>
+
+                @if ($errors->has('products') || $errors->has('products.*.product_id') || $errors->has('products.*.quantity'))
+                    <span class="block text-xs font-bold text-rose-500">{{ $errors->first('products') ?: ($errors->first('products.*.product_id') ?: $errors->first('products.*.quantity')) }}</span>
+                @endif
+
+                <div class="flex flex-wrap gap-3">
+                    <button class="inline-flex h-10 items-center justify-center rounded-full border border-love-pink-100 bg-white px-4 text-sm font-extrabold text-[#512438] transition hover:bg-love-pink-100 hover:text-love-pink-500 focus:outline-none focus:ring-4 focus:ring-love-pink-100" type="button" data-walk-in-add-product>
+                        Add Product
+                    </button>
+                    <button class="inline-flex h-10 items-center justify-center rounded-full border border-rose-100 bg-rose-50 px-4 text-sm font-extrabold text-rose-500 transition hover:bg-rose-100 focus:outline-none focus:ring-4 focus:ring-love-pink-100" type="button" data-walk-in-remove-product>
+                        Remove Product
+                    </button>
+                </div>
+
+                <label class="block" for="walk-in-overall-total">
+                    <span class="text-sm font-extrabold text-[#512438]">Total Amount</span>
+                    <input class="mt-2 h-12 w-full rounded-full border border-love-pink-100 bg-love-cream px-4 text-sm font-extrabold text-[#512438] outline-none transition focus:border-love-pink-300 focus:bg-white focus:ring-4 focus:ring-love-pink-100/80" id="walk-in-overall-total" type="text" value="0.00" readonly data-walk-in-overall-total>
+                </label>
+
+                <label class="block" for="walk-in-date-ordered">
+                    <span class="text-sm font-extrabold text-[#512438]">Date ordered</span>
+                    <input class="mt-2 h-12 w-full rounded-full border border-love-pink-100 bg-love-cream px-4 text-sm font-extrabold text-[#512438] outline-none transition focus:border-love-pink-300 focus:bg-white focus:ring-4 focus:ring-love-pink-100/80" id="walk-in-date-ordered" type="datetime-local" name="date_ordered" value="{{ old('date_ordered', now()->format('Y-m-d\TH:i')) }}" required>
+                    @error('date_ordered')
+                        <span class="mt-1 block text-xs font-bold text-rose-500">{{ $message }}</span>
+                    @enderror
+                </label>
+
+                <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                    <button class="inline-flex h-11 items-center justify-center rounded-full border border-love-pink-100 px-5 text-sm font-extrabold text-[#512438] transition hover:bg-love-pink-100 hover:text-love-pink-500 focus:outline-none focus:ring-4 focus:ring-love-pink-100" type="button" data-walk-in-close>Cancel</button>
+                    <button class="inline-flex h-11 items-center justify-center rounded-full bg-love-pink-400 px-5 text-sm font-extrabold text-white shadow-[0_16px_34px_-22px_rgba(236,72,153,0.9)] transition hover:-translate-y-0.5 hover:bg-love-pink-500 focus:outline-none focus:ring-4 focus:ring-love-pink-100" type="submit">Add Order</button>
+                </div>
+            </form>
+        </section>
+    </div>
+
+    <template data-walk-in-product-template>
+        <div class="grid gap-4 rounded-[1.25rem] border border-love-pink-100 bg-white p-4 sm:grid-cols-2" data-walk-in-product-row>
+            <label class="block">
+                <span class="text-sm font-extrabold text-[#512438]">Product</span>
+                <select class="mt-2 h-12 w-full rounded-full border border-love-pink-100 bg-love-cream px-4 text-sm font-extrabold text-[#512438] outline-none transition focus:border-love-pink-300 focus:bg-white focus:ring-4 focus:ring-love-pink-100/80" required data-walk-in-product-select>
+                    @foreach ($products as $product)
+                        <option value="{{ $product->id }}" data-price="{{ (float) $product->price }}">{{ $product->title }}</option>
+                    @endforeach
+                </select>
+            </label>
+            <label class="block">
+                <span class="text-sm font-extrabold text-[#512438]">Quantity</span>
+                <input class="mt-2 h-12 w-full rounded-full border border-love-pink-100 bg-love-cream px-4 text-sm font-extrabold text-[#512438] outline-none transition focus:border-love-pink-300 focus:bg-white focus:ring-4 focus:ring-love-pink-100/80" type="number" min="1" max="999" step="1" value="1" required data-walk-in-quantity>
+            </label>
+            <label class="block sm:col-span-2">
+                <span class="text-sm font-extrabold text-[#512438]">Total amount</span>
+                <input class="mt-2 h-12 w-full rounded-full border border-love-pink-100 bg-love-cream px-4 text-sm font-extrabold text-[#512438] outline-none transition focus:border-love-pink-300 focus:bg-white focus:ring-4 focus:ring-love-pink-100/80" type="text" value="0.00" readonly data-walk-in-line-total>
+            </label>
+        </div>
+    </template>
 
     <div class="fixed inset-0 z-50 hidden items-center justify-center px-4 py-6" data-cancel-modal aria-hidden="true">
         <button class="absolute inset-0 bg-[#3b1728]/35 backdrop-blur-sm" type="button" aria-label="Keep order" data-cancel-close></button>

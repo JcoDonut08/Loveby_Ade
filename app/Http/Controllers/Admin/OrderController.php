@@ -3,14 +3,20 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StoreWalkInOrderRequest;
 use App\Http\Requests\Admin\UpdateOrderStatusRequest;
 use App\Models\Order;
+use App\Models\Product;
+use App\Services\WalkInOrderService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class OrderController extends Controller
 {
+    public function __construct(private WalkInOrderService $walkInOrders) {}
+
     public function index(Request $request): View
     {
         $status = $request->string('status')->toString();
@@ -20,6 +26,9 @@ class OrderController extends Controller
 
         $orders = Order::query()
             ->with(['items.product', 'user'])
+            ->when($status === 'walk_in', function ($query): void {
+                $query->where('is_walk_in', true);
+            })
             ->when(in_array($status, Order::statuses(), true), function ($query) use ($status): void {
                 $query->where('status', $status);
             })
@@ -37,20 +46,43 @@ class OrderController extends Controller
             ->paginate($pageSize)
             ->withQueryString();
 
+        $statusCounts = Order::query()
+            ->selectRaw('status, COUNT(*) as aggregate')
+            ->groupBy('status')
+            ->pluck('aggregate', 'status')
+            ->all();
+        $statusCounts['walk_in'] = Order::query()->where('is_walk_in', true)->count();
+
         return view('pages.admin.orders', [
             'orders' => $orders,
-            'statusCounts' => Order::query()
-                ->selectRaw('status, COUNT(*) as aggregate')
-                ->groupBy('status')
-                ->pluck('aggregate', 'status')
-                ->all(),
+            'statusCounts' => $statusCounts,
             'statuses' => Order::statuses(),
+            'products' => Product::query()
+                ->where('is_active', true)
+                ->orderBy('title')
+                ->get(),
+            'walkInOrderNumber' => $this->walkInOrders->uniqueOrderNumber(),
         ]);
+    }
+
+    public function store(StoreWalkInOrderRequest $request): RedirectResponse
+    {
+        $this->walkInOrders->create($request->validated(), $request->user());
+
+        return redirect()
+            ->route('admin.orders', ['status' => 'walk_in'])
+            ->with('status', 'Walk-in order added.');
     }
 
     public function update(UpdateOrderStatusRequest $request, Order $order): RedirectResponse
     {
         $validated = $request->validated();
+
+        if ($order->is_walk_in && ! in_array($validated['status'], [Order::STATUS_DELIVERED, Order::STATUS_CANCELLED], true)) {
+            throw ValidationException::withMessages([
+                'status' => 'Walk-in orders can only be marked delivered or cancelled.',
+            ]);
+        }
 
         $order->update([
             'status' => $validated['status'],
