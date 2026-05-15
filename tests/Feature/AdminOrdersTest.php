@@ -186,3 +186,23 @@ test('admin can update order status', function () {
 
     expect($order->refresh()->status)->toBe(Order::STATUS_PREPARING);
 });
+
+test('admin cannot mark online orders delivered', function () {
+    $order = Order::factory()->create([
+        'is_walk_in' => false,
+        'status' => Order::STATUS_OUT_FOR_DELIVERY,
+    ]);
+
+    $this->actingAs(adminUser())
+        ->patch(route('admin.orders.update', $order), [
+            'status' => Order::STATUS_DELIVERED,
+        ])
+        ->assertSessionHasErrors('status');
+
+    expect($order->refresh()->status)->toBe(Order::STATUS_OUT_FOR_DELIVERY);
+
+    $this->actingAs(adminUser())
+        ->get(route('admin.orders', ['status' => Order::STATUS_OUT_FOR_DELIVERY]))
+        ->assertSuccessful()
+        ->assertDontSee('Mark delivered');
+});

@@ -55,9 +55,10 @@ Route::middleware(RedirectAdminToDashboard::class)->group(function (): void {
         Route::patch('/account', [AccountController::class, 'update'])->name('account.update');
         Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
         Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
+        Route::patch('/orders/{order}/confirm-delivery', [OrderController::class, 'confirmDelivery'])->name('orders.confirm-delivery');
         Route::redirect('/orders/confirm', '/orders/confirmed')->name('orders.confirm');
         Route::get('/orders/confirmed', [OrderController::class, 'confirmed'])->name('orders.confirmed');
-        Route::view('/delivered-products', 'pages.delivered_products')->name('delivered-products.index');
+        Route::get('/delivered-products', [OrderController::class, 'deliveredProducts'])->name('delivered-products.index');
     });
 });
 

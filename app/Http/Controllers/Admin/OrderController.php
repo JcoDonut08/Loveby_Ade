@@ -84,6 +84,12 @@ class OrderController extends Controller
             ]);
         }
 
+        if (! $order->is_walk_in && $validated['status'] === Order::STATUS_DELIVERED) {
+            throw ValidationException::withMessages([
+                'status' => 'Online orders must be confirmed as delivered by the customer.',
+            ]);
+        }
+
         $order->update([
             'status' => $validated['status'],
             'cancellation_reason' => $validated['status'] === Order::STATUS_CANCELLED

@@ -101,6 +101,7 @@ class AdminCustomerDirectory
                 ->join(', '),
             'total' => (float) $order->total,
             'status' => Str::headline($order->status),
+            'isDelivered' => $order->status === Order::STATUS_DELIVERED,
         ];
     }
 
@@ -129,7 +130,9 @@ class AdminCustomerDirectory
 
     private function segmentFor(User $user): string
     {
-        $spent = $user->orders->sum(fn (Order $order): float => (float) $order->total);
+        $spent = $user->orders
+            ->where('status', Order::STATUS_DELIVERED)
+            ->sum(fn (Order $order): float => (float) $order->total);
 
         if ($spent >= 1000) {
             return 'top_spender';

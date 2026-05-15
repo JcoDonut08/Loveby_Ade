@@ -22,7 +22,7 @@
         <main class="mx-auto max-w-[88rem] px-4 py-8 sm:px-6 lg:px-8">
             <section class="grid gap-8" data-customer-orders>
                 @forelse ($orders as $order)
-                    <x-store.order-card :order="$order" :stages="$stages" />
+                    <x-store.order-card :order="$order" :stages="$stages" show-confirm />
                 @empty
                     <x-store.empty-state
                         title="No orders yet"

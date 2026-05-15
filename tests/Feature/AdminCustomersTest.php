@@ -55,12 +55,22 @@ test('admin customers page renders the customer management workspace', function 
 
 test('admin customer segments are exclusive and add up to all customers', function () {
     $topSpender = User::factory()->create(['created_at' => now()->subMonth()]);
-    Order::factory()->for($topSpender)->create(['total' => 1000]);
+    Order::factory()->for($topSpender)->create([
+        'status' => Order::STATUS_DELIVERED,
+        'total' => 1000,
+    ]);
 
     $regularCustomer = User::factory()->create(['created_at' => now()->subMonth()]);
-    Order::factory()->for($regularCustomer)->create(['total' => 250]);
+    Order::factory()->for($regularCustomer)->create([
+        'status' => Order::STATUS_DELIVERED,
+        'total' => 250,
+    ]);
 
-    User::factory()->create(['created_at' => now()->subMonth()]);
+    $pendingCustomer = User::factory()->create(['created_at' => now()->subMonth()]);
+    Order::factory()->for($pendingCustomer)->create([
+        'status' => Order::STATUS_PENDING,
+        'total' => 1500,
+    ]);
 
     $customers = collect(app(AdminCustomerDirectory::class)->customers());
 
@@ -68,6 +78,31 @@ test('admin customer segments are exclusive and add up to all customers', functi
         ->and($customers->where('segment', 'top_spender'))->toHaveCount(1)
         ->and($customers->where('segment', 'regular_customer'))->toHaveCount(1)
         ->and($customers->where('segment', 'new_customer'))->toHaveCount(1);
+});
+
+test('admin customer spending metadata only counts delivered orders', function () {
+    $customer = User::factory()->create([
+        'email' => 'pending-buyer@example.com',
+    ]);
+    Order::factory()->for($customer)->create([
+        'order_number' => 'LBA-PENDING',
+        'status' => Order::STATUS_PENDING,
+        'total' => 1500,
+    ]);
+    Order::factory()->for($customer)->create([
+        'order_number' => 'LBA-DELIVERED',
+        'status' => Order::STATUS_DELIVERED,
+        'total' => 250,
+    ]);
+
+    $payload = collect(app(AdminCustomerDirectory::class)->customers())
+        ->firstWhere('email', 'pending-buyer@example.com');
+
+    $orders = collect($payload['orders']);
+
+    expect($payload['segment'])->toBe('regular_customer')
+        ->and($orders->contains(fn (array $order): bool => $order['id'] === 'LBA-PENDING' && $order['isDelivered'] === false))->toBeTrue()
+        ->and($orders->contains(fn (array $order): bool => $order['id'] === 'LBA-DELIVERED' && $order['isDelivered'] === true))->toBeTrue();
 });
 
 test('admin customer last active reflects active sessions and logout activity', function () {

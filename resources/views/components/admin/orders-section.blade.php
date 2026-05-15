@@ -266,16 +266,6 @@
                                                 <span class="{{ $tooltipClass }}">Mark for delivery</span>
                                             </button>
                                         </form>
-                                    @elseif ($order->status === 'out_for_delivery')
-                                        <form method="POST" action="{{ route('admin.orders.update', $order) }}">
-                                            @csrf
-                                            @method('PATCH')
-                                            <input type="hidden" name="status" value="delivered">
-                                            <button class="group/action relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-emerald-100 bg-emerald-50 text-emerald-600 transition hover:-translate-y-0.5 hover:bg-emerald-100 focus:outline-none focus:ring-4 focus:ring-love-pink-100" type="submit" aria-label="Mark delivered">
-                                                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 12.25 10.9 15l4.85-5.5" /><path stroke-linecap="round" stroke-linejoin="round" d="M20 12a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z" /></svg>
-                                                <span class="{{ $tooltipClass }}">Mark delivered</span>
-                                            </button>
-                                        </form>
                                     @endif
 
                                     <button class="group/action relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-love-pink-100 bg-white text-[#512438] transition hover:-translate-y-0.5 hover:bg-love-pink-100 hover:text-love-pink-500 focus:outline-none focus:ring-4 focus:ring-love-pink-100" type="button" aria-label="View order details" data-admin-details-open data-details-template="order-details-{{ $order->getKey() }}" data-details-heading="#{{ $order->order_number }}">
