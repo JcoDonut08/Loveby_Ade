@@ -18,16 +18,16 @@ export const escapeHtml = (value) => (value ?? '').toString().replace(/[&<>"']/g
     "'": '&#039;',
 }[character]));
 
-const getDeliveredOrders = (customer) => customer.orders.filter((order) => order.isDelivered);
-export const getCustomerSpend = (customer) => getDeliveredOrders(customer).reduce((total, order) => total + order.total, 0);
+const getSpentOrders = (customer) => customer.orders.filter((order) => order.countsAsSpent);
+export const getCustomerSpend = (customer) => getSpentOrders(customer).reduce((total, order) => total + order.total, 0);
 export const getAverageOrderValue = (customer) => {
-    const deliveredOrders = getDeliveredOrders(customer);
+    const spentOrders = getSpentOrders(customer);
 
-    if (deliveredOrders.length === 0) {
+    if (spentOrders.length === 0) {
         return 0;
     }
 
-    return getCustomerSpend(customer) / deliveredOrders.length;
+    return getCustomerSpend(customer) / spentOrders.length;
 };
 
 const getSegmentBadge = (customer) => {

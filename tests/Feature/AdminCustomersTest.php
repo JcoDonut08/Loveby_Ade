@@ -57,18 +57,21 @@ test('admin customer segments are exclusive and add up to all customers', functi
     $topSpender = User::factory()->create(['created_at' => now()->subMonth()]);
     Order::factory()->for($topSpender)->create([
         'status' => Order::STATUS_DELIVERED,
+        'payment_method' => 'Cash on Delivery',
         'total' => 1000,
     ]);
 
     $regularCustomer = User::factory()->create(['created_at' => now()->subMonth()]);
     Order::factory()->for($regularCustomer)->create([
-        'status' => Order::STATUS_DELIVERED,
+        'status' => Order::STATUS_PENDING,
+        'payment_method' => 'GCash',
         'total' => 250,
     ]);
 
     $pendingCustomer = User::factory()->create(['created_at' => now()->subMonth()]);
     Order::factory()->for($pendingCustomer)->create([
         'status' => Order::STATUS_PENDING,
+        'payment_method' => 'Cash on Delivery',
         'total' => 1500,
     ]);
 
@@ -80,29 +83,49 @@ test('admin customer segments are exclusive and add up to all customers', functi
         ->and($customers->where('segment', 'new_customer'))->toHaveCount(1);
 });
 
-test('admin customer spending metadata only counts delivered orders', function () {
+test('admin customer spending metadata counts prepaid orders before delivery', function () {
     $customer = User::factory()->create([
         'email' => 'pending-buyer@example.com',
     ]);
     Order::factory()->for($customer)->create([
-        'order_number' => 'LBA-PENDING',
+        'order_number' => 'LBA-COD-PENDING',
         'status' => Order::STATUS_PENDING,
+        'payment_method' => 'Cash on Delivery',
         'total' => 1500,
+    ]);
+    Order::factory()->for($customer)->create([
+        'order_number' => 'LBA-GCASH-PENDING',
+        'status' => Order::STATUS_PENDING,
+        'payment_method' => 'GCash',
+        'total' => 250,
+    ]);
+    Order::factory()->for($customer)->create([
+        'order_number' => 'LBA-PAYMAYA-PENDING',
+        'status' => Order::STATUS_PENDING,
+        'payment_method' => 'PayMaya',
+        'total' => 300,
     ]);
     Order::factory()->for($customer)->create([
         'order_number' => 'LBA-DELIVERED',
         'status' => Order::STATUS_DELIVERED,
-        'total' => 250,
+        'payment_method' => 'Cash on Delivery',
+        'total' => 100,
     ]);
 
     $payload = collect(app(AdminCustomerDirectory::class)->customers())
         ->firstWhere('email', 'pending-buyer@example.com');
 
     $orders = collect($payload['orders']);
+    $spentTotal = $orders
+        ->filter(fn (array $order): bool => $order['countsAsSpent'])
+        ->sum('total');
 
     expect($payload['segment'])->toBe('regular_customer')
-        ->and($orders->contains(fn (array $order): bool => $order['id'] === 'LBA-PENDING' && $order['isDelivered'] === false))->toBeTrue()
-        ->and($orders->contains(fn (array $order): bool => $order['id'] === 'LBA-DELIVERED' && $order['isDelivered'] === true))->toBeTrue();
+        ->and($spentTotal)->toBe(650.0)
+        ->and($orders->contains(fn (array $order): bool => $order['id'] === 'LBA-COD-PENDING' && $order['countsAsSpent'] === false))->toBeTrue()
+        ->and($orders->contains(fn (array $order): bool => $order['id'] === 'LBA-GCASH-PENDING' && $order['countsAsSpent'] === true))->toBeTrue()
+        ->and($orders->contains(fn (array $order): bool => $order['id'] === 'LBA-PAYMAYA-PENDING' && $order['countsAsSpent'] === true))->toBeTrue()
+        ->and($orders->contains(fn (array $order): bool => $order['id'] === 'LBA-DELIVERED' && $order['countsAsSpent'] === true))->toBeTrue();
 });
 
 test('admin customer last active reflects active sessions and logout activity', function () {

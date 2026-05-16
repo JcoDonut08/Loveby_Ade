@@ -34,6 +34,7 @@ test('admin dashboard renders live overview data', function () {
             'order_number' => 'LBA-3508',
             'status' => Order::STATUS_PENDING,
             'full_name' => 'Mia Reyes',
+            'payment_method' => 'Cash on Delivery',
             'subtotal' => 840,
             'delivery_fee' => 0,
             'total' => 840,
@@ -57,6 +58,7 @@ test('admin dashboard renders live overview data', function () {
             'order_number' => 'LBA-3507',
             'status' => Order::STATUS_DELIVERED,
             'full_name' => 'Hana Rivera',
+            'payment_method' => 'Cash on Delivery',
             'subtotal' => 330,
             'delivery_fee' => 0,
             'total' => 330,
@@ -74,15 +76,39 @@ test('admin dashboard renders live overview data', function () {
             'line_total' => 330,
             'created_at' => now()->subHour(),
         ]);
+    $prepaidOrder = Order::factory()
+        ->for($mia)
+        ->create([
+            'order_number' => 'LBA-3506',
+            'status' => Order::STATUS_PENDING,
+            'full_name' => 'Mia Reyes',
+            'payment_method' => 'GCash',
+            'subtotal' => 500,
+            'delivery_fee' => 0,
+            'total' => 500,
+            'created_at' => now()->subMinutes(10),
+        ]);
+    OrderItem::factory()
+        ->for($prepaidOrder)
+        ->for($donut)
+        ->create([
+            'product_slug' => 'pastel-donut-box',
+            'product_title' => 'Pastel Donut Box',
+            'category' => 'Donuts',
+            'unit_price' => 500,
+            'quantity' => 1,
+            'line_total' => 500,
+            'created_at' => now()->subMinutes(10),
+        ]);
 
     $this->actingAs($admin)
         ->get(route('admin.dashboard'))
         ->assertSuccessful()
         ->assertSee('Dashboard')
         ->assertSee('Revenue')
-        ->assertSee('₱1,170')
+        ->assertSee('₱830')
         ->assertSee('Avg. order')
-        ->assertSee('₱585.0')
+        ->assertSee('₱415.0')
         ->assertSee('1 product needs restocking')
         ->assertSee('Strawberry Cream Cake')
         ->assertSee('LBA-3508')

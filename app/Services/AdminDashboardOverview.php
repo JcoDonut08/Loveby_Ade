@@ -13,6 +13,8 @@ use Illuminate\Support\Str;
 
 class AdminDashboardOverview
 {
+    public function __construct(private OrderAccountingService $accounting) {}
+
     /**
      * @return array<string, mixed>
      */
@@ -22,7 +24,7 @@ class AdminDashboardOverview
             ->with(['items', 'user'])
             ->latest()
             ->get();
-        $salesOrders = $orders->reject(fn (Order $order): bool => $order->status === Order::STATUS_CANCELLED);
+        $salesOrders = $orders->filter(fn (Order $order): bool => $this->accounting->countsAsPaid($order));
         $customers = User::query()
             ->where(fn ($query) => $query
                 ->where('role', '!=', 'admin')

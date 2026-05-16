@@ -12,6 +12,8 @@ use Illuminate\Support\Str;
 
 class AdminCustomerDirectory
 {
+    public function __construct(private OrderAccountingService $accounting) {}
+
     /**
      * @return array<int, array<string, mixed>>
      */
@@ -102,6 +104,7 @@ class AdminCustomerDirectory
             'total' => (float) $order->total,
             'status' => Str::headline($order->status),
             'isDelivered' => $order->status === Order::STATUS_DELIVERED,
+            'countsAsSpent' => $this->accounting->countsAsPaid($order),
         ];
     }
 
@@ -131,7 +134,7 @@ class AdminCustomerDirectory
     private function segmentFor(User $user): string
     {
         $spent = $user->orders
-            ->where('status', Order::STATUS_DELIVERED)
+            ->filter(fn (Order $order): bool => $this->accounting->countsAsPaid($order))
             ->sum(fn (Order $order): float => (float) $order->total);
 
         if ($spent >= 1000) {
