@@ -32,6 +32,7 @@ test('checkout page renders shipping payment review and confirmation steps', fun
         ->assertSee('Pastel Donut Box')
         ->assertSee('Promo code')
         ->assertSee('Delivery fee')
+        ->assertSee('Free')
         ->assertSee('Place Order')
         ->assertSee('Order has been placed')
         ->assertSee('data-confirm-url="'.route('orders.confirm').'"', false)
@@ -71,6 +72,8 @@ test('authenticated customer can place an order from the cart', function () {
 
     expect($order->status)->toBe(Order::STATUS_PENDING)
         ->and($order->contact_number)->toBe('+63-9171234567')
+        ->and((float) $order->delivery_fee)->toBe(0.0)
+        ->and((float) $order->total)->toBe((float) $order->subtotal)
         ->and($order->items)->toHaveCount(1)
         ->and($order->items->first()->product_title)->toBe('Pastel Donut Box');
 });

@@ -42,7 +42,7 @@ test('admin products page renders the catalog management workspace', function ()
         ->assertSee('name="images[]"', false)
         ->assertSee('multiple', false)
         ->assertSee('data-product-existing-images', false)
-        ->assertSee('Maximum of 4 images')
+        ->assertSee('Maximum of 4 images, 5 MB each.')
         ->assertDontSee('data-product-grid', false)
         ->assertDontSee('data-product-modal aria-hidden', false)
         ->assertSee('href="'.route('admin.products').'" aria-current="page"', false)
@@ -95,6 +95,44 @@ test('admin product uploads are limited to four images', function () {
             ],
         ])
         ->assertSessionHasErrors('images');
+});
+
+test('admin product images can be up to five megabytes each', function () {
+    Storage::fake('public');
+
+    $this->actingAs(adminUser())
+        ->post(route('admin.products.store'), [
+            'title' => 'Ube Cloud Cake',
+            'description' => 'Soft ube cake with cream layers.',
+            'category' => 'Cakes',
+            'price' => 180,
+            'stock' => 12,
+            'images' => [
+                UploadedFile::fake()->create('five-megabytes.jpg', 5000, 'image/jpeg'),
+            ],
+        ])
+        ->assertRedirect(route('admin.products'))
+        ->assertSessionHasNoErrors();
+
+    $product = Product::query()->where('slug', 'ube-cloud-cake')->firstOrFail();
+
+    expect($product->image_path)->not->toBeNull();
+    Storage::disk('public')->assertExists($product->image_path);
+});
+
+test('admin product images cannot be greater than five megabytes each', function () {
+    $this->actingAs(adminUser())
+        ->post(route('admin.products.store'), [
+            'title' => 'Ube Cloud Cake',
+            'description' => 'Soft ube cake with cream layers.',
+            'category' => 'Cakes',
+            'price' => 180,
+            'stock' => 12,
+            'images' => [
+                UploadedFile::fake()->create('too-large.jpg', 5001, 'image/jpeg'),
+            ],
+        ])
+        ->assertSessionHasErrors('images.0');
 });
 
 test('admin product search can refresh the product section without a full page load', function () {

@@ -145,6 +145,8 @@ test('order confirmation page renders thank you message order items and totals',
         ->assertSee('Tracking number')
         ->assertSee('LBA-515478')
         ->assertSee('Pastel Donut Box')
+        ->assertSee('Shipping')
+        ->assertSee('Free')
         ->assertSee('Total')
         ->assertSee('Continue shopping');
 });

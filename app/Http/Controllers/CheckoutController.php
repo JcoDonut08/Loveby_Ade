@@ -19,7 +19,7 @@ class CheckoutController extends Controller
     public function index(Request $request): View
     {
         $cart = $this->cart->summary($request);
-        $deliveryFee = $cart['count'] > 0 ? 60.00 : 0.00;
+        $deliveryFee = CheckoutService::DELIVERY_FEE;
         $discount = 0.00;
         $total = (float) $cart['subtotal'] + $deliveryFee - $discount;
 
@@ -28,7 +28,7 @@ class CheckoutController extends Controller
             'deliveryFee' => $deliveryFee,
             'discount' => $discount,
             'total' => $total,
-            'formattedDeliveryFee' => $this->formatPeso($deliveryFee),
+            'formattedDeliveryFee' => 'Free',
             'formattedDiscount' => $this->formatPeso($discount),
             'formattedTotal' => $this->formatPeso($total),
         ]);

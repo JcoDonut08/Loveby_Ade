@@ -258,7 +258,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="M5.75 14.75v3.5h12.5v-3.5" />
                         </svg>
                         <span class="mt-3 text-sm font-extrabold text-[#512438]">Choose one or more product images</span>
-                        <span class="mt-1 text-xs font-medium text-[#9a6c7b]">JPG, PNG, or WebP. Maximum of 4 images.</span>
+                        <span class="mt-1 text-xs font-medium text-[#9a6c7b]">JPG, PNG, or WebP. Maximum of 4 images, 5 MB each.</span>
                     </span>
                     <input class="sr-only" id="catalog-product-image" type="file" name="images[]" accept="image/jpeg,image/png,image/webp" multiple data-product-images>
                     <div data-product-existing-images></div>

@@ -12,6 +12,8 @@ use Illuminate\Validation\ValidationException;
 
 class CheckoutService
 {
+    public const DELIVERY_FEE = 0.00;
+
     public function __construct(private CartService $cart) {}
 
     /**
@@ -36,7 +38,7 @@ class CheckoutService
         }
 
         return DB::transaction(function () use ($request, $user, $data, $cart): Order {
-            $deliveryFee = $cart['count'] > 0 ? 60.00 : 0.00;
+            $deliveryFee = self::DELIVERY_FEE;
             $discount = 0.00;
             $subtotal = (float) $cart['subtotal'];
             $total = $subtotal + $deliveryFee - $discount;

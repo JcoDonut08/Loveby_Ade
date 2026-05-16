@@ -10,6 +10,8 @@ use Illuminate\Validation\Rules\File;
 
 class StoreProductRequest extends FormRequest
 {
+    private const PRODUCT_IMAGE_MAX_SIZE = '5mb';
+
     /**
      * Determine if the user is authorized to make this request.
      */
@@ -36,7 +38,7 @@ class StoreProductRequest extends FormRequest
                 'nullable',
                 File::image()
                     ->types(['jpg', 'jpeg', 'png', 'webp'])
-                    ->max('2mb'),
+                    ->max(self::PRODUCT_IMAGE_MAX_SIZE),
             ],
             'existing_images' => ['nullable', 'array', 'max:4'],
             'existing_images.*' => ['nullable', 'string', 'max:255'],
@@ -44,7 +46,7 @@ class StoreProductRequest extends FormRequest
                 'nullable',
                 File::image()
                     ->types(['jpg', 'jpeg', 'png', 'webp'])
-                    ->max('2mb'),
+                    ->max(self::PRODUCT_IMAGE_MAX_SIZE),
             ],
         ];
     }

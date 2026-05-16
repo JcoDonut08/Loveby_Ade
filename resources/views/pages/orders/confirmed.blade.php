@@ -55,7 +55,13 @@
                             </div>
                             <div class="flex items-center justify-between gap-4 text-sm font-medium text-slate-500">
                                 <dt>Shipping</dt>
-                                <dd class="font-extrabold text-slate-950">&#8369;{{ number_format((float) $order->delivery_fee, 2) }}</dd>
+                                <dd class="font-extrabold text-slate-950">
+                                    @if ((float) $order->delivery_fee === 0.0)
+                                        Free
+                                    @else
+                                        &#8369;{{ number_format((float) $order->delivery_fee, 2) }}
+                                    @endif
+                                </dd>
                             </div>
                             <div class="flex items-center justify-between gap-4 text-sm font-medium text-slate-500">
                                 <dt>Promo discount</dt>

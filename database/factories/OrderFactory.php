@@ -29,9 +29,9 @@ class OrderFactory extends Factory
             'delivery_notes' => fake()->optional()->sentence(),
             'payment_method' => 'Cash on Delivery',
             'subtotal' => 120,
-            'delivery_fee' => 60,
+            'delivery_fee' => 0,
             'discount' => 0,
-            'total' => 180,
+            'total' => 120,
         ];
     }
 }
