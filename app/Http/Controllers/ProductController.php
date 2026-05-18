@@ -4,13 +4,16 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\FilterProductsRequest;
 use App\Services\ProductCatalog;
+use App\Services\ProductReviewService;
 use App\Services\SearchAssistant;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
     public function __construct(
         private ProductCatalog $catalog,
+        private ProductReviewService $reviews,
         private SearchAssistant $searchAssistant,
     ) {}
 
@@ -27,20 +30,24 @@ class ProductController extends Controller
         ]);
     }
 
-    public function showDefault(): View
+    public function showDefault(Request $request): View
     {
-        return $this->show('pastel-donut-box');
+        return $this->show($request, 'pastel-donut-box');
     }
 
-    public function show(string $slug): View
+    public function show(Request $request, string $slug): View
     {
         $product = $this->catalog->find($slug);
 
         abort_if($product === null, 404);
+        $reviews = $this->reviews->forProductSlug($slug, $request->user());
 
         return view('pages.products.show', [
             'product' => $product,
             'recommendations' => $this->catalog->recommendations($slug),
+            'reviewItems' => $reviews['items'],
+            'reviewSummary' => $reviews['summary'],
+            'canReviewProduct' => $reviews['can_review'],
         ]);
     }
 }

@@ -23,6 +23,8 @@ test('admin account page renders editable profile controls', function () {
         ->assertSee('Logout')
         ->assertSee('action="'.route('admin.account.update').'"', false)
         ->assertSee('action="'.route('logout').'"', false)
+        ->assertSee('data-admin-sidebar-logout', false)
+        ->assertDontSee('form="admin-logout-form"', false)
         ->assertSee('name="profile_photo"', false)
         ->assertSee('data-profile-photo-input', false)
         ->assertSee('name="contact_number_digits"', false)

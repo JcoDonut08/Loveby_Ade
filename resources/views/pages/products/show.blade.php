@@ -10,8 +10,8 @@
 
         <main class="py-10 sm:py-14">
             <x-product.overview :product="$product" />
-            <x-product.reviews />
-            <x-product.review-form />
+            <x-product.reviews :reviews="$reviewItems" :summary="$reviewSummary" />
+            <x-product.review-form :product="$product" :can-review="$canReviewProduct" />
             <x-product.recommendations :products="$recommendations" />
         </main>
 

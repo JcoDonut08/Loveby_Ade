@@ -83,6 +83,30 @@ class User extends Authenticatable
         return $this->hasMany(Order::class);
     }
 
+    /**
+     * @return HasMany<ProductReview, $this>
+     */
+    public function productReviews(): HasMany
+    {
+        return $this->hasMany(ProductReview::class);
+    }
+
+    /**
+     * @return HasMany<ProductReviewLike, $this>
+     */
+    public function productReviewLikes(): HasMany
+    {
+        return $this->hasMany(ProductReviewLike::class);
+    }
+
+    /**
+     * @return HasMany<ProductReviewReply, $this>
+     */
+    public function productReviewReplies(): HasMany
+    {
+        return $this->hasMany(ProductReviewReply::class);
+    }
+
     public function isAdmin(): bool
     {
         return $this->role === 'admin';

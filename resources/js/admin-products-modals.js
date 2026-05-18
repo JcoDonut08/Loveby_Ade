@@ -297,6 +297,67 @@ export const initializeAdminProductModals = () => {
                 }
             });
         });
+
+        const bulkDeleteForm = section.querySelector('[data-product-bulk-delete-form]');
+        const bulkSelectAll = section.querySelector('[data-product-bulk-select-all]');
+        const bulkSubmit = section.querySelector('[data-product-bulk-submit]');
+        const bulkCount = section.querySelector('[data-product-bulk-count]');
+        const bulkCheckboxes = Array.from(section.querySelectorAll('[data-product-bulk-checkbox]'))
+            .filter((checkbox) => checkbox instanceof HTMLInputElement);
+
+        const syncBulkControls = () => {
+            const selectedCount = bulkCheckboxes.filter((checkbox) => checkbox.checked).length;
+            const hasSelection = selectedCount > 0;
+
+            if (bulkSubmit instanceof HTMLButtonElement) {
+                bulkSubmit.disabled = !hasSelection;
+                bulkSubmit.classList.toggle('opacity-45', !hasSelection);
+                bulkSubmit.classList.toggle('shadow-[0_14px_30px_-22px_rgba(220,38,38,0.75)]', hasSelection);
+            }
+
+            if (bulkCount instanceof HTMLElement) {
+                bulkCount.textContent = hasSelection
+                    ? `${selectedCount} ${selectedCount === 1 ? 'product' : 'products'} selected`
+                    : 'No products selected';
+                bulkCount.classList.toggle('border-love-pink-200', hasSelection);
+                bulkCount.classList.toggle('bg-love-pink-100/70', hasSelection);
+                bulkCount.classList.toggle('text-love-pink-600', hasSelection);
+                bulkCount.classList.toggle('border-love-pink-100', !hasSelection);
+                bulkCount.classList.toggle('bg-white', !hasSelection);
+                bulkCount.classList.toggle('text-[#9a6c7b]', !hasSelection);
+            }
+
+            if (bulkSelectAll instanceof HTMLInputElement) {
+                bulkSelectAll.checked = bulkCheckboxes.length > 0 && selectedCount === bulkCheckboxes.length;
+                bulkSelectAll.indeterminate = selectedCount > 0 && selectedCount < bulkCheckboxes.length;
+            }
+        };
+
+        if (bulkSelectAll instanceof HTMLInputElement) {
+            bulkSelectAll.addEventListener('change', () => {
+                bulkCheckboxes.forEach((checkbox) => {
+                    checkbox.checked = bulkSelectAll.checked;
+                });
+
+                syncBulkControls();
+            });
+        }
+
+        bulkCheckboxes.forEach((checkbox) => {
+            checkbox.addEventListener('change', syncBulkControls);
+        });
+
+        if (bulkDeleteForm instanceof HTMLFormElement) {
+            bulkDeleteForm.addEventListener('submit', (event) => {
+                const selectedCount = bulkCheckboxes.filter((checkbox) => checkbox.checked).length;
+
+                if (selectedCount === 0 || !window.confirm(`Delete ${selectedCount} selected ${selectedCount === 1 ? 'product' : 'products'}?`)) {
+                    event.preventDefault();
+                }
+            });
+        }
+
+        syncBulkControls();
         closeButtons.forEach((button) => button.addEventListener('click', closeModal));
         document.addEventListener('keydown', (event) => {
             if (event.key === 'Escape') {

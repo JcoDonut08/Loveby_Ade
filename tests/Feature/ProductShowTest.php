@@ -11,8 +11,10 @@ test('product overview page renders the storefront sections', function () {
         ->assertSee('Product Ratings')
         ->assertSee('Write a review')
         ->assertSee('You may also like')
-        ->assertSee('data-review-rating', false)
+        ->assertSee('Sign in to review')
+        ->assertSee('No reviews yet')
         ->assertDontSee('Frontend preview only')
+        ->assertDontSee('Sobrang ganda ng packaging')
         ->assertDontSee('Verified');
 });
 

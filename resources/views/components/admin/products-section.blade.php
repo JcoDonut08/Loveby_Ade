@@ -110,6 +110,37 @@
         </div>
     </div>
 
+    @if ($products->count() > 0)
+        <form id="admin-products-bulk-delete-form" class="rounded-[1.25rem] border border-love-pink-100/70 bg-white/96 px-4 py-3 shadow-[0_18px_45px_-38px_rgba(81,36,56,0.36)] sm:px-5" method="POST" action="{{ route('admin.products.bulk-destroy') }}" data-product-bulk-delete-form>
+            @csrf
+            @method('DELETE')
+
+            <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div class="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center">
+                    <label class="inline-flex h-11 items-center gap-3 rounded-full border border-love-pink-100 bg-love-cream px-4 text-sm font-extrabold text-[#512438] transition hover:border-love-pink-200 hover:bg-love-pink-100/70" for="admin-products-select-all">
+                        <input class="h-5 w-5 rounded border-love-pink-200 text-love-pink-500 accent-love-pink-500 focus:ring-love-pink-200" id="admin-products-select-all" type="checkbox" data-product-bulk-select-all>
+                        Select all shown
+                    </label>
+
+                    <div class="min-w-0">
+                        <p class="text-sm font-extrabold text-[#512438]">Bulk actions</p>
+                        <p class="mt-0.5 text-xs font-semibold text-[#9a6c7b]">Choose products from this page, then delete them together.</p>
+                    </div>
+                </div>
+
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
+                    <p class="inline-flex h-10 items-center justify-center rounded-full border border-love-pink-100 bg-white px-4 text-sm font-extrabold text-[#9a6c7b]" data-product-bulk-count>No products selected</p>
+                    <button class="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-red-100 bg-red-50 px-4 text-sm font-extrabold text-red-600 opacity-45 transition hover:bg-red-100 focus:outline-none focus:ring-4 focus:ring-red-100 disabled:cursor-not-allowed disabled:hover:bg-red-50" type="submit" disabled data-product-bulk-submit>
+                        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 7.75h10.5M10 7.75v-2h4v2M9 10.75v6M15 10.75v6M8 7.75l.75 11.5h6.5L16 7.75" />
+                        </svg>
+                        Delete selected
+                    </button>
+                </div>
+            </div>
+        </form>
+    @endif
+
     <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4" data-product-results-grid>
         @forelse ($products as $product)
             @php
@@ -134,6 +165,10 @@
             <article class="overflow-hidden rounded-[1.25rem] border border-love-pink-100/70 bg-white/96 shadow-[0_22px_55px_-44px_rgba(81,36,56,0.42)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_30px_70px_-46px_rgba(244,114,168,0.45)]" data-product-result>
                 <div class="relative aspect-[4/3] overflow-hidden bg-[#fff4f7]">
                     <img class="h-full w-full object-cover transition duration-500 hover:scale-[1.04]" src="{{ $imageFor($product) }}" alt="{{ $product->title }}" loading="lazy">
+                    <label class="absolute left-3 top-3 inline-flex items-center gap-2 rounded-full border border-white/80 bg-white/94 px-3 py-1.5 text-xs font-extrabold text-[#512438] shadow-sm backdrop-blur-sm transition hover:bg-love-cream" for="admin-product-select-{{ $product->getKey() }}">
+                        <input class="h-4 w-4 rounded border-love-pink-200 text-love-pink-500 accent-love-pink-500 focus:ring-love-pink-200" id="admin-product-select-{{ $product->getKey() }}" type="checkbox" name="product_ids[]" value="{{ $product->getKey() }}" form="admin-products-bulk-delete-form" data-product-bulk-checkbox>
+                        Select
+                    </label>
                     <span class="absolute right-3 top-3 inline-flex items-center justify-center rounded-full border px-3 py-1 text-xs font-extrabold uppercase tracking-wide {{ $stock['class'] }}">
                         {{ $stock['label'] }}
                     </span>

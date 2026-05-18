@@ -85,8 +85,6 @@
                     @error('profile_photo')
                         <p class="mt-3 text-center text-sm font-semibold text-red-500">{{ $message }}</p>
                     @enderror
-
-                    <button class="mt-6 inline-flex h-11 w-full items-center justify-center rounded-full border border-red-100 bg-red-50 px-5 text-sm font-extrabold text-red-600 transition hover:bg-red-100 focus:outline-none focus:ring-4 focus:ring-red-100" type="submit" form="admin-logout-form">Logout</button>
                 </section>
 
                 <section class="rounded-[1.25rem] border border-love-pink-100/70 bg-white/96 p-6 shadow-[0_22px_55px_-44px_rgba(81,36,56,0.42)]">
@@ -118,10 +116,6 @@
                         <button class="inline-flex h-11 items-center justify-center rounded-full bg-love-pink-400 px-5 text-sm font-extrabold text-white shadow-[0_18px_35px_-24px_rgba(236,72,153,0.75)] transition hover:bg-love-pink-500 focus:outline-none focus:ring-4 focus:ring-love-pink-100" type="submit">Save changes</button>
                     </div>
                 </section>
-            </form>
-
-            <form id="admin-logout-form" action="{{ route('logout') }}" method="POST" class="hidden">
-                @csrf
             </form>
         </main>
     </div>

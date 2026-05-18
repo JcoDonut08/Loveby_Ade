@@ -24,6 +24,8 @@ test('admin products page renders the catalog management workspace', function ()
         ->assertSee('Products per page')
         ->assertSee('Previous')
         ->assertSee('Next')
+        ->assertSee('Select all shown')
+        ->assertSee('Delete selected')
         ->assertSee('Add product')
         ->assertSee('Edit Product')
         ->assertSee('Delete Product')
@@ -37,6 +39,8 @@ test('admin products page renders the catalog management workspace', function ()
         ->assertDontSee('Rating')
         ->assertSee('data-admin-products', false)
         ->assertSee('data-backend-products="true"', false)
+        ->assertSee('data-product-bulk-delete-form', false)
+        ->assertSee('data-product-bulk-checkbox', false)
         ->assertSee('data-product-search-form', false)
         ->assertSee('data-product-results-grid', false)
         ->assertSee('name="images[]"', false)
@@ -276,4 +280,48 @@ test('admin can delete a product', function () {
     ]);
     Storage::disk('public')->assertMissing('products/delete-me.jpg');
     Storage::disk('public')->assertMissing('products/delete-me-side.jpg');
+});
+
+test('admin can bulk delete selected products', function () {
+    Storage::fake('public');
+
+    Storage::disk('public')->put('products/delete-one.jpg', 'image');
+    Storage::disk('public')->put('products/delete-two.jpg', 'image');
+    Storage::disk('public')->put('products/keep-me.jpg', 'image');
+
+    $firstProduct = Product::factory()->create([
+        'title' => 'Delete One',
+        'image_path' => 'products/delete-one.jpg',
+        'product_images' => ['products/delete-one.jpg'],
+    ]);
+    $secondProduct = Product::factory()->create([
+        'title' => 'Delete Two',
+        'image_path' => 'products/delete-two.jpg',
+        'product_images' => ['products/delete-two.jpg'],
+    ]);
+    $keptProduct = Product::factory()->create([
+        'title' => 'Keep Me',
+        'image_path' => 'products/keep-me.jpg',
+        'product_images' => ['products/keep-me.jpg'],
+    ]);
+
+    $this->actingAs(adminUser())
+        ->delete(route('admin.products.bulk-destroy'), [
+            'product_ids' => [$firstProduct->id, $secondProduct->id],
+        ])
+        ->assertRedirect(route('admin.products'));
+
+    $this->assertDatabaseMissing('products', [
+        'id' => $firstProduct->id,
+    ]);
+    $this->assertDatabaseMissing('products', [
+        'id' => $secondProduct->id,
+    ]);
+    $this->assertDatabaseHas('products', [
+        'id' => $keptProduct->id,
+    ]);
+
+    Storage::disk('public')->assertMissing('products/delete-one.jpg');
+    Storage::disk('public')->assertMissing('products/delete-two.jpg');
+    Storage::disk('public')->assertExists('products/keep-me.jpg');
 });

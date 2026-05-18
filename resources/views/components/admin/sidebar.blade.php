@@ -61,6 +61,19 @@
                     <span class="mt-0.5 block truncate text-xs font-medium text-[#9a6c7b]">Owner - Loveby_Ade</span>
                 </span>
             </div>
+
+            <form class="mt-4" action="{{ route('logout') }}" method="POST" data-admin-sidebar-logout>
+                @csrf
+                <button class="flex min-h-11 w-full items-center gap-3 rounded-full px-4 py-2.5 text-left text-base font-bold text-red-600 transition hover:bg-red-50 focus:outline-none focus:ring-4 focus:ring-red-100" type="submit">
+                    <span class="flex h-6 w-6 shrink-0 items-center justify-center">
+                        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.25 8.75V6.5a1.75 1.75 0 0 0-1.75-1.75h-5A1.75 1.75 0 0 0 5.75 6.5v11a1.75 1.75 0 0 0 1.75 1.75h5a1.75 1.75 0 0 0 1.75-1.75v-2.25" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M10.75 12h8.5M16.25 8.75 19.5 12l-3.25 3.25" />
+                        </svg>
+                    </span>
+                    <span class="min-w-0 flex-1 truncate">Logout</span>
+                </button>
+            </form>
         </div>
     </div>
 </aside>

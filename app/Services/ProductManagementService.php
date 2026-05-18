@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Product;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -58,7 +59,7 @@ class ProductManagementService
                 ...$this->storeImages($images, 4 - count($imagePaths)),
             ];
 
-            Storage::disk('public')->delete(
+            $this->deleteImagePaths(
                 collect($currentImagePaths)
                     ->diff($imagePaths)
                     ->values()
@@ -90,6 +91,21 @@ class ProductManagementService
     }
 
     /**
+     * @param  iterable<Product>  $products
+     */
+    public function deleteMany(iterable $products): int
+    {
+        $deletedCount = 0;
+
+        foreach ($products as $product) {
+            $this->delete($product);
+            $deletedCount++;
+        }
+
+        return $deletedCount;
+    }
+
+    /**
      * @param  array<int, UploadedFile>  $images
      * @return array<int, string>
      */
@@ -105,10 +121,26 @@ class ProductManagementService
 
     private function deleteStoredImages(Product $product): void
     {
-        $paths = collect($this->currentImagePaths($product));
+        $this->deleteImagePaths($this->currentImagePaths($product));
+    }
 
-        if ($paths->isNotEmpty()) {
-            Storage::disk('public')->delete($paths->all());
+    /**
+     * @param  array<int, string>  $paths
+     */
+    private function deleteImagePaths(array $paths): void
+    {
+        foreach ($paths as $path) {
+            $disk = Storage::disk('public');
+
+            if ($disk->delete($path)) {
+                continue;
+            }
+
+            $absolutePath = $disk->path($path);
+
+            if (is_file($absolutePath)) {
+                File::delete($absolutePath);
+            }
         }
     }
 

@@ -19,6 +19,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ProductReviewController;
 use App\Http\Controllers\SearchController;
 use App\Http\Middleware\EnsureUserIsAdmin;
 use App\Http\Middleware\RedirectAdminToDashboard;
@@ -57,6 +58,21 @@ Route::middleware(RedirectAdminToDashboard::class)->group(function (): void {
         Route::post('/notifications/read', [NotificationController::class, 'markAllRead'])->name('notifications.read');
         Route::post('/notifications/{notification}/read', [NotificationController::class, 'markRead'])->name('notifications.read-one');
         Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
+        Route::post('/products/{slug}/reviews', [ProductReviewController::class, 'store'])
+            ->middleware('throttle:5,1')
+            ->name('products.reviews.store');
+        Route::delete('/products/reviews/{review}', [ProductReviewController::class, 'destroy'])
+            ->middleware('throttle:30,1')
+            ->name('products.reviews.destroy');
+        Route::post('/products/reviews/{review}/likes', [ProductReviewController::class, 'like'])
+            ->middleware('throttle:30,1')
+            ->name('products.reviews.likes.toggle');
+        Route::post('/products/reviews/{review}/replies', [ProductReviewController::class, 'reply'])
+            ->middleware('throttle:10,1')
+            ->name('products.reviews.replies.store');
+        Route::delete('/products/reviews/replies/{reply}', [ProductReviewController::class, 'destroyReply'])
+            ->middleware('throttle:30,1')
+            ->name('products.reviews.replies.destroy');
         Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
         Route::get('/orders/{order}/receipt', [OrderController::class, 'receipt'])->name('orders.receipt');
         Route::patch('/orders/{order}/confirm-delivery', [OrderController::class, 'confirmDelivery'])->name('orders.confirm-delivery');
@@ -135,6 +151,7 @@ Route::prefix('admin')->name('admin.')->middleware(EnsureUserIsAdmin::class)->gr
     Route::patch('/orders/{order}', [AdminOrderController::class, 'update'])->name('orders.update');
     Route::get('/products', [AdminProductController::class, 'index'])->name('products');
     Route::post('/products', [AdminProductController::class, 'store'])->name('products.store');
+    Route::delete('/products/bulk-delete', [AdminProductController::class, 'bulkDestroy'])->name('products.bulk-destroy');
     Route::patch('/products/{product}', [AdminProductController::class, 'update'])->name('products.update');
     Route::delete('/products/{product}', [AdminProductController::class, 'destroy'])->name('products.destroy');
     Route::get('/customers', [AdminCustomerController::class, 'index'])->name('customers');

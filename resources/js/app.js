@@ -145,27 +145,62 @@ const initializeReviewPagination = () => {
             return;
         }
 
-        const reviews = section.querySelectorAll('[data-review-page]');
-        const buttons = section.querySelectorAll('[data-review-page-button]');
+        const reviews = Array.from(section.querySelectorAll('[data-review-page]')).filter((review) => review instanceof HTMLElement);
+        const pageButtons = section.querySelectorAll('[data-review-page-button]');
+        const filterButtons = section.querySelectorAll('[data-review-filter]');
         const status = section.querySelector('[data-review-pagination-status]');
         const perPage = 5;
+        let activeFilter = 'all';
 
-        const showPage = (page) => {
-            reviews.forEach((review) => {
-                if (!(review instanceof HTMLElement)) {
-                    return;
-                }
+        const matchesFilter = (review) => {
+            if (activeFilter === 'all') {
+                return true;
+            }
 
-                review.classList.toggle('hidden', review.dataset.reviewPage !== page);
-            });
+            if (activeFilter === 'comments') {
+                return review.dataset.reviewHasComment === 'true';
+            }
 
-            buttons.forEach((button) => {
+            if (activeFilter === 'media') {
+                return review.dataset.reviewHasMedia === 'true';
+            }
+
+            if (activeFilter.startsWith('rating:')) {
+                return review.dataset.reviewRating === activeFilter.split(':')[1];
+            }
+
+            return true;
+        };
+
+        const visibleReviews = () => reviews.filter((review) => matchesFilter(review));
+
+        const updateFilterButtons = () => {
+            filterButtons.forEach((button) => {
                 if (!(button instanceof HTMLButtonElement)) {
                     return;
                 }
 
-                const isActive = button.dataset.reviewPageButton === page;
+                const isActive = button.dataset.reviewFilter === activeFilter;
 
+                button.classList.toggle('border-love-orange-400', isActive);
+                button.classList.toggle('text-love-orange-500', isActive);
+                button.classList.toggle('border-slate-200', !isActive);
+                button.classList.toggle('text-slate-700', !isActive);
+                button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+            });
+        };
+
+        const updatePageButtons = (currentPage, pageCount) => {
+            pageButtons.forEach((button) => {
+                if (!(button instanceof HTMLButtonElement)) {
+                    return;
+                }
+
+                const buttonPage = Number.parseInt(button.dataset.reviewPageButton || '1', 10);
+                const isVisible = buttonPage <= pageCount;
+                const isActive = buttonPage === currentPage;
+
+                button.classList.toggle('hidden', !isVisible);
                 button.classList.toggle('border-love-pink-300', isActive);
                 button.classList.toggle('bg-love-pink-100', isActive);
                 button.classList.toggle('text-love-pink-500', isActive);
@@ -174,18 +209,47 @@ const initializeReviewPagination = () => {
                 button.classList.toggle('text-slate-600', !isActive);
                 button.setAttribute('aria-current', isActive ? 'page' : 'false');
             });
+        };
+
+        const showPage = (page) => {
+            const filteredReviews = visibleReviews();
+            const totalReviews = filteredReviews.length;
+            const pageCount = Math.max(1, Math.ceil(totalReviews / perPage));
+            const requestedPage = Number.parseInt(page, 10);
+            const currentPage = Math.min(Math.max(Number.isNaN(requestedPage) ? 1 : requestedPage, 1), pageCount);
+            const startIndex = (currentPage - 1) * perPage;
+            const endIndex = startIndex + perPage;
+
+            reviews.forEach((review) => {
+                const reviewIndex = filteredReviews.indexOf(review);
+                const isVisible = reviewIndex >= startIndex && reviewIndex < endIndex;
+
+                review.classList.toggle('hidden', !isVisible);
+            });
+
+            updateFilterButtons();
+            updatePageButtons(currentPage, pageCount);
 
             if (status instanceof HTMLElement) {
-                const currentPage = Number.parseInt(page, 10);
-                const totalReviews = reviews.length;
-                const start = (currentPage - 1) * perPage + 1;
+                const start = totalReviews === 0 ? 0 : startIndex + 1;
                 const end = Math.min(currentPage * perPage, totalReviews);
 
                 status.textContent = `Showing ${start}-${end} of ${totalReviews} reviews`;
             }
         };
 
-        buttons.forEach((button) => {
+        filterButtons.forEach((button) => {
+            if (!(button instanceof HTMLButtonElement)) {
+                return;
+            }
+
+            button.addEventListener('click', () => {
+                activeFilter = button.dataset.reviewFilter || 'all';
+                showPage('1');
+            });
+        });
+
+        pageButtons.forEach((button) => {
             if (!(button instanceof HTMLButtonElement)) {
                 return;
             }
@@ -248,6 +312,12 @@ const initializeReviewRatings = () => {
 const initializeReviewForms = () => {
     document.querySelectorAll('[data-review-form]').forEach((form) => {
         if (!(form instanceof HTMLFormElement) || form.dataset.initialized === 'true') {
+            return;
+        }
+
+        if (form.hasAttribute('action')) {
+            form.dataset.initialized = 'true';
+
             return;
         }
 

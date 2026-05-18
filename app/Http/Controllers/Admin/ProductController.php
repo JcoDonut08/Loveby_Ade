@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\BulkDeleteProductsRequest;
 use App\Http\Requests\Admin\StoreProductRequest;
 use App\Models\Product;
 use App\Services\ProductCatalog;
@@ -81,6 +82,19 @@ class ProductController extends Controller
         return redirect()
             ->route('admin.products')
             ->with('status', 'Product removed from the catalog.');
+    }
+
+    public function bulkDestroy(BulkDeleteProductsRequest $request): RedirectResponse
+    {
+        $products = Product::query()
+            ->whereKey($request->validated('product_ids'))
+            ->get();
+
+        $deletedCount = $this->products->deleteMany($products);
+
+        return redirect()
+            ->route('admin.products')
+            ->with('status', $deletedCount.' '.str('product')->plural($deletedCount).' removed from the catalog.');
     }
 
     /**
