@@ -6,6 +6,7 @@ use App\Models\Order;
 use App\Models\User;
 use App\Services\CustomerOrderService;
 use App\Services\OrderReceiptService;
+use App\Services\UserAuditLogger;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -17,6 +18,7 @@ class OrderController extends Controller
     public function __construct(
         private CustomerOrderService $orders,
         private OrderReceiptService $receipts,
+        private UserAuditLogger $auditLogger,
     ) {}
 
     public function index(Request $request): View
@@ -40,6 +42,13 @@ class OrderController extends Controller
     public function confirmDelivery(Request $request, Order $order): RedirectResponse
     {
         $this->orders->confirmDelivery($order, $this->authenticatedUser($request));
+        $this->auditLogger->record(
+            $this->authenticatedUser($request),
+            'Delivery Confirmed',
+            'Orders',
+            'Order '.$order->order_number.' was confirmed as delivered.',
+            metadata: ['order_id' => $order->getKey()],
+        );
 
         return redirect()
             ->route('orders.index')

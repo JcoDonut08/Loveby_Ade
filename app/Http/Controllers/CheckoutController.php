@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreCheckoutRequest;
 use App\Services\CartService;
 use App\Services\CheckoutService;
+use App\Services\UserAuditLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -14,6 +15,7 @@ class CheckoutController extends Controller
     public function __construct(
         private CartService $cart,
         private CheckoutService $checkout,
+        private UserAuditLogger $auditLogger,
     ) {}
 
     public function index(Request $request): View
@@ -37,6 +39,13 @@ class CheckoutController extends Controller
     public function store(StoreCheckoutRequest $request): RedirectResponse
     {
         $order = $this->checkout->createOrder($request, $request->validated());
+        $this->auditLogger->record(
+            $request->user(),
+            'Order Placed',
+            'Orders',
+            'Order '.$order->order_number.' was placed.',
+            metadata: ['order_id' => $order->getKey()],
+        );
 
         return redirect()
             ->route('orders.confirmed')

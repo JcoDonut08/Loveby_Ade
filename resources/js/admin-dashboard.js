@@ -4,7 +4,7 @@ const initializeAdminSalesFilters = () => {
             return;
         }
 
-        const total = section.querySelector('[data-sales-total]');
+        const total = section.querySelector('[data-sales-total-value]');
         const caption = section.querySelector('[data-sales-caption]');
         const buttons = section.querySelectorAll('[data-sales-filter]');
         const charts = section.querySelectorAll('[data-sales-bars]');
@@ -34,8 +34,8 @@ const initializeAdminSalesFilters = () => {
                 button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
 
                 if (isActive) {
-                    if (total instanceof HTMLElement && button.dataset.salesTotal) {
-                        total.textContent = button.dataset.salesTotal;
+                    if (total instanceof HTMLElement && button.dataset.salesPeriodTotal) {
+                        total.textContent = button.dataset.salesPeriodTotal;
                     }
 
                     if (caption instanceof HTMLElement && button.dataset.salesCaption) {

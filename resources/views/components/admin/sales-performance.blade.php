@@ -23,6 +23,7 @@
         <div>
             <h2 class="text-2xl font-extrabold text-[#3b1728]">Sales performance</h2>
             <p class="mt-1 text-base font-medium text-[#9a6c7b]" data-sales-caption>{{ $periods[$defaultPeriod]['caption'] ?? 'Track your bakery\'s sweet revenue' }}</p>
+            <p class="mt-3 text-3xl font-extrabold tracking-tight text-[#3b1728]" data-sales-total-value>{{ $periods[$defaultPeriod]['total'] ?? 'â‚±0' }}</p>
         </div>
 
         <div class="grid grid-cols-4 gap-1 rounded-full bg-[#f7f0ea] p-1">
@@ -32,7 +33,7 @@
                     $periodData = $periods[$period] ?? ['total' => '₱0', 'caption' => 'No sales recorded yet'];
                 @endphp
 
-                <button class="{{ $isActive ? 'rounded-full bg-white px-4 py-2 text-sm font-extrabold text-[#512438] shadow-sm' : 'rounded-full px-4 py-2 text-sm font-extrabold text-[#9a6c7b] transition hover:text-love-pink-500' }}" type="button" data-sales-filter="{{ $period }}" data-sales-total="{{ $periodData['total'] }}" data-sales-caption="{{ $periodData['caption'] }}" aria-pressed="{{ $isActive ? 'true' : 'false' }}">{{ $label }}</button>
+                <button class="{{ $isActive ? 'rounded-full bg-white px-4 py-2 text-sm font-extrabold text-[#512438] shadow-sm' : 'rounded-full px-4 py-2 text-sm font-extrabold text-[#9a6c7b] transition hover:text-love-pink-500' }}" type="button" data-sales-filter="{{ $period }}" data-sales-period-total="{{ $periodData['total'] }}" data-sales-caption="{{ $periodData['caption'] }}" aria-pressed="{{ $isActive ? 'true' : 'false' }}">{{ $label }}</button>
             @endforeach
         </div>
     </div>

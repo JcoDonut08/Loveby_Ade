@@ -8,13 +8,17 @@ use App\Http\Requests\Auth\ResetPasswordRequest;
 use App\Http\Requests\Auth\VerifyOtpRequest;
 use App\Models\User;
 use App\Services\OtpService;
+use App\Services\UserAuditLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class PasswordResetOtpController extends Controller
 {
-    public function __construct(private OtpService $otpService) {}
+    public function __construct(
+        private OtpService $otpService,
+        private UserAuditLogger $auditLogger,
+    ) {}
 
     public function showEmailForm(): View
     {
@@ -99,6 +103,13 @@ class PasswordResetOtpController extends Controller
         $user->update([
             'password' => $validated['password'],
         ]);
+
+        $this->auditLogger->record(
+            $user,
+            'Password Changed',
+            'Authentication',
+            'User password was changed after OTP verification.',
+        );
 
         $request->session()->forget('auth.password_reset');
 

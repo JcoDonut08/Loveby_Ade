@@ -8,6 +8,7 @@ use App\Http\Requests\Admin\UpdateOrderStatusRequest;
 use App\Models\Order;
 use App\Models\Product;
 use App\Services\OrderReceiptService;
+use App\Services\UserAuditLogger;
 use App\Services\WalkInOrderService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
@@ -21,6 +22,7 @@ class OrderController extends Controller
     public function __construct(
         private WalkInOrderService $walkInOrders,
         private OrderReceiptService $receipts,
+        private UserAuditLogger $auditLogger,
     ) {}
 
     public function index(Request $request): View
@@ -73,7 +75,14 @@ class OrderController extends Controller
 
     public function store(StoreWalkInOrderRequest $request): RedirectResponse
     {
-        $this->walkInOrders->create($request->validated(), $request->user());
+        $order = $this->walkInOrders->create($request->validated(), $request->user());
+        $this->auditLogger->record(
+            $request->user(),
+            'Walk-in Order Created',
+            'Orders',
+            'Walk-in order '.$order->order_number.' was recorded.',
+            metadata: ['order_id' => $order->getKey()],
+        );
 
         return redirect()
             ->route('admin.orders', ['status' => 'walk_in'])
@@ -83,6 +92,7 @@ class OrderController extends Controller
     public function update(UpdateOrderStatusRequest $request, Order $order): RedirectResponse
     {
         $validated = $request->validated();
+        $previousStatus = $order->status;
 
         if ($order->is_walk_in && ! in_array($validated['status'], [Order::STATUS_DELIVERED, Order::STATUS_CANCELLED], true)) {
             throw ValidationException::withMessages([
@@ -102,6 +112,13 @@ class OrderController extends Controller
                 ? $validated['cancellation_reason']
                 : null,
         ]);
+        $this->auditLogger->record(
+            $request->user(),
+            'Order Status Updated',
+            'Orders',
+            'Order '.$order->order_number.' changed from '.str($previousStatus)->headline().' to '.str($order->status)->headline().'.',
+            metadata: ['order_id' => $order->getKey()],
+        );
 
         return redirect()
             ->route('admin.orders')

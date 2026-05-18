@@ -4,6 +4,8 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\User;
+use App\Services\AdminDashboardOverview;
+use Illuminate\Support\Carbon;
 
 test('admin dashboard renders live overview data', function () {
     $admin = adminUser();
@@ -121,8 +123,125 @@ test('admin dashboard renders live overview data', function () {
         ->assertSee('max-h-80', false)
         ->assertSee('overflow-y-auto', false)
         ->assertSee('data-sales-performance', false)
+        ->assertSee('data-sales-total-value', false)
+        ->assertSee('data-sales-period-total', false)
         ->assertDontSee('₱48,290')
         ->assertDontSee('Track payments, fulfillment, and customer updates');
+});
+
+test('admin dashboard sales charts bucket paid orders by the current date ranges', function () {
+    config(['app.business_timezone' => 'UTC']);
+    Carbon::setTestNow(Carbon::parse('2026-05-18 12:00:00'));
+
+    try {
+        $customer = User::factory()->create();
+
+        Order::factory()->for($customer)->create([
+            'status' => Order::STATUS_DELIVERED,
+            'payment_method' => 'Cash on Delivery',
+            'total' => 150,
+            'created_at' => now()->setTime(10, 15),
+        ]);
+        Order::factory()->for($customer)->create([
+            'status' => Order::STATUS_PENDING,
+            'payment_method' => 'GCash',
+            'total' => 250,
+            'created_at' => now()->setTime(14, 30),
+        ]);
+        Order::factory()->for($customer)->create([
+            'status' => Order::STATUS_CANCELLED,
+            'payment_method' => 'GCash',
+            'total' => 999,
+            'created_at' => now()->setTime(14, 45),
+        ]);
+
+        $salesPerformance = app(AdminDashboardOverview::class)->data()['salesPerformance'];
+
+        $dailyBars = collect($salesPerformance['daily']['bars'])->keyBy('label');
+        $weeklyBars = collect($salesPerformance['weekly']['bars'])->keyBy('label');
+        $monthlyBars = collect($salesPerformance['monthly']['bars'])->keyBy('label');
+        $yearlyBars = collect($salesPerformance['yearly']['bars'])->keyBy('label');
+
+        expect($dailyBars['10 AM']['amount'])->toContain('150')
+            ->and($dailyBars['2 PM']['amount'])->toContain('250')
+            ->and($weeklyBars['Mon']['amount'])->toContain('400')
+            ->and($weeklyBars['Tue']['amount'])->toContain('0')
+            ->and($monthlyBars['Week 3']['amount'])->toContain('400')
+            ->and($yearlyBars['Q2']['amount'])->toContain('400');
+    } finally {
+        Carbon::setTestNow();
+    }
+});
+
+test('admin dashboard weekly chart uses the business timezone for late-night orders', function () {
+    config(['app.business_timezone' => 'Asia/Manila']);
+    Carbon::setTestNow(Carbon::parse('2026-05-18 19:30:00', 'UTC'));
+
+    try {
+        $customer = User::factory()->create();
+
+        Order::factory()->for($customer)->create([
+            'status' => Order::STATUS_PENDING,
+            'payment_method' => 'GCash',
+            'total' => 450,
+            'created_at' => Carbon::parse('2026-05-18 19:24:00', 'UTC'),
+        ]);
+
+        $weeklyBars = collect(app(AdminDashboardOverview::class)->data()['salesPerformance']['weekly']['bars'])
+            ->keyBy('label');
+
+        expect($weeklyBars['Mon']['amount'])->toContain('0')
+            ->and($weeklyBars['Tue']['amount'])->toContain('450');
+    } finally {
+        Carbon::setTestNow();
+    }
+});
+
+test('admin dashboard top desserts uses the order date for this week', function () {
+    config(['app.business_timezone' => 'UTC']);
+    Carbon::setTestNow(Carbon::parse('2026-05-18 12:00:00'));
+
+    try {
+        $customer = User::factory()->create();
+        $oldCake = Product::factory()->create([
+            'title' => 'Old Cake',
+            'category' => 'Cakes',
+        ]);
+        $freshCookie = Product::factory()->create([
+            'title' => 'Fresh Cookie',
+            'category' => 'Cookies',
+        ]);
+
+        $oldOrder = Order::factory()->for($customer)->create([
+            'status' => Order::STATUS_DELIVERED,
+            'created_at' => now()->subDays(10),
+        ]);
+        OrderItem::factory()->for($oldOrder)->for($oldCake)->create([
+            'category' => 'Cakes',
+            'quantity' => 9,
+            'created_at' => now(),
+        ]);
+
+        $recentOrder = Order::factory()->for($customer)->create([
+            'status' => Order::STATUS_DELIVERED,
+            'created_at' => now()->subDays(2),
+        ]);
+        OrderItem::factory()->for($recentOrder)->for($freshCookie)->create([
+            'category' => 'Cookies',
+            'quantity' => 2,
+            'created_at' => now()->subDays(2),
+        ]);
+
+        $labels = collect(app(AdminDashboardOverview::class)->data()['topDesserts'])
+            ->pluck('label')
+            ->all();
+
+        expect($labels)
+            ->toContain('Cookies')
+            ->not->toContain('Cakes');
+    } finally {
+        Carbon::setTestNow();
+    }
 });
 
 test('restock alert uses healthy styling when every product has enough stock', function () {

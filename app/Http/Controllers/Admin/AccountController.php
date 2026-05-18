@@ -6,12 +6,16 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\UpdateAccountRequest;
 use App\Models\User;
 use App\Services\AccountProfileService;
+use App\Services\UserAuditLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
 class AccountController extends Controller
 {
-    public function __construct(private AccountProfileService $accountProfile) {}
+    public function __construct(
+        private AccountProfileService $accountProfile,
+        private UserAuditLogger $auditLogger,
+    ) {}
 
     public function index(): View
     {
@@ -29,7 +33,16 @@ class AccountController extends Controller
         /** @var User $user */
         $user = $request->user();
 
-        $this->accountProfile->update($user, $request->validated(), $request->file('profile_photo'));
+        $changedFields = $this->accountProfile->update($user, $request->validated(), $request->file('profile_photo'));
+
+        $this->auditLogger->record(
+            $user,
+            'Admin Profile Updated',
+            'Account',
+            $changedFields === []
+                ? 'Admin saved account details with no visible changes.'
+                : 'Admin updated account fields: '.implode(', ', $changedFields).'.',
+        );
 
         return redirect()
             ->route('admin.account')

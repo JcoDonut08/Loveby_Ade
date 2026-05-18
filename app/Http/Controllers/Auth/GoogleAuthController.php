@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Services\CartService;
 use App\Services\FavoriteService;
 use App\Services\GoogleAccountService;
+use App\Services\UserAuditLogger;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Exception\RequestException;
@@ -27,14 +28,18 @@ class GoogleAuthController extends Controller
 
     private GoogleAccountService $googleAccounts;
 
+    private UserAuditLogger $auditLogger;
+
     public function __construct(
         CartService $cart,
         FavoriteService $favorites,
-        GoogleAccountService $googleAccounts
+        GoogleAccountService $googleAccounts,
+        UserAuditLogger $auditLogger
     ) {
         $this->cart = $cart;
         $this->favorites = $favorites;
         $this->googleAccounts = $googleAccounts;
+        $this->auditLogger = $auditLogger;
     }
 
     public function redirect(Request $request): RedirectResponse
@@ -105,6 +110,12 @@ class GoogleAuthController extends Controller
 
         $this->cart->mergeSessionIntoUser($request->session(), $user);
         $this->favorites->mergeSessionIntoUser($request->session(), $user);
+        $this->auditLogger->record(
+            $user,
+            'Google Login',
+            'Authentication',
+            'User logged in with Google.',
+        );
 
         return redirect()->intended(route($this->homeRouteFor($user)));
     }

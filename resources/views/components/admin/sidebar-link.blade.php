@@ -30,6 +30,13 @@
                 </svg>
                 @break
 
+            @case('shield')
+                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 20.25c4-1.8 6.25-4.75 6.25-8.5v-5.5L12 3.75l-6.25 2.5v5.5c0 3.75 2.25 6.7 6.25 8.5Z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m9.25 12.25 1.75 1.75 3.75-4" />
+                </svg>
+                @break
+
             @case('tag')
                 <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M4.75 5.75v6.5l7 7 7-7-7-7h-7Z" />

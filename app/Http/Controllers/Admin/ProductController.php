@@ -8,6 +8,7 @@ use App\Http\Requests\Admin\StoreProductRequest;
 use App\Models\Product;
 use App\Services\ProductCatalog;
 use App\Services\ProductManagementService;
+use App\Services\UserAuditLogger;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -16,7 +17,10 @@ use Illuminate\View\View;
 
 class ProductController extends Controller
 {
-    public function __construct(private ProductManagementService $products) {}
+    public function __construct(
+        private ProductManagementService $products,
+        private UserAuditLogger $auditLogger,
+    ) {}
 
     public function index(Request $request): View|JsonResponse
     {
@@ -54,7 +58,14 @@ class ProductController extends Controller
 
     public function store(StoreProductRequest $request): RedirectResponse
     {
-        $this->products->create($request->validated(), $this->productImages($request));
+        $product = $this->products->create($request->validated(), $this->productImages($request));
+        $this->auditLogger->record(
+            $request->user(),
+            'Product Created',
+            'Products',
+            'Product '.$product->title.' was added to the catalog.',
+            metadata: ['product_id' => $product->getKey()],
+        );
 
         return redirect()
             ->route('admin.products')
@@ -69,15 +80,34 @@ class ProductController extends Controller
             $this->productImages($request),
             $this->existingProductImages($request, $product),
         );
+        $updatedProduct = $product->fresh();
+
+        $this->auditLogger->record(
+            $request->user(),
+            'Product Updated',
+            'Products',
+            'Product '.($updatedProduct?->title ?? $product->title).' was updated.',
+            metadata: ['product_id' => $product->getKey()],
+        );
 
         return redirect()
             ->route('admin.products')
             ->with('status', 'Product updated.');
     }
 
-    public function destroy(Product $product): RedirectResponse
+    public function destroy(Request $request, Product $product): RedirectResponse
     {
+        $productTitle = $product->title;
+        $productId = $product->getKey();
+
         $this->products->delete($product);
+        $this->auditLogger->record(
+            $request->user(),
+            'Product Deleted',
+            'Products',
+            'Product '.$productTitle.' was removed from the catalog.',
+            metadata: ['product_id' => $productId],
+        );
 
         return redirect()
             ->route('admin.products')
@@ -91,6 +121,13 @@ class ProductController extends Controller
             ->get();
 
         $deletedCount = $this->products->deleteMany($products);
+        $this->auditLogger->record(
+            $request->user(),
+            'Products Deleted',
+            'Products',
+            $deletedCount.' '.str('product')->plural($deletedCount).' removed from the catalog.',
+            metadata: ['deleted_count' => $deletedCount],
+        );
 
         return redirect()
             ->route('admin.products')

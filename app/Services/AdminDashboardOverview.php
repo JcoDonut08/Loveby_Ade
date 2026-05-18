@@ -152,30 +152,46 @@ class AdminDashboardOverview
      */
     private function salesPerformance(Collection $orders): array
     {
+        $now = $this->dashboardNow();
+
         return [
             'daily' => $this->salesPeriod(
-                $this->salesBuckets($orders, collect([8, 10, 12, 14, 16, 18, 20]), fn (Order $order): ?int => $order->created_at?->isToday() === true ? (int) floor((int) $order->created_at->format('G') / 2) * 2 : null),
-                'Today from '.$orders->filter(fn (Order $order): bool => $order->created_at?->isToday() === true)->count().' dessert orders',
+                $this->salesBuckets($orders, collect(range(0, 22, 2)), function (Order $order) use ($now): ?int {
+                    $createdAt = $this->dashboardTime($order->created_at);
+
+                    return $createdAt?->isSameDay($now) === true ? (int) floor((int) $createdAt->format('G') / 2) * 2 : null;
+                }),
+                'Today from '.$orders->filter(fn (Order $order): bool => $this->dashboardTime($order->created_at)?->isSameDay($now) === true)->count().' dessert orders',
                 fn (int $hour): string => CarbonImmutable::createFromTime($hour)->format('g A')
             ),
             'weekly' => $this->salesPeriod(
-                $this->salesBuckets($orders, collect(range(0, 6)), function (Order $order): ?int {
-                    if ($order->created_at?->betweenIncluded(now()->startOfWeek(), now()->endOfWeek()) !== true) {
+                $this->salesBuckets($orders, collect(range(0, 6)), function (Order $order) use ($now): ?int {
+                    $createdAt = $this->dashboardTime($order->created_at);
+
+                    if ($createdAt?->betweenIncluded($now->startOfWeek(), $now->endOfWeek()) !== true) {
                         return null;
                     }
 
-                    return (int) $order->created_at->isoWeekday() - 1;
+                    return (int) $createdAt->isoWeekday() - 1;
                 }),
                 'Track your bakery\'s sweet revenue',
-                fn (int $day): string => now()->startOfWeek()->addDays($day)->format('D')
+                fn (int $day): string => $now->startOfWeek()->addDays($day)->format('D')
             ),
             'monthly' => $this->salesPeriod(
-                $this->salesBuckets($orders, collect(range(1, 5)), fn (Order $order): ?int => $order->created_at?->isSameMonth(now()) === true ? (int) ceil((int) $order->created_at->format('j') / 7) : null),
+                $this->salesBuckets($orders, collect(range(1, 5)), function (Order $order) use ($now): ?int {
+                    $createdAt = $this->dashboardTime($order->created_at);
+
+                    return $createdAt?->isSameMonth($now) === true ? (int) ceil((int) $createdAt->format('j') / 7) : null;
+                }),
                 'This month across all sweet categories',
                 fn (int $week): string => 'Week '.$week
             ),
             'yearly' => $this->salesPeriod(
-                $this->salesBuckets($orders, collect(range(1, 4)), fn (Order $order): ?int => $order->created_at?->isSameYear(now()) === true ? (int) ceil((int) $order->created_at->format('n') / 3) : null),
+                $this->salesBuckets($orders, collect(range(1, 4)), function (Order $order) use ($now): ?int {
+                    $createdAt = $this->dashboardTime($order->created_at);
+
+                    return $createdAt?->isSameYear($now) === true ? (int) ceil((int) $createdAt->format('n') / 3) : null;
+                }),
                 'Year-to-date revenue from repeat buyers',
                 fn (int $quarter): string => 'Q'.$quarter
             ),
@@ -237,10 +253,13 @@ class AdminDashboardOverview
      */
     private function topDesserts(Collection $orders): array
     {
+        $now = $this->dashboardNow();
+
         $items = $orders
-            ->where('status', '!=', Order::STATUS_CANCELLED)
+            ->filter(fn (Order $order): bool => $order->status !== Order::STATUS_CANCELLED
+                && $this->dashboardTime($order->created_at)?->greaterThanOrEqualTo($now->subWeek()) === true)
             ->flatMap->items
-            ->filter(fn (OrderItem $item): bool => $item->created_at?->greaterThanOrEqualTo(now()->subWeek()) === true);
+            ->filter(fn (OrderItem $item): bool => $item instanceof OrderItem);
 
         $totalQuantity = max(1, $items->sum('quantity'));
         $colors = [
@@ -281,10 +300,11 @@ class AdminDashboardOverview
      */
     private function userActivity(Collection $customers): array
     {
+        $now = $this->dashboardNow();
         $days = collect(range(0, 6))
-            ->map(fn (int $index): CarbonInterface => now()->startOfWeek()->addDays($index));
+            ->map(fn (int $index): CarbonInterface => $now->startOfWeek()->addDays($index));
         $counts = $days->map(fn (CarbonInterface $day): int => $customers
-            ->filter(fn (User $user): bool => $user->last_active_at?->isSameDay($day) === true || $user->created_at?->isSameDay($day) === true)
+            ->filter(fn (User $user): bool => $this->dashboardTime($user->last_active_at)?->isSameDay($day) === true || $this->dashboardTime($user->created_at)?->isSameDay($day) === true)
             ->count());
         $max = max($counts->max() ?? 0, 1);
         $points = $counts
@@ -437,5 +457,22 @@ class AdminDashboardOverview
     private function money(float $amount, int $decimals = 0): string
     {
         return '₱'.number_format($amount, $decimals);
+    }
+
+    private function dashboardNow(): CarbonImmutable
+    {
+        return CarbonImmutable::instance(now($this->dashboardTimezone()));
+    }
+
+    private function dashboardTime(?CarbonInterface $time): ?CarbonImmutable
+    {
+        return $time instanceof CarbonInterface
+            ? CarbonImmutable::instance($time)->timezone($this->dashboardTimezone())
+            : null;
+    }
+
+    private function dashboardTimezone(): string
+    {
+        return (string) config('app.business_timezone', 'Asia/Manila');
     }
 }

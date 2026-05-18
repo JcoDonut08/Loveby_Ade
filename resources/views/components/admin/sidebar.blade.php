@@ -3,6 +3,7 @@
     $isOrdersRoute = request()->routeIs('admin.orders');
     $isProductsRoute = request()->routeIs('admin.products');
     $isCustomersRoute = request()->routeIs('admin.customers');
+    $isAuditLogsRoute = request()->routeIs('admin.audit-logs');
     $isPromotionsRoute = request()->routeIs('admin.promotions');
     $isNotificationsRoute = request()->routeIs('admin.notifications');
     $isAnalyticsRoute = request()->routeIs('admin.analytics');
@@ -32,6 +33,7 @@
                     <x-admin.sidebar-link :href="route('admin.orders')" label="Orders" icon="bag" :active="$isOrdersRoute" />
                     <x-admin.sidebar-link :href="route('admin.products')" label="Products" icon="cookie" :active="$isProductsRoute" />
                     <x-admin.sidebar-link :href="route('admin.customers')" label="Customers" icon="users" :active="$isCustomersRoute" />
+                    <x-admin.sidebar-link :href="route('admin.audit-logs')" label="Audit Logs" icon="shield" :active="$isAuditLogsRoute" />
                 </div>
             </div>
 

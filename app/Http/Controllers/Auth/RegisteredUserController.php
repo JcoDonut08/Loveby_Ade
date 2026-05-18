@@ -7,6 +7,7 @@ use App\Http\Requests\Auth\RegisterRequest;
 use App\Http\Requests\Auth\VerifyOtpRequest;
 use App\Models\User;
 use App\Services\OtpService;
+use App\Services\UserAuditLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
@@ -14,7 +15,10 @@ use Illuminate\View\View;
 
 class RegisteredUserController extends Controller
 {
-    public function __construct(private OtpService $otpService) {}
+    public function __construct(
+        private OtpService $otpService,
+        private UserAuditLogger $auditLogger,
+    ) {}
 
     public function show(): View
     {
@@ -70,12 +74,19 @@ class RegisteredUserController extends Controller
             ]);
         }
 
-        User::create([
+        $user = User::create([
             'name' => $registration['name'],
             'email' => $registration['email'],
             'password' => $registration['password'],
             'email_verified_at' => now(),
         ]);
+
+        $this->auditLogger->record(
+            $user,
+            'Registered',
+            'Authentication',
+            'User account was verified and created.',
+        );
 
         $request->session()->forget('auth.registration');
 

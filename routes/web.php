@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\CustomerController as AdminCustomerController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
+use App\Http\Controllers\Admin\UserAuditLogController as AdminUserAuditLogController;
 use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\LogoutController;
@@ -155,6 +156,7 @@ Route::prefix('admin')->name('admin.')->middleware(EnsureUserIsAdmin::class)->gr
     Route::patch('/products/{product}', [AdminProductController::class, 'update'])->name('products.update');
     Route::delete('/products/{product}', [AdminProductController::class, 'destroy'])->name('products.destroy');
     Route::get('/customers', [AdminCustomerController::class, 'index'])->name('customers');
+    Route::get('/audit-logs', AdminUserAuditLogController::class)->name('audit-logs');
     Route::view('/promotions', 'pages.admin.promotions')->name('promotions');
     Route::view('/notifications', 'pages.admin.notifications')->name('notifications');
     Route::view('/analytics', 'pages.admin.analytics')->name('analytics');

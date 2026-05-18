@@ -107,6 +107,14 @@ class User extends Authenticatable
         return $this->hasMany(ProductReviewReply::class);
     }
 
+    /**
+     * @return HasMany<UserAuditLog, $this>
+     */
+    public function auditLogs(): HasMany
+    {
+        return $this->hasMany(UserAuditLog::class);
+    }
+
     public function isAdmin(): bool
     {
         return $this->role === 'admin';
