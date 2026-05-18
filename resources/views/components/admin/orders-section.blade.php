@@ -183,6 +183,7 @@
                         @php
                             $firstItem = $order->items->first();
                             $remainingItems = max(0, $order->items->count() - 1);
+                            $canPrintReceipt = ! in_array($order->status, ['pending', 'cancelled'], true);
                         @endphp
                         <tr class="group/row" data-order-row>
                             <td class="rounded-l-[1.25rem] border-y border-l border-love-pink-100 bg-white px-4 py-4 font-extrabold text-[#3b1728] shadow-[0_18px_38px_-34px_rgba(81,36,56,0.5)] transition group-hover/row:-translate-y-0.5 group-hover/row:bg-love-cream">#{{ $order->order_number }}</td>
@@ -272,6 +273,12 @@
                                         <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4.75 12s2.5-5.25 7.25-5.25S19.25 12 19.25 12 16.75 17.25 12 17.25 4.75 12 4.75 12Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M12 14.25a2.25 2.25 0 1 0 0-4.5 2.25 2.25 0 0 0 0 4.5Z" /></svg>
                                         <span class="{{ $tooltipClass }}">View order details</span>
                                     </button>
+                                    @if ($canPrintReceipt)
+                                        <a class="group/action relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-amber-100 bg-amber-50 text-amber-700 transition hover:-translate-y-0.5 hover:bg-amber-100 focus:outline-none focus:ring-4 focus:ring-love-pink-100" href="{{ route('admin.orders.receipt', $order) }}" aria-label="Print receipt">
+                                            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M7.25 8.75v-4h9.5v4M7.25 17.25h-1.5a2 2 0 0 1-2-2v-4.5a2 2 0 0 1 2-2h12.5a2 2 0 0 1 2 2v4.5a2 2 0 0 1-2 2h-1.5M7.25 14.25h9.5v5.5h-9.5z" /></svg>
+                                            <span class="{{ $tooltipClass }}">Print receipt</span>
+                                        </a>
+                                    @endif
                                 </div>
                             </td>
                         </tr>

@@ -5,13 +5,19 @@ namespace App\Http\Controllers;
 use App\Models\Order;
 use App\Models\User;
 use App\Services\CustomerOrderService;
+use App\Services\OrderReceiptService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\View\View;
 
 class OrderController extends Controller
 {
-    public function __construct(private CustomerOrderService $orders) {}
+    public function __construct(
+        private CustomerOrderService $orders,
+        private OrderReceiptService $receipts,
+    ) {}
 
     public function index(Request $request): View
     {
@@ -55,6 +61,25 @@ class OrderController extends Controller
         return view('pages.orders.confirmed', [
             'order' => $order,
         ]);
+    }
+
+    public function receipt(Request $request, Order $order): View|Response
+    {
+        $order = $this->receipts->forCustomer($order, $this->authenticatedUser($request));
+        $viewData = $this->receipts->viewData(
+            $order,
+            route('orders.index'),
+            'Back to orders',
+            route('orders.receipt', ['order' => $order, 'download' => 1]),
+        );
+
+        if ($request->boolean('download')) {
+            return Pdf::loadView('pages.orders.receipt_pdf', $viewData)
+                ->setPaper('a4')
+                ->download($this->receipts->downloadFilename($order));
+        }
+
+        return view('pages.orders.receipt', $viewData);
     }
 
     private function authenticatedUser(Request $request): User

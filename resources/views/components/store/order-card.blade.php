@@ -17,7 +17,7 @@
         <div class="flex flex-wrap items-center gap-3">
             <h2 class="font-display text-3xl text-slate-950">{{ $order['id'] }}</h2>
             @if ($showInvoice)
-                <a class="text-sm font-semibold text-love-pink-500 transition hover:text-love-pink-400" href="{{ route('contact') }}">
+                <a class="text-sm font-semibold text-love-pink-500 transition hover:text-love-pink-400" href="{{ route('orders.receipt', $order['key']) }}">
                     View invoice ->
                 </a>
             @endif

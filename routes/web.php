@@ -58,6 +58,7 @@ Route::middleware(RedirectAdminToDashboard::class)->group(function (): void {
         Route::post('/notifications/{notification}/read', [NotificationController::class, 'markRead'])->name('notifications.read-one');
         Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
         Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
+        Route::get('/orders/{order}/receipt', [OrderController::class, 'receipt'])->name('orders.receipt');
         Route::patch('/orders/{order}/confirm-delivery', [OrderController::class, 'confirmDelivery'])->name('orders.confirm-delivery');
         Route::redirect('/orders/confirm', '/orders/confirmed')->name('orders.confirm');
         Route::get('/orders/confirmed', [OrderController::class, 'confirmed'])->name('orders.confirmed');
@@ -130,6 +131,7 @@ Route::prefix('admin')->name('admin.')->middleware(EnsureUserIsAdmin::class)->gr
     Route::get('/dashboard', AdminDashboardController::class)->name('dashboard');
     Route::get('/orders', [AdminOrderController::class, 'index'])->name('orders');
     Route::post('/orders', [AdminOrderController::class, 'store'])->name('orders.store');
+    Route::get('/orders/{order}/receipt', [AdminOrderController::class, 'receipt'])->name('orders.receipt');
     Route::patch('/orders/{order}', [AdminOrderController::class, 'update'])->name('orders.update');
     Route::get('/products', [AdminProductController::class, 'index'])->name('products');
     Route::post('/products', [AdminProductController::class, 'store'])->name('products.store');
@@ -137,7 +139,6 @@ Route::prefix('admin')->name('admin.')->middleware(EnsureUserIsAdmin::class)->gr
     Route::delete('/products/{product}', [AdminProductController::class, 'destroy'])->name('products.destroy');
     Route::get('/customers', [AdminCustomerController::class, 'index'])->name('customers');
     Route::view('/promotions', 'pages.admin.promotions')->name('promotions');
-    Route::view('/chat-inbox', 'pages.admin.chat_inbox')->name('chat-inbox');
     Route::view('/notifications', 'pages.admin.notifications')->name('notifications');
     Route::view('/analytics', 'pages.admin.analytics')->name('analytics');
     Route::view('/reports', 'pages.admin.reports')->name('reports');

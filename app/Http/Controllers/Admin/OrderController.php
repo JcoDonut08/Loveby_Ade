@@ -7,15 +7,21 @@ use App\Http\Requests\Admin\StoreWalkInOrderRequest;
 use App\Http\Requests\Admin\UpdateOrderStatusRequest;
 use App\Models\Order;
 use App\Models\Product;
+use App\Services\OrderReceiptService;
 use App\Services\WalkInOrderService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class OrderController extends Controller
 {
-    public function __construct(private WalkInOrderService $walkInOrders) {}
+    public function __construct(
+        private WalkInOrderService $walkInOrders,
+        private OrderReceiptService $receipts,
+    ) {}
 
     public function index(Request $request): View
     {
@@ -100,5 +106,24 @@ class OrderController extends Controller
         return redirect()
             ->route('admin.orders')
             ->with('status', 'Order status updated.');
+    }
+
+    public function receipt(Request $request, Order $order): View|Response
+    {
+        $order = $this->receipts->forAdmin($order);
+        $viewData = $this->receipts->viewData(
+            $order,
+            route('admin.orders'),
+            'Back to admin orders',
+            route('admin.orders.receipt', ['order' => $order, 'download' => 1]),
+        );
+
+        if ($request->boolean('download')) {
+            return Pdf::loadView('pages.orders.receipt_pdf', $viewData)
+                ->setPaper('a4')
+                ->download($this->receipts->downloadFilename($order));
+        }
+
+        return view('pages.orders.receipt', $viewData);
     }
 }

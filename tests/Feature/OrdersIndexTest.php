@@ -26,6 +26,7 @@ test('authenticated users can view customer order cards with admin aligned statu
         ->assertSuccessful()
         ->assertSee('Order #LBA-3508')
         ->assertSee('View invoice ->', false)
+        ->assertSee('href="'.route('orders.receipt', $order).'"', false)
         ->assertSee('Confirm Order')
         ->assertSee('disabled', false)
         ->assertSee('Delivery address')
@@ -40,6 +41,16 @@ test('authenticated users can view customer order cards with admin aligned statu
         ->assertSee('data-order-progress-segment', false)
         ->assertDontSee('Shipping address')
         ->assertDontSee('Preparing to ship');
+});
+
+test('customer cannot view another customers receipt', function () {
+    $owner = User::factory()->create();
+    $otherUser = User::factory()->create();
+    $order = Order::factory()->for($owner)->create();
+
+    $this->actingAs($otherUser)
+        ->get(route('orders.receipt', $order))
+        ->assertNotFound();
 });
 
 test('customer can confirm an out for delivery order as delivered', function () {

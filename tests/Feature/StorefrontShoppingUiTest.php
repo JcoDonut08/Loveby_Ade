@@ -148,7 +148,26 @@ test('order confirmation page renders thank you message order items and totals',
         ->assertSee('Shipping')
         ->assertSee('Free')
         ->assertSee('Total')
-        ->assertSee('Continue shopping');
+        ->assertSee('Continue shopping')
+        ->assertSee('View invoice')
+        ->assertSee('href="'.route('orders.receipt', $order).'"', false);
+
+    $this->actingAs($user)
+        ->get(route('orders.receipt', $order))
+        ->assertSuccessful()
+        ->assertSee('Order Receipt')
+        ->assertSee('RCPT-LBA-515478')
+        ->assertSee('Pastel Donut Box')
+        ->assertSee('Print receipt')
+        ->assertSee('Download PDF')
+        ->assertDontSee('Track Your Order')
+        ->assertSee('href="'.route('orders.receipt', ['order' => $order, 'download' => 1]).'"', false);
+
+    $this->actingAs($user)
+        ->get(route('orders.receipt', ['order' => $order, 'download' => 1]))
+        ->assertSuccessful()
+        ->assertHeader('content-type', 'application/pdf')
+        ->assertHeader('content-disposition', 'attachment; filename=loveby-ade-receipt-LBA-515478.pdf');
 });
 
 test('homepage recommendations fill four products from frequent purchase category', function () {

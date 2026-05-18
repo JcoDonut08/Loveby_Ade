@@ -1164,6 +1164,20 @@ const initializeCheckoutLoginModal = () => {
     });
 };
 
+const initializeReceiptPrintButtons = () => {
+    document.querySelectorAll('[data-print-receipt]').forEach((button) => {
+        if (!(button instanceof HTMLButtonElement) || button.dataset.initialized === 'true') {
+            return;
+        }
+
+        button.addEventListener('click', () => {
+            window.print();
+        });
+
+        button.dataset.initialized = 'true';
+    });
+};
+
 const initializeStorefrontInteractions = () => {
     initializePasswordToggles();
     initializeProductGalleries();
@@ -1182,6 +1196,7 @@ const initializeStorefrontInteractions = () => {
     initializeAddToCartButtons();
     initializeCartPages();
     initializeCheckoutLoginModal();
+    initializeReceiptPrintButtons();
     initializeCheckoutFlow();
     initializeAdminDashboard();
     initializeAdminOrderManagement();

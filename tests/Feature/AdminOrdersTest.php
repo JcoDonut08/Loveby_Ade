@@ -83,6 +83,7 @@ test('admin orders page renders the order management workspace', function () {
         ->assertSee('data-order-search', false)
         ->assertSee('href="'.route('admin.orders').'" aria-current="page"', false)
         ->assertDontSee('href="'.route('admin.dashboard').'" aria-current="page"', false)
+        ->assertDontSee('href="'.route('admin.orders.receipt', $order).'"', false)
         ->assertDontSee('Print Receipt')
         ->assertDontSee('Payment method');
 });
@@ -177,6 +178,15 @@ test('regular users cannot access admin routes', function () {
 
 test('admin can update order status', function () {
     $order = Order::factory()->create();
+    $order->items()->create([
+        'product_slug' => 'pastel-donut-box',
+        'product_title' => 'Pastel Donut Box',
+        'category' => 'Donuts',
+        'product_image' => 'https://example.com/donut.jpg',
+        'unit_price' => 120,
+        'quantity' => 1,
+        'line_total' => 120,
+    ]);
 
     $this->actingAs(adminUser())
         ->patch(route('admin.orders.update', $order), [
@@ -185,6 +195,19 @@ test('admin can update order status', function () {
         ->assertRedirect(route('admin.orders'));
 
     expect($order->refresh()->status)->toBe(Order::STATUS_PREPARING);
+
+    $this->actingAs(adminUser())
+        ->get(route('admin.orders'))
+        ->assertSuccessful()
+        ->assertSee('Print receipt')
+        ->assertSee('href="'.route('admin.orders.receipt', $order).'"', false);
+
+    $this->actingAs(adminUser())
+        ->get(route('admin.orders.receipt', $order))
+        ->assertSuccessful()
+        ->assertSee('Order Receipt')
+        ->assertSee('Pastel Donut Box')
+        ->assertSee('Back to admin orders');
 });
 
 test('admin cannot mark online orders delivered', function () {

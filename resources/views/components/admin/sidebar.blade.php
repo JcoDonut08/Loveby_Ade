@@ -4,7 +4,6 @@
     $isProductsRoute = request()->routeIs('admin.products');
     $isCustomersRoute = request()->routeIs('admin.customers');
     $isPromotionsRoute = request()->routeIs('admin.promotions');
-    $isChatInboxRoute = request()->routeIs('admin.chat-inbox');
     $isNotificationsRoute = request()->routeIs('admin.notifications');
     $isAnalyticsRoute = request()->routeIs('admin.analytics');
     $isReportsRoute = request()->routeIs('admin.reports');
@@ -40,7 +39,6 @@
                 <p class="px-2 text-sm font-semibold text-[#9a6c7b]">Engage</p>
                 <div class="mt-3 grid gap-1.5">
                     <x-admin.sidebar-link :href="route('admin.promotions')" label="Promotions" icon="tag" :active="$isPromotionsRoute" />
-                    <x-admin.sidebar-link :href="route('admin.chat-inbox')" label="Chat Inbox" icon="chat" :active="$isChatInboxRoute" />
                     <x-admin.sidebar-link :href="route('admin.notifications')" label="Notifications" icon="bell" :active="$isNotificationsRoute" badge="3" />
                 </div>
             </div>

@@ -82,6 +82,11 @@
                         <a class="inline-flex items-center justify-center rounded-full bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-love-pink-500" href="{{ route('products.index') }}">
                             Continue shopping
                         </a>
+                        @if ($order)
+                            <a class="inline-flex items-center justify-center rounded-full border border-love-pink-200 bg-love-pink-100/70 px-6 py-3 text-sm font-semibold text-love-pink-500 transition hover:-translate-y-0.5 hover:bg-love-pink-200" href="{{ route('orders.receipt', $order) }}">
+                                View invoice
+                            </a>
+                        @endif
                         <a class="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-6 py-3 text-sm font-semibold text-slate-600 transition hover:-translate-y-0.5 hover:border-love-blue-200 hover:text-love-blue-500" href="{{ route('orders.index') }}">
                             View updates
                         </a>
