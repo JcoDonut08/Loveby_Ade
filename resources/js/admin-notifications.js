@@ -4,24 +4,42 @@ const inactivePageButtonClasses = 'border border-love-pink-100 text-[#512438] ho
 
 const getTotalPages = (totalRows, pageSize) => Math.max(1, Math.ceil(totalRows / pageSize));
 
+const notificationMatchesSearch = (row, search) => {
+    if (search === '') {
+        return true;
+    }
+
+    const searchableText = row.dataset.notificationSearchText || row.textContent || '';
+
+    return searchableText.toLowerCase().includes(search);
+};
+
 const renderNotificationPagination = ({ section, rows, state }) => {
     const status = section.querySelector('[data-notification-pagination-status]');
     const pageButtons = section.querySelector('[data-notification-page-buttons]');
     const previous = section.querySelector('[data-notification-page-previous]');
     const next = section.querySelector('[data-notification-page-next]');
-    const totalPages = getTotalPages(rows.length, state.pageSize);
+    const searchEmpty = section.querySelector('[data-notification-search-empty]');
+    const search = state.search.trim().toLowerCase();
+    const filteredRows = rows.filter((row) => notificationMatchesSearch(row, search));
+    const totalPages = getTotalPages(filteredRows.length, state.pageSize);
 
     state.page = Math.min(state.page, totalPages);
 
-    const startRow = rows.length === 0 ? 0 : ((state.page - 1) * state.pageSize) + 1;
-    const endRow = Math.min(state.page * state.pageSize, rows.length);
+    const startRow = filteredRows.length === 0 ? 0 : ((state.page - 1) * state.pageSize) + 1;
+    const endRow = Math.min(state.page * state.pageSize, filteredRows.length);
 
     rows.forEach((row, index) => {
-        row.classList.toggle('hidden', index < startRow - 1 || index >= endRow);
+        const filteredIndex = filteredRows.indexOf(row);
+        row.classList.toggle('hidden', filteredIndex === -1 || filteredIndex < startRow - 1 || filteredIndex >= endRow);
     });
 
     if (status instanceof HTMLElement) {
-        status.textContent = `Showing ${startRow}-${endRow} of ${rows.length} notifications`;
+        status.textContent = `Showing ${startRow}-${endRow} of ${filteredRows.length} notifications`;
+    }
+
+    if (searchEmpty instanceof HTMLElement) {
+        searchEmpty.classList.toggle('hidden', filteredRows.length > 0);
     }
 
     if (previous instanceof HTMLButtonElement) {
@@ -55,6 +73,7 @@ export const initializeAdminNotifications = () => {
         }
 
         const rows = Array.from(section.querySelectorAll('[data-notification-row]')).filter((row) => row instanceof HTMLElement);
+        const search = section.querySelector('[data-notification-search]');
         const pageSize = section.querySelector('[data-notification-page-size]');
         const pageButtons = section.querySelector('[data-notification-page-buttons]');
         const previous = section.querySelector('[data-notification-page-previous]');
@@ -62,6 +81,7 @@ export const initializeAdminNotifications = () => {
         const state = {
             page: 1,
             pageSize: pageSize instanceof HTMLSelectElement ? Number.parseInt(pageSize.value || '6', 10) : 6,
+            search: '',
         };
 
         const renderAll = () => renderNotificationPagination({ section, rows, state });
@@ -70,6 +90,14 @@ export const initializeAdminNotifications = () => {
             pageSize.addEventListener('change', () => {
                 const nextPageSize = Number.parseInt(pageSize.value || '6', 10);
                 state.pageSize = Number.isFinite(nextPageSize) && nextPageSize > 0 ? nextPageSize : 6;
+                state.page = 1;
+                renderAll();
+            });
+        }
+
+        if (search instanceof HTMLInputElement) {
+            search.addEventListener('input', () => {
+                state.search = search.value;
                 state.page = 1;
                 renderAll();
             });

@@ -6,7 +6,7 @@
 @section('content')
     @php
         $metrics = $metrics ?? [];
-        $notificationsCount = $notificationsCount ?? 0;
+        $notificationsCount = app(\App\Services\AdminNotificationService::class)->unreadCount(session('read_admin_notifications', []));
     @endphp
 
     <div class="min-h-screen bg-[linear-gradient(180deg,#fff8fb_0%,#fff1f6_46%,#fffaf7_100%)]">
@@ -35,13 +35,7 @@
                         <input class="h-12 w-full rounded-full border border-love-pink-100 bg-white/88 px-12 text-sm font-medium text-[#512438] outline-none transition placeholder:text-[#9a6c7b] focus:border-love-pink-300 focus:ring-4 focus:ring-love-pink-100/80" id="admin-search" type="search" placeholder="Search orders, products, customers...">
                     </label>
 
-                    <button class="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-[#512438] transition hover:bg-love-pink-100 focus:outline-none focus:ring-4 focus:ring-love-pink-100" type="button" aria-label="View notifications">
-                        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 9.5a5.25 5.25 0 1 1 10.5 0c0 5.25 2.25 6.75 2.25 6.75H4.5s2.25-1.5 2.25-6.75Z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M10 19.5a2 2 0 0 0 4 0" />
-                        </svg>
-                        <span class="absolute -right-0.5 top-0 flex h-5 min-w-5 items-center justify-center rounded-full bg-love-blue-300 px-1 text-xs font-extrabold text-[#512438]">{{ $notificationsCount }}</span>
-                    </button>
+                    <x-admin.notification-link :count="$notificationsCount" />
 
                     <x-admin.profile-avatar class="h-12 w-12 text-sm shadow-[0_18px_35px_-24px_rgba(236,72,153,0.75)]" />
                 </div>

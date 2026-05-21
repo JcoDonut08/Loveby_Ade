@@ -4,6 +4,7 @@ use App\Http\Controllers\AccountController;
 use App\Http\Controllers\Admin\AccountController as AdminAccountController;
 use App\Http\Controllers\Admin\CustomerController as AdminCustomerController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\NotificationController as AdminNotificationController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Admin\UserAuditLogController as AdminUserAuditLogController;
@@ -158,7 +159,9 @@ Route::prefix('admin')->name('admin.')->middleware(EnsureUserIsAdmin::class)->gr
     Route::get('/customers', [AdminCustomerController::class, 'index'])->name('customers');
     Route::get('/audit-logs', AdminUserAuditLogController::class)->name('audit-logs');
     Route::view('/promotions', 'pages.admin.promotions')->name('promotions');
-    Route::view('/notifications', 'pages.admin.notifications')->name('notifications');
+    Route::get('/notifications', [AdminNotificationController::class, 'index'])->name('notifications');
+    Route::post('/notifications/read', [AdminNotificationController::class, 'markAllRead'])->name('notifications.read');
+    Route::post('/notifications/{notification}/read', [AdminNotificationController::class, 'markRead'])->name('notifications.read-one');
     Route::view('/analytics', 'pages.admin.analytics')->name('analytics');
     Route::view('/reports', 'pages.admin.reports')->name('reports');
     Route::get('/account', [AdminAccountController::class, 'index'])->name('account');

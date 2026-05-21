@@ -9,6 +9,7 @@
     $isAnalyticsRoute = request()->routeIs('admin.analytics');
     $isReportsRoute = request()->routeIs('admin.reports');
     $isAccountRoute = request()->routeIs('admin.account');
+    $adminNotificationsCount = app(\App\Services\AdminNotificationService::class)->unreadCount(session('read_admin_notifications', []));
 @endphp
 
 <aside class="border-b border-love-pink-100/80 bg-white/90 shadow-[18px_0_45px_-38px_rgba(83,35,57,0.38)] backdrop-blur-xl lg:sticky lg:top-0 lg:h-screen lg:border-b-0 lg:border-r">
@@ -41,7 +42,7 @@
                 <p class="px-2 text-sm font-semibold text-[#9a6c7b]">Engage</p>
                 <div class="mt-3 grid gap-1.5">
                     <x-admin.sidebar-link :href="route('admin.promotions')" label="Promotions" icon="tag" :active="$isPromotionsRoute" />
-                    <x-admin.sidebar-link :href="route('admin.notifications')" label="Notifications" icon="bell" :active="$isNotificationsRoute" badge="3" />
+                    <x-admin.sidebar-link :href="route('admin.notifications')" label="Notifications" icon="bell" :active="$isNotificationsRoute" :badge="$adminNotificationsCount > 0 ? $adminNotificationsCount : null" />
                 </div>
             </div>
 
