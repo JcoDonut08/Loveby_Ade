@@ -8,6 +8,7 @@ import { initializeAdminOrderModals } from './admin-orders-modals';
 import { initializeAdminProducts } from './admin-products';
 import { initializeAdminProductModals } from './admin-products-modals';
 import { initializeCheckoutFlow } from './checkout';
+import { initializePromoCarousels } from './promo-carousel';
 
 const initializePasswordToggles = () => {
     document.querySelectorAll('[data-password-toggle]').forEach((toggle) => {
@@ -1268,6 +1269,7 @@ const initializeStorefrontInteractions = () => {
     initializeCheckoutLoginModal();
     initializeReceiptPrintButtons();
     initializeCheckoutFlow();
+    initializePromoCarousels();
     initializeAdminDashboard();
     initializeAdminOrderManagement();
     initializeAdminOrderModals();

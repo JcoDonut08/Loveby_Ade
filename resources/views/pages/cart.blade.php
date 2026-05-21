@@ -1,7 +1,7 @@
 @extends('layouts.guest')
 
 @section('title', 'Cart | Loveby_Ade')
-@section('description', 'Review Loveby_Ade cart items, quantities, promo code, subtotal, and checkout action.')
+@section('description', 'Review Loveby_Ade cart items, quantities, subtotal, and checkout action.')
 @section('body_classes', 'bg-[radial-gradient(circle_at_top_left,#ffd9ea_0%,transparent_28%),radial-gradient(circle_at_bottom_right,#c9eeff_0%,transparent_26%),linear-gradient(180deg,#fff3f8_0%,#eff8ff_48%,#fff8f3_100%)] text-slate-900')
 
 @php
@@ -18,7 +18,7 @@
             <section class="rounded-[1.5rem] border border-white/80 bg-white/90 p-6 shadow-[0_24px_58px_-38px_rgba(15,23,42,0.32)]">
                 <p class="text-sm font-bold uppercase tracking-[0.26em] text-love-pink-500">Checkout preview</p>
                 <h1 class="mt-2 font-display text-4xl text-slate-950 sm:text-5xl">Shopping Cart</h1>
-                <p class="mt-2 text-sm font-medium text-slate-500">Adjust quantities, apply a promo code, and review your dessert subtotal.</p>
+                <p class="mt-2 text-sm font-medium text-slate-500">Adjust quantities and review your dessert subtotal before checkout.</p>
             </section>
 
             <div class="mt-8 grid gap-8 {{ $items->isEmpty() ? 'hidden' : '' }} lg:grid-cols-[minmax(0,1fr)_26rem]" data-cart-content>
@@ -44,20 +44,10 @@
                 <aside class="h-max rounded-[1.5rem] border border-white/80 bg-white/92 p-6 shadow-[0_24px_58px_-38px_rgba(15,23,42,0.32)]" data-cart-summary>
                     <h2 class="text-2xl font-extrabold text-slate-950">Order summary</h2>
 
-                    <label class="mt-6 block text-sm font-extrabold text-slate-700" for="promo-code">Promo code</label>
-                    <div class="mt-2 flex gap-2">
-                        <input class="min-w-0 flex-1 rounded-full border border-love-pink-100 bg-white px-4 py-3 text-sm font-semibold text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-love-pink-300 focus:ring-4 focus:ring-love-pink-100" id="promo-code" type="text" placeholder="Enter discount code if any">
-                        <button class="rounded-full bg-love-pink-100 px-5 text-sm font-extrabold text-love-pink-500 transition hover:bg-love-pink-200" type="button">Apply</button>
-                    </div>
-
                     <div class="mt-6 space-y-4 border-y border-love-pink-100/80 py-5">
                         <div class="flex items-center justify-between gap-4 text-sm font-semibold text-slate-500">
                             <span>Subtotal</span>
                             <span class="text-base font-extrabold text-slate-950" data-cart-subtotal>{{ $formattedSubtotal }}</span>
-                        </div>
-                        <div class="flex items-center justify-between gap-4 text-sm font-semibold text-slate-500">
-                            <span>Promo discount</span>
-                            <span class="text-base font-extrabold text-slate-950">&#8369;0.00</span>
                         </div>
                     </div>
 

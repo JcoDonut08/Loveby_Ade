@@ -2,6 +2,7 @@
 
 use App\Models\Order;
 use App\Models\Product;
+use App\Models\Promotion;
 use App\Models\User;
 
 test('checkout page renders shipping payment review and confirmation steps', function () {
@@ -31,6 +32,8 @@ test('checkout page renders shipping payment review and confirmation steps', fun
         ->assertSee('Continue to Review')
         ->assertSee('Pastel Donut Box')
         ->assertSee('Promo code')
+        ->assertSee('data-checkout-step="3"', false)
+        ->assertSee('name="checkout_step" value="3"', false)
         ->assertSee('Delivery fee')
         ->assertSee('Free')
         ->assertSee('Place Order')
@@ -39,6 +42,25 @@ test('checkout page renders shipping payment review and confirmation steps', fun
         ->assertSee('data-checkout-page', false)
         ->assertDontSee('data-checkout-progress-fill', false)
         ->assertSee('data-payment-card', false);
+});
+
+test('checkout opens on review step after applying a promo code', function () {
+    $promotion = Promotion::factory()->fixed(25)->create([
+        'code' => 'STAY25',
+    ]);
+
+    $this->postJson(route('cart.items.store'), [
+        'slug' => 'pastel-donut-box',
+        'quantity' => 1,
+    ])->assertSuccessful();
+
+    $this->get(route('checkout', [
+        'promo_code' => $promotion->code,
+        'checkout_step' => 3,
+    ]))
+        ->assertSuccessful()
+        ->assertSee('data-initial-step="3"', false)
+        ->assertSee('STAY25 applied.');
 });
 
 test('orders confirm alias renders the confirmation page', function () {
@@ -76,6 +98,44 @@ test('authenticated customer can place an order from the cart', function () {
         ->and((float) $order->total)->toBe((float) $order->subtotal)
         ->and($order->items)->toHaveCount(1)
         ->and($order->items->first()->product_title)->toBe('Pastel Donut Box');
+});
+
+test('authenticated customer can apply an active promo code at checkout', function () {
+    $user = User::factory()->create();
+    $promotion = Promotion::factory()->fixed(50)->create([
+        'code' => 'SWEET50',
+    ]);
+
+    $this->actingAs($user)
+        ->postJson(route('cart.items.store'), [
+            'slug' => 'pastel-donut-box',
+            'quantity' => 2,
+        ])
+        ->assertSuccessful();
+
+    $this->actingAs($user)
+        ->get(route('checkout', ['promo_code' => 'sweet50']))
+        ->assertSuccessful()
+        ->assertSee('SWEET50 applied.');
+
+    $this->actingAs($user)
+        ->post(route('checkout.store'), [
+            'full_name' => 'Ade Santos',
+            'contact_number_digits' => '9171234567',
+            'email_address' => 'ade@example.com',
+            'complete_address' => '123 Bakery Lane',
+            'delivery_notes' => 'Ring the bell.',
+            'payment_method' => 'Cash on Delivery',
+            'promo_code' => 'sweet50',
+        ])
+        ->assertRedirect(route('orders.confirmed'));
+
+    $order = Order::query()->whereBelongsTo($user)->firstOrFail();
+
+    expect($order->promotion_id)->toBe($promotion->id)
+        ->and($order->promo_code)->toBe('SWEET50')
+        ->and((float) $order->discount)->toBe(50.0)
+        ->and((float) $order->total)->toBe((float) $order->subtotal - 50.0);
 });
 
 test('checkout keeps the exact cart quantity up to available stock', function () {

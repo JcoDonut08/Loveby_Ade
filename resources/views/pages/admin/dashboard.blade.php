@@ -6,7 +6,7 @@
 @section('content')
     @php
         $metrics = $metrics ?? [];
-        $notificationsCount = app(\App\Services\AdminNotificationService::class)->unreadCount(session('read_admin_notifications', []));
+        $notificationsCount = app(\App\Services\AdminNotificationService::class)->unreadCountForUser(auth()->user());
     @endphp
 
     <div class="min-h-screen bg-[linear-gradient(180deg,#fff8fb_0%,#fff1f6_46%,#fffaf7_100%)]">

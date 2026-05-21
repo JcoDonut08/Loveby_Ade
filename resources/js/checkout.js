@@ -28,7 +28,8 @@ const initializeCheckoutFlow = () => {
         const paymentCards = Array.from(page.querySelectorAll('[data-payment-card]')).filter((card) => card instanceof HTMLButtonElement);
         const selectedPaymentInput = page.querySelector('[data-selected-payment-input]');
         const confirmationCheck = page.querySelector('[data-confirmation-check]');
-        let currentStep = 1;
+        const initialStep = Number.parseInt(page.dataset.initialStep || '1', 10);
+        let currentStep = Number.isFinite(initialStep) && initialStep >= 1 && initialStep <= 4 ? initialStep : 1;
 
         if (!(form instanceof HTMLFormElement)) {
             return;
@@ -184,7 +185,7 @@ const initializeCheckoutFlow = () => {
             form.requestSubmit();
         });
 
-        setStep(1);
+        setStep(currentStep);
         page.dataset.initialized = 'true';
     });
 };

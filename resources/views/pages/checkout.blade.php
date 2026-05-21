@@ -27,7 +27,7 @@
 @endphp
 
 @section('content')
-    <div class="relative min-h-screen overflow-x-hidden" data-checkout-page data-confirm-url="{{ route('orders.confirm') }}">
+    <div class="relative min-h-screen overflow-x-hidden" data-checkout-page data-confirm-url="{{ route('orders.confirm') }}" data-initial-step="{{ request()->has('promo_code') || request('checkout_step') === '3' ? 3 : 1 }}">
         <x-home.store-header />
 
         <main class="mx-auto max-w-[86rem] px-4 py-10 sm:px-6 lg:px-8">
@@ -41,8 +41,13 @@
                 <x-checkout.progress :steps="$steps" />
             </div>
 
+            <form id="checkout-promo-form" method="GET" action="{{ route('checkout') }}">
+                <input type="hidden" name="checkout_step" value="3">
+            </form>
+
             <form class="mt-8" method="POST" action="{{ route('checkout.store') }}" data-checkout-form>
                 @csrf
+                <input type="hidden" name="promo_code" value="{{ $appliedPromotion?->code }}">
 
                 @if ($errors->any())
                     <div class="mb-6 rounded-2xl border border-rose-100 bg-rose-50 px-5 py-4 text-sm font-semibold text-rose-600">
@@ -254,9 +259,14 @@
                         <h3 class="text-xl font-extrabold text-slate-950">Payment summary</h3>
                         <label class="mt-6 block text-sm font-extrabold text-slate-700" for="checkout-promo-code">Promo code</label>
                         <div class="mt-2 flex gap-2">
-                            <input class="min-w-0 flex-1 rounded-full border border-love-pink-100 bg-white px-4 py-3 text-sm font-semibold text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-love-pink-300 focus:ring-4 focus:ring-love-pink-100" id="checkout-promo-code" type="text" placeholder="Enter code">
-                            <button class="rounded-full bg-love-pink-100 px-5 text-sm font-extrabold text-love-pink-500 transition hover:bg-love-pink-200" type="button">Apply</button>
+                            <input class="min-w-0 flex-1 rounded-full border border-love-pink-100 bg-white px-4 py-3 text-sm font-semibold text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-love-pink-300 focus:ring-4 focus:ring-love-pink-100" id="checkout-promo-code" name="promo_code" type="text" value="{{ $promoCode }}" placeholder="Enter code" form="checkout-promo-form">
+                            <button class="rounded-full bg-love-pink-100 px-5 text-sm font-extrabold text-love-pink-500 transition hover:bg-love-pink-200" type="submit" form="checkout-promo-form">Apply</button>
                         </div>
+                        @if ($appliedPromotion)
+                            <p class="mt-2 text-xs font-extrabold text-emerald-600">{{ $appliedPromotion->code }} applied.</p>
+                        @elseif ($promoError)
+                            <p class="mt-2 text-xs font-extrabold text-rose-500">{{ $promoError }}</p>
+                        @endif
 
                         <dl class="mt-6 space-y-4 border-y border-love-pink-100/80 py-5">
                             <div class="flex items-center justify-between gap-4 text-sm font-semibold text-slate-500">

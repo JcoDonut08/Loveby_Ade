@@ -17,7 +17,7 @@ class NotificationController extends Controller
         return view('pages.notifications', [
             'notifications' => $this->notifications->notificationsFor(
                 $request->user(),
-                $request->session()->get('read_customer_notifications', []),
+                $this->notifications->readIdsFor($request->user()),
             ),
         ]);
     }
@@ -27,13 +27,7 @@ class NotificationController extends Controller
         $user = $request->user();
 
         if ($user instanceof User) {
-            $request->session()->put(
-                'read_customer_notifications',
-                array_values(array_unique([
-                    ...$request->session()->get('read_customer_notifications', []),
-                    ...$this->notifications->notificationIdsFor($user),
-                ])),
-            );
+            $this->notifications->markAllReadFor($user);
         }
 
         return redirect()
@@ -46,13 +40,7 @@ class NotificationController extends Controller
         $user = $request->user();
 
         if ($user instanceof User && in_array($notification, $this->notifications->notificationIdsFor($user), true)) {
-            $request->session()->put(
-                'read_customer_notifications',
-                array_values(array_unique([
-                    ...$request->session()->get('read_customer_notifications', []),
-                    $notification,
-                ])),
-            );
+            $this->notifications->markReadFor($user, $notification);
         }
 
         return redirect()->route('notifications');

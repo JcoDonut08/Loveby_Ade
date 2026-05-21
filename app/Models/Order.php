@@ -29,6 +29,8 @@ class Order extends Model
     protected $fillable = [
         'order_number',
         'user_id',
+        'promotion_id',
+        'promo_code',
         'status',
         'is_walk_in',
         'full_name',
@@ -87,6 +89,14 @@ class Order extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * @return BelongsTo<Promotion, $this>
+     */
+    public function promotion(): BelongsTo
+    {
+        return $this->belongsTo(Promotion::class);
     }
 
     /**

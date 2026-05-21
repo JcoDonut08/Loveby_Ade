@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use App\Services\AdminNotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -15,7 +16,7 @@ class NotificationController extends Controller
     public function index(Request $request): View
     {
         $notifications = $this->notifications->notifications(
-            $request->session()->get('read_admin_notifications', []),
+            $this->notifications->readIdsFor($request->user()),
         );
 
         return view('pages.admin.notifications', [
@@ -27,13 +28,11 @@ class NotificationController extends Controller
 
     public function markAllRead(Request $request): RedirectResponse
     {
-        $request->session()->put(
-            'read_admin_notifications',
-            array_values(array_unique([
-                ...$request->session()->get('read_admin_notifications', []),
-                ...$this->notifications->notificationIds(),
-            ])),
-        );
+        $user = $request->user();
+
+        if ($user instanceof User) {
+            $this->notifications->markAllReadFor($user);
+        }
 
         return redirect()
             ->route('admin.notifications')
@@ -42,14 +41,10 @@ class NotificationController extends Controller
 
     public function markRead(Request $request, string $notification): RedirectResponse
     {
-        if (in_array($notification, $this->notifications->notificationIds(), true)) {
-            $request->session()->put(
-                'read_admin_notifications',
-                array_values(array_unique([
-                    ...$request->session()->get('read_admin_notifications', []),
-                    $notification,
-                ])),
-            );
+        $user = $request->user();
+
+        if ($user instanceof User && in_array($notification, $this->notifications->notificationIds(), true)) {
+            $this->notifications->markReadFor($user, $notification);
         }
 
         return redirect()->route('admin.notifications');

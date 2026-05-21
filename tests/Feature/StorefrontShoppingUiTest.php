@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\NotificationRead;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\User;
@@ -48,8 +49,18 @@ test('customer notifications page renders real order status updates with order i
         ->assertSee('Your Order LBA-3508 has been approved and is now being prepared.')
         ->assertSee('Your Order LBA-3510 is out for delivery.')
         ->assertSee('Your Order LBA-3511 has been cancelled. Reason: Product unavailable')
+        ->assertSee('Notification center')
+        ->assertSee('Rows per page')
+        ->assertSee('6 rows')
+        ->assertSee('Search orders and updates...')
+        ->assertSee('View')
         ->assertSee('Mark all read')
         ->assertSee('data-customer-notification-row', false)
+        ->assertSee('data-notification-search', false)
+        ->assertSee('data-notification-row', false)
+        ->assertSee('data-notification-page-size', false)
+        ->assertSee('data-notification-pagination-status', false)
+        ->assertSee('href="'.route('orders.receipt', $preparingOrder).'"', false)
         ->assertDontSee('No notifications yet');
 
     expect($preparingOrder->exists)->toBeTrue()
@@ -74,6 +85,12 @@ test('customer can mark order notifications as read', function () {
         ->post(route('notifications.read-one', "order-{$order->id}-out-for-delivery"))
         ->assertRedirect(route('notifications'));
 
+    $this->assertDatabaseHas('notification_reads', [
+        'user_id' => $user->id,
+        'scope' => NotificationRead::SCOPE_CUSTOMER,
+        'notification_id' => "order-{$order->id}-out-for-delivery",
+    ]);
+
     $response = $this->actingAs($user)
         ->get(route('notifications'))
         ->assertSuccessful()
@@ -82,9 +99,26 @@ test('customer can mark order notifications as read', function () {
 
     expect(substr_count($response->getContent(), 'border-l-4 border-love-pink-400'))->toBe(1);
 
+    $this->post(route('logout'))->assertRedirect(route('home'));
+
+    $response = $this->actingAs($user)
+        ->get(route('notifications'))
+        ->assertSuccessful()
+        ->assertSee('data-notification-nav-count>1</span>', false);
+
+    expect(substr_count($response->getContent(), 'border-l-4 border-love-pink-400'))->toBe(1);
+
     $this->actingAs($user)
         ->post(route('notifications.read'))
         ->assertRedirect(route('notifications'));
+
+    $this->assertDatabaseHas('notification_reads', [
+        'user_id' => $user->id,
+        'scope' => NotificationRead::SCOPE_CUSTOMER,
+        'notification_id' => "order-{$order->id}-placed",
+    ]);
+
+    $this->post(route('logout'))->assertRedirect(route('home'));
 
     $this->actingAs($user)
         ->get(route('notifications'))
@@ -104,11 +138,10 @@ test('favorites page renders saved desserts empty state and removable favorite c
         ->assertSee('data-favorites-empty', false);
 });
 
-test('cart page renders responsive cart controls subtotal promo code and empty state', function () {
+test('cart page renders responsive cart controls subtotal and empty state without promo entry', function () {
     $this->get(route('cart'))
         ->assertSuccessful()
         ->assertSee('Shopping Cart')
-        ->assertSee('Enter discount code if any')
         ->assertSee('Subtotal')
         ->assertSee('Proceed to checkout')
         ->assertSee('Please log in to continue checkout.')
@@ -118,6 +151,9 @@ test('cart page renders responsive cart controls subtotal promo code and empty s
         ->assertSee('data-cart-page', false)
         ->assertSee('data-cart-subtotal', false)
         ->assertSee('data-cart-total', false)
+        ->assertDontSee('Promo code')
+        ->assertDontSee('Enter discount code if any')
+        ->assertDontSee('Promo discount')
         ->assertDontSee('Shipping');
 });
 
@@ -142,6 +178,7 @@ test('order confirmation page renders thank you message order items and totals',
         ->assertSuccessful()
         ->assertSee('Payment successful')
         ->assertSee('Thanks for ordering')
+        ->assertSee('images/thank-you-ordering.png')
         ->assertSee('Tracking number')
         ->assertSee('LBA-515478')
         ->assertSee('Pastel Donut Box')

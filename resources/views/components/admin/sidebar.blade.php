@@ -9,7 +9,7 @@
     $isAnalyticsRoute = request()->routeIs('admin.analytics');
     $isReportsRoute = request()->routeIs('admin.reports');
     $isAccountRoute = request()->routeIs('admin.account');
-    $adminNotificationsCount = app(\App\Services\AdminNotificationService::class)->unreadCount(session('read_admin_notifications', []));
+    $adminNotificationsCount = app(\App\Services\AdminNotificationService::class)->unreadCountForUser(auth()->user());
 @endphp
 
 <aside class="border-b border-love-pink-100/80 bg-white/90 shadow-[18px_0_45px_-38px_rgba(83,35,57,0.38)] backdrop-blur-xl lg:sticky lg:top-0 lg:h-screen lg:border-b-0 lg:border-r">

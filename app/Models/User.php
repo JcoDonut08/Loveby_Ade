@@ -108,6 +108,14 @@ class User extends Authenticatable
     }
 
     /**
+     * @return HasMany<NotificationRead, $this>
+     */
+    public function notificationReads(): HasMany
+    {
+        return $this->hasMany(NotificationRead::class);
+    }
+
+    /**
      * @return HasMany<UserAuditLog, $this>
      */
     public function auditLogs(): HasMany

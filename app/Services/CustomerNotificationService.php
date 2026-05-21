@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\NotificationRead;
 use App\Models\Order;
 use App\Models\User;
 use Carbon\CarbonInterface;
@@ -11,7 +12,7 @@ class CustomerNotificationService
 {
     /**
      * @param  array<int, string>  $readIds
-     * @return Collection<int, array{id: string, title: string, message: string, time: string, icon: string, tone: string, unread: bool, occurred_at: CarbonInterface|null}>
+     * @return Collection<int, array{id: string, title: string, message: string, time: string, icon: string, tone: string, unread: bool, url: string, occurred_at: CarbonInterface|null}>
      */
     public function notificationsFor(?User $user, array $readIds = []): Collection
     {
@@ -39,6 +40,53 @@ class CustomerNotificationService
     }
 
     /**
+     * @return array<int, string>
+     */
+    public function readIdsFor(?User $user): array
+    {
+        if (! $user instanceof User) {
+            return [];
+        }
+
+        return $user->notificationReads()
+            ->where('scope', NotificationRead::SCOPE_CUSTOMER)
+            ->pluck('notification_id')
+            ->all();
+    }
+
+    public function markReadFor(User $user, string $notificationId): void
+    {
+        $user->notificationReads()->firstOrCreate([
+            'scope' => NotificationRead::SCOPE_CUSTOMER,
+            'notification_id' => $notificationId,
+        ]);
+    }
+
+    public function markAllReadFor(User $user): void
+    {
+        $now = now();
+        $notifications = collect($this->notificationIdsFor($user))
+            ->map(fn (string $notificationId): array => [
+                'user_id' => $user->id,
+                'scope' => NotificationRead::SCOPE_CUSTOMER,
+                'notification_id' => $notificationId,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ])
+            ->all();
+
+        if ($notifications === []) {
+            return;
+        }
+
+        NotificationRead::query()->upsert(
+            $notifications,
+            ['user_id', 'scope', 'notification_id'],
+            ['updated_at'],
+        );
+    }
+
+    /**
      * @param  array<int, string>  $readIds
      */
     public function unreadCountFor(?User $user, array $readIds = []): int
@@ -48,13 +96,19 @@ class CustomerNotificationService
             ->count();
     }
 
+    public function unreadCountForUser(?User $user): int
+    {
+        return $this->unreadCountFor($user, $this->readIdsFor($user));
+    }
+
     /**
      * @param  array<int, string>  $readIds
-     * @return array<int, array{id: string, title: string, message: string, time: string, icon: string, tone: string, unread: bool, occurred_at: CarbonInterface|null}>
+     * @return array<int, array{id: string, title: string, message: string, time: string, icon: string, tone: string, unread: bool, url: string, occurred_at: CarbonInterface|null}>
      */
     private function notificationsForOrder(Order $order, array $readIds): array
     {
         $orderNumber = $order->order_number;
+        $orderUrl = route('orders.receipt', $order);
         $notifications = [
             $this->notification(
                 id: "order-{$order->id}-placed",
@@ -64,6 +118,7 @@ class CustomerNotificationService
                 tone: 'orange',
                 occurredAt: $order->created_at,
                 readIds: $readIds,
+                url: $orderUrl,
             ),
         ];
 
@@ -76,6 +131,7 @@ class CustomerNotificationService
                 tone: 'pink',
                 occurredAt: $order->updated_at,
                 readIds: $readIds,
+                url: $orderUrl,
             ),
             Order::STATUS_OUT_FOR_DELIVERY => $this->notification(
                 id: "order-{$order->id}-out-for-delivery",
@@ -85,6 +141,7 @@ class CustomerNotificationService
                 tone: 'blue',
                 occurredAt: $order->updated_at,
                 readIds: $readIds,
+                url: $orderUrl,
             ),
             Order::STATUS_DELIVERED => $this->notification(
                 id: "order-{$order->id}-delivered",
@@ -94,6 +151,7 @@ class CustomerNotificationService
                 tone: 'green',
                 occurredAt: $order->updated_at,
                 readIds: $readIds,
+                url: $orderUrl,
             ),
             Order::STATUS_CANCELLED => $this->notification(
                 id: "order-{$order->id}-cancelled",
@@ -103,6 +161,7 @@ class CustomerNotificationService
                 tone: 'rose',
                 occurredAt: $order->updated_at,
                 readIds: $readIds,
+                url: $orderUrl,
             ),
             default => null,
         };
@@ -116,9 +175,9 @@ class CustomerNotificationService
 
     /**
      * @param  array<int, string>  $readIds
-     * @return array{id: string, title: string, message: string, time: string, icon: string, tone: string, unread: bool, occurred_at: CarbonInterface|null}
+     * @return array{id: string, title: string, message: string, time: string, icon: string, tone: string, unread: bool, url: string, occurred_at: CarbonInterface|null}
      */
-    private function notification(string $id, string $title, string $message, string $icon, string $tone, ?CarbonInterface $occurredAt, array $readIds): array
+    private function notification(string $id, string $title, string $message, string $icon, string $tone, ?CarbonInterface $occurredAt, array $readIds, string $url): array
     {
         return [
             'id' => $id,
@@ -128,6 +187,7 @@ class CustomerNotificationService
             'icon' => $icon,
             'tone' => $tone,
             'unread' => ! in_array($id, $readIds, true),
+            'url' => $url,
             'occurred_at' => $occurredAt,
         ];
     }

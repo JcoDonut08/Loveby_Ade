@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\NotificationRead;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\ProductReview;
@@ -38,6 +39,53 @@ class AdminNotificationService
     }
 
     /**
+     * @return array<int, string>
+     */
+    public function readIdsFor(?User $user): array
+    {
+        if (! $user instanceof User) {
+            return [];
+        }
+
+        return $user->notificationReads()
+            ->where('scope', NotificationRead::SCOPE_ADMIN)
+            ->pluck('notification_id')
+            ->all();
+    }
+
+    public function markReadFor(User $user, string $notificationId): void
+    {
+        $user->notificationReads()->firstOrCreate([
+            'scope' => NotificationRead::SCOPE_ADMIN,
+            'notification_id' => $notificationId,
+        ]);
+    }
+
+    public function markAllReadFor(User $user): void
+    {
+        $now = now();
+        $notifications = collect($this->notificationIds())
+            ->map(fn (string $notificationId): array => [
+                'user_id' => $user->id,
+                'scope' => NotificationRead::SCOPE_ADMIN,
+                'notification_id' => $notificationId,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ])
+            ->all();
+
+        if ($notifications === []) {
+            return;
+        }
+
+        NotificationRead::query()->upsert(
+            $notifications,
+            ['user_id', 'scope', 'notification_id'],
+            ['updated_at'],
+        );
+    }
+
+    /**
      * @param  array<int, string>  $readIds
      */
     public function unreadCount(array $readIds = []): int
@@ -45,6 +93,11 @@ class AdminNotificationService
         return $this->notifications($readIds)
             ->where('unread', true)
             ->count();
+    }
+
+    public function unreadCountForUser(?User $user): int
+    {
+        return $this->unreadCount($this->readIdsFor($user));
     }
 
     /**

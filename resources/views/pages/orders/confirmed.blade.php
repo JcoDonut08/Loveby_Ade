@@ -9,13 +9,14 @@
         <x-home.store-header />
 
         <main class="grid min-h-[calc(100dvh-5.35rem)] lg:grid-cols-[0.92fr_1fr]">
-            <section class="relative min-h-[22rem] overflow-hidden bg-slate-100 lg:min-h-full">
+            <section class="relative flex min-h-[22rem] items-center justify-center overflow-hidden bg-[linear-gradient(180deg,#fff9fb_0%,#eefaff_100%)] px-8 py-10 lg:min-h-full">
+                <div class="absolute left-8 top-10 h-28 w-28 rounded-full bg-love-pink-100/80 blur-3xl"></div>
+                <div class="absolute bottom-12 right-8 h-32 w-32 rounded-full bg-love-blue-100/80 blur-3xl"></div>
                 <img
-                    class="absolute inset-0 h-full w-full object-cover"
-                    src="https://images.unsplash.com/photo-1550617931-e17a7b70dce2?auto=format&fit=crop&w=1400&q=80"
-                    alt="Loveby_Ade dessert shelves"
+                    class="relative max-h-[32rem] w-full max-w-[36rem] object-contain drop-shadow-[0_34px_70px_rgba(81,36,56,0.16)] lg:max-h-[46rem] lg:max-w-[42rem]"
+                    src="{{ asset('images/thank-you-ordering.png') }}"
+                    alt="Cute cupcake holding a thanks for ordering sign"
                 >
-                <div class="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0)_0%,rgba(255,231,241,0.12)_100%)]"></div>
             </section>
 
             <section class="flex items-center px-5 py-12 sm:px-10 lg:px-16">

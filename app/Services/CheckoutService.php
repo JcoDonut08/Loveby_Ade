@@ -14,10 +14,13 @@ class CheckoutService
 {
     public const DELIVERY_FEE = 0.00;
 
-    public function __construct(private CartService $cart) {}
+    public function __construct(
+        private CartService $cart,
+        private PromotionService $promotions,
+    ) {}
 
     /**
-     * @param  array{full_name: string, contact_number: string, email_address: string, complete_address: string, delivery_notes?: string|null, payment_method: string}  $data
+     * @param  array{full_name: string, contact_number: string, email_address: string, complete_address: string, delivery_notes?: string|null, payment_method: string, promo_code?: string|null}  $data
      */
     public function createOrder(Request $request, array $data): Order
     {
@@ -39,13 +42,24 @@ class CheckoutService
 
         return DB::transaction(function () use ($request, $user, $data, $cart): Order {
             $deliveryFee = self::DELIVERY_FEE;
-            $discount = 0.00;
             $subtotal = (float) $cart['subtotal'];
+            $promoCode = $this->promotions->normalizeCode($data['promo_code'] ?? null);
+            $promotion = $this->promotions->findAvailable($promoCode);
+
+            if ($promoCode !== null && $promotion === null) {
+                throw ValidationException::withMessages([
+                    'promo_code' => 'Promo code is not active or does not exist.',
+                ]);
+            }
+
+            $discount = $promotion?->discountFor($subtotal) ?? 0.00;
             $total = $subtotal + $deliveryFee - $discount;
 
             $order = Order::query()->create([
                 'order_number' => $this->makeOrderNumber(),
                 'user_id' => $user->id,
+                'promotion_id' => $promotion?->id,
+                'promo_code' => $promotion?->code,
                 'status' => Order::STATUS_PENDING,
                 'full_name' => $data['full_name'],
                 'contact_number' => $data['contact_number'],

@@ -45,7 +45,7 @@
         </header>
 
         <main class="px-4 py-4 sm:px-6 lg:px-10">
-            <x-admin.promotions-section />
+            <x-admin.promotions-section :promotions="$promotions" />
         </main>
     </div>
 @endsection

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreCheckoutRequest;
 use App\Services\CartService;
 use App\Services\CheckoutService;
+use App\Services\PromotionService;
 use App\Services\UserAuditLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -15,6 +16,7 @@ class CheckoutController extends Controller
     public function __construct(
         private CartService $cart,
         private CheckoutService $checkout,
+        private PromotionService $promotions,
         private UserAuditLogger $auditLogger,
     ) {}
 
@@ -22,7 +24,9 @@ class CheckoutController extends Controller
     {
         $cart = $this->cart->summary($request);
         $deliveryFee = CheckoutService::DELIVERY_FEE;
-        $discount = 0.00;
+        $promoCode = $this->promotions->normalizeCode($request->query('promo_code'));
+        $appliedPromotion = $this->promotions->findAvailable($promoCode);
+        $discount = $appliedPromotion?->discountFor((float) $cart['subtotal']) ?? 0.00;
         $total = (float) $cart['subtotal'] + $deliveryFee - $discount;
 
         return view('pages.checkout', [
@@ -30,9 +34,12 @@ class CheckoutController extends Controller
             'deliveryFee' => $deliveryFee,
             'discount' => $discount,
             'total' => $total,
+            'promoCode' => $promoCode,
+            'appliedPromotion' => $appliedPromotion,
+            'promoError' => $promoCode !== null && $appliedPromotion === null ? 'Promo code is not active or does not exist.' : null,
             'formattedDeliveryFee' => 'Free',
-            'formattedDiscount' => $this->formatPeso($discount),
-            'formattedTotal' => $this->formatPeso($total),
+            'formattedDiscount' => $this->promotions->formatPeso($discount),
+            'formattedTotal' => $this->promotions->formatPeso($total),
         ]);
     }
 
@@ -50,10 +57,5 @@ class CheckoutController extends Controller
         return redirect()
             ->route('orders.confirmed')
             ->with('last_order_id', $order->id);
-    }
-
-    private function formatPeso(float $amount): string
-    {
-        return "\u{20B1}".number_format($amount, 2);
     }
 }

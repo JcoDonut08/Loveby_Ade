@@ -3,10 +3,7 @@
     $favoriteCount = app(\App\Services\FavoriteService::class)->count(request());
     $authenticatedUser = auth()->user();
     $profilePhotoUrl = $authenticatedUser?->profilePhotoUrl();
-    $notificationUnreadCount = app(\App\Services\CustomerNotificationService::class)->unreadCountFor(
-        $authenticatedUser,
-        session('read_customer_notifications', []),
-    );
+    $notificationUnreadCount = app(\App\Services\CustomerNotificationService::class)->unreadCountForUser($authenticatedUser);
 @endphp
 
 <header class="fixed inset-x-0 top-0 z-50 border-b border-white/70 bg-white/90 shadow-[0_16px_40px_-32px_rgba(15,23,42,0.45)] backdrop-blur-xl">

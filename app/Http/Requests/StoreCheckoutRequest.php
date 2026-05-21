@@ -40,6 +40,7 @@ class StoreCheckoutRequest extends FormRequest
             'complete_address' => ['required', 'string', 'max:1000'],
             'delivery_notes' => ['nullable', 'string', 'max:1000'],
             'payment_method' => ['required', Rule::in(['GCash', 'PayMaya', 'Cash on Delivery'])],
+            'promo_code' => ['nullable', 'string', 'max:50', 'alpha_dash:ascii'],
         ];
     }
 

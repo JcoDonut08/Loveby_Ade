@@ -3,7 +3,7 @@
 ])
 
 @php
-    $notificationCount = $count ?? app(\App\Services\AdminNotificationService::class)->unreadCount(session('read_admin_notifications', []));
+    $notificationCount = $count ?? app(\App\Services\AdminNotificationService::class)->unreadCountForUser(auth()->user());
 @endphp
 
 <a class="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-[#512438] transition hover:bg-love-pink-100 focus:outline-none focus:ring-4 focus:ring-love-pink-100" href="{{ route('admin.notifications') }}" aria-label="View notifications">

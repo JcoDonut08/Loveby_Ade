@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\NotificationRead;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\ProductReview;
@@ -86,7 +87,19 @@ test('admin can mark one notification as read', function () {
     $this->post(route('admin.notifications.read-one', "admin-order-{$order->id}-pending"))
         ->assertRedirect(route('admin.notifications'));
 
+    $this->assertDatabaseHas('notification_reads', [
+        'user_id' => $admin->id,
+        'scope' => NotificationRead::SCOPE_ADMIN,
+        'notification_id' => "admin-order-{$order->id}-pending",
+    ]);
+
+    $this->post(route('logout'))->assertRedirect(route('home'));
+
     $this->get(route('admin.notifications'))
+        ->assertForbidden();
+
+    $this->actingAs($admin)
+        ->get(route('admin.notifications'))
         ->assertSuccessful()
         ->assertSee('0 unread - 1 total')
         ->assertDontSee('Mark notification as read');
@@ -102,7 +115,7 @@ test('admin can mark all notifications as read', function () {
             'full_name' => 'Rhea Santos',
             'status' => Order::STATUS_PENDING,
         ]);
-    Product::factory()->create([
+    $product = Product::factory()->create([
         'title' => 'Mini Berry Tarts',
         'stock' => 3,
     ]);
@@ -117,7 +130,22 @@ test('admin can mark all notifications as read', function () {
 
     $this->get(route('admin.notifications'))
         ->assertSuccessful()
+        ->assertSee('Notifications marked as read.');
+
+    $this->assertDatabaseHas('notification_reads', [
+        'user_id' => $admin->id,
+        'scope' => NotificationRead::SCOPE_ADMIN,
+        'notification_id' => 'admin-product-'.$product->id.'-low-stock',
+    ]);
+
+    $this->post(route('logout'))->assertRedirect(route('home'));
+
+    $this->get(route('admin.notifications'))
+        ->assertForbidden();
+
+    $this->actingAs($admin)
+        ->get(route('admin.notifications'))
+        ->assertSuccessful()
         ->assertSee('0 unread - 2 total')
-        ->assertSee('Notifications marked as read.')
         ->assertDontSee('Mark notification as read');
 });

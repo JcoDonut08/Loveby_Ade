@@ -51,7 +51,7 @@
 
             <x-home.category-section />
 
-            <x-home.promo-banner />
+            <x-home.promo-banner :promotions="$activePromotions" />
 
             {{-- Featured products --}}
             <section id="products" class="py-16">
