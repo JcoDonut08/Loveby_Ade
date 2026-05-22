@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\Admin\AccountController as AdminAccountController;
+use App\Http\Controllers\Admin\AnalyticsController as AdminAnalyticsController;
 use App\Http\Controllers\Admin\CustomerController as AdminCustomerController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\NotificationController as AdminNotificationController;
@@ -168,7 +169,7 @@ Route::prefix('admin')->name('admin.')->middleware(EnsureUserIsAdmin::class)->gr
     Route::get('/notifications', [AdminNotificationController::class, 'index'])->name('notifications');
     Route::post('/notifications/read', [AdminNotificationController::class, 'markAllRead'])->name('notifications.read');
     Route::post('/notifications/{notification}/read', [AdminNotificationController::class, 'markRead'])->name('notifications.read-one');
-    Route::view('/analytics', 'pages.admin.analytics')->name('analytics');
+    Route::get('/analytics', AdminAnalyticsController::class)->name('analytics');
     Route::view('/reports', 'pages.admin.reports')->name('reports');
     Route::get('/account', [AdminAccountController::class, 'index'])->name('account');
     Route::patch('/account', [AdminAccountController::class, 'update'])->name('account.update');

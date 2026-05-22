@@ -1,3 +1,11 @@
+@props(['rows' => []])
+
+@php
+    $rowCount = count($rows);
+    $visibleStart = $rowCount > 0 ? 1 : 0;
+    $visibleEnd = min(6, $rowCount);
+@endphp
+
 <section class="rounded-[1.25rem] border border-love-pink-100/70 bg-white/96 p-5 shadow-[0_22px_55px_-44px_rgba(81,36,56,0.42)]" data-analytics-table data-analytics-label="desserts">
     <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
@@ -13,21 +21,24 @@
                 <tr><th class="px-4 py-2">Dessert</th><th class="px-4 py-2 text-right">Sold</th><th class="px-4 py-2 text-right">Stock</th><th class="px-4 py-2 text-right">Turnover</th></tr>
             </thead>
             <tbody>
-                <tr class="bg-love-cream" data-analytics-row><td class="rounded-l-xl px-4 py-3 font-extrabold text-[#3b1728]">Pastel Donut Box</td><td class="px-4 py-3 text-right text-[#9a6c7b]">184</td><td class="px-4 py-3 text-right text-[#9a6c7b]">14 left</td><td class="rounded-r-xl px-4 py-3 text-right font-extrabold text-emerald-600">92%</td></tr>
-                <tr class="bg-love-cream" data-analytics-row><td class="rounded-l-xl px-4 py-3 font-extrabold text-[#3b1728]">Chocolate Chip Cookies</td><td class="px-4 py-3 text-right text-[#9a6c7b]">226</td><td class="px-4 py-3 text-right text-[#9a6c7b]">21 left</td><td class="rounded-r-xl px-4 py-3 text-right font-extrabold text-emerald-600">89%</td></tr>
-                <tr class="bg-love-cream" data-analytics-row><td class="rounded-l-xl px-4 py-3 font-extrabold text-[#3b1728]">Mini Cake Cups</td><td class="px-4 py-3 text-right text-[#9a6c7b]">142</td><td class="px-4 py-3 text-right text-[#9a6c7b]">9 left</td><td class="rounded-r-xl px-4 py-3 text-right font-extrabold text-emerald-600">87%</td></tr>
-                <tr class="bg-love-cream" data-analytics-row><td class="rounded-l-xl px-4 py-3 font-extrabold text-[#3b1728]">Berry Danish Set</td><td class="px-4 py-3 text-right text-[#9a6c7b]">118</td><td class="px-4 py-3 text-right text-[#9a6c7b]">11 left</td><td class="rounded-r-xl px-4 py-3 text-right font-extrabold text-emerald-600">84%</td></tr>
-                <tr class="bg-love-cream" data-analytics-row><td class="rounded-l-xl px-4 py-3 font-extrabold text-[#3b1728]">Strawberry Tartlets</td><td class="px-4 py-3 text-right text-[#9a6c7b]">154</td><td class="px-4 py-3 text-right text-[#9a6c7b]">13 left</td><td class="rounded-r-xl px-4 py-3 text-right font-extrabold text-emerald-600">82%</td></tr>
-                <tr class="bg-love-cream" data-analytics-row><td class="rounded-l-xl px-4 py-3 font-extrabold text-[#3b1728]">Vanilla Cream Puffs</td><td class="px-4 py-3 text-right text-[#9a6c7b]">167</td><td class="px-4 py-3 text-right text-[#9a6c7b]">18 left</td><td class="rounded-r-xl px-4 py-3 text-right font-extrabold text-emerald-600">78%</td></tr>
-                <tr class="bg-love-cream" data-analytics-row><td class="rounded-l-xl px-4 py-3 font-extrabold text-[#3b1728]">Caramel Brownie Bites</td><td class="px-4 py-3 text-right text-[#9a6c7b]">131</td><td class="px-4 py-3 text-right text-[#9a6c7b]">8 left</td><td class="rounded-r-xl px-4 py-3 text-right font-extrabold text-amber-600">73%</td></tr>
-                <tr class="bg-love-cream" data-analytics-row><td class="rounded-l-xl px-4 py-3 font-extrabold text-[#3b1728]">Milk Tea Cookie Tin</td><td class="px-4 py-3 text-right text-[#9a6c7b]">205</td><td class="px-4 py-3 text-right text-[#9a6c7b]">16 left</td><td class="rounded-r-xl px-4 py-3 text-right font-extrabold text-emerald-600">86%</td></tr>
-                <tr class="bg-love-cream" data-analytics-row><td class="rounded-l-xl px-4 py-3 font-extrabold text-[#3b1728]">Macaron Gift Box</td><td class="px-4 py-3 text-right text-[#9a6c7b]">98</td><td class="px-4 py-3 text-right text-[#9a6c7b]">42 left</td><td class="rounded-r-xl px-4 py-3 text-right font-extrabold text-amber-600">61%</td></tr>
+                @forelse ($rows as $row)
+                    @php
+                        $turnoverClass = match ($row['turnover_tone']) {
+                            'high' => 'text-emerald-600',
+                            'medium' => 'text-amber-600',
+                            default => 'text-rose-600',
+                        };
+                    @endphp
+                    <tr class="bg-love-cream" data-analytics-row><td class="rounded-l-xl px-4 py-3 font-extrabold text-[#3b1728]">{{ $row['title'] }}</td><td class="px-4 py-3 text-right text-[#9a6c7b]">{{ $row['sold_label'] }}</td><td class="px-4 py-3 text-right text-[#9a6c7b]">{{ $row['stock_label'] }}</td><td class="rounded-r-xl px-4 py-3 text-right font-extrabold {{ $turnoverClass }}">{{ $row['turnover'] }}</td></tr>
+                @empty
+                    <tr class="bg-love-cream" data-analytics-empty><td class="rounded-xl px-4 py-3 text-center font-extrabold text-[#9a6c7b]" colspan="4">No dessert sales found for this period.</td></tr>
+                @endforelse
             </tbody>
         </table>
     </div>
 
     <div class="mt-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <p class="text-sm font-semibold text-[#9a6c7b]" data-analytics-pagination-status>Showing 1-6 of 9 desserts</p>
+        <p class="text-sm font-semibold text-[#9a6c7b]" data-analytics-pagination-status>Showing {{ $visibleStart }}-{{ $visibleEnd }} of {{ $rowCount }} desserts</p>
         <nav class="flex flex-wrap items-center gap-2" aria-label="Product performance pagination"><button class="inline-flex h-10 items-center justify-center rounded-full border border-love-pink-100 px-4 text-sm font-extrabold text-[#512438] transition hover:bg-love-pink-100 disabled:cursor-not-allowed disabled:opacity-40" type="button" data-analytics-page-previous>Previous</button><span class="flex flex-wrap items-center gap-2" data-analytics-page-buttons></span><button class="inline-flex h-10 items-center justify-center rounded-full border border-love-pink-100 px-4 text-sm font-extrabold text-[#512438] transition hover:bg-love-pink-100 disabled:cursor-not-allowed disabled:opacity-40" type="button" data-analytics-page-next>Next</button></nav>
     </div>
 </section>
