@@ -11,6 +11,7 @@ use App\Services\UserAuditLogger;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Exception\RequestException;
+use GuzzleHttp\Utils;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -18,6 +19,7 @@ use Illuminate\Support\Facades\Log;
 use Laravel\Socialite\Facades\Socialite;
 use Laravel\Socialite\Two\GoogleProvider;
 use Laravel\Socialite\Two\InvalidStateException;
+use RuntimeException;
 use Throwable;
 
 class GoogleAuthController extends Controller
@@ -91,7 +93,7 @@ class GoogleAuthController extends Controller
 
             return redirect()
                 ->route('login')
-                ->with('status', 'Google sign in failed. Please check your Google OAuth client ID, secret, and redirect URI.');
+                ->with('status', $this->googleRequestErrorMessage($e));
         } catch (Throwable $e) {
             Log::error('Google OAuth unexpected error.', [
                 'message' => $e->getMessage(),
@@ -134,7 +136,7 @@ class GoogleAuthController extends Controller
             ->redirectUrl(config('services.google.redirect'));
 
         if (method_exists($provider, 'setHttpClient')) {
-            $provider->setHttpClient(new Client([
+            $options = [
                 'timeout' => 15,
                 'connect_timeout' => 10,
                 'proxy' => '',
@@ -142,10 +144,51 @@ class GoogleAuthController extends Controller
                     CURLOPT_PROXY => '',
                     CURLOPT_NOPROXY => '*',
                 ],
-            ]));
+            ];
+
+            $caBundle = $this->googleCaBundlePath();
+
+            if ($caBundle !== null) {
+                $options['verify'] = $caBundle;
+            }
+
+            $provider->setHttpClient(new Client($options));
         }
 
         return $provider;
+    }
+
+    private function googleCaBundlePath(): ?string
+    {
+        $candidates = [
+            config('services.google.ca_bundle'),
+            ini_get('openssl.cafile') ?: null,
+            ini_get('curl.cainfo') ?: null,
+            'C:/xampp/apache/bin/curl-ca-bundle.crt',
+            'C:/xampp/php/extras/ssl/cacert.pem',
+            'C:/xampp/perl/vendor/lib/Mozilla/CA/cacert.pem',
+        ];
+
+        foreach ($candidates as $candidate) {
+            if (is_string($candidate) && $candidate !== '' && is_file($candidate)) {
+                return $candidate;
+            }
+        }
+
+        try {
+            return Utils::defaultCaBundle();
+        } catch (RuntimeException) {
+            return null;
+        }
+    }
+
+    private function googleRequestErrorMessage(RequestException $e): string
+    {
+        if (str_contains($e->getMessage(), 'cURL error 60')) {
+            return 'Google sign in failed because PHP cannot verify Google SSL certificates. Please restart the dev server and try again.';
+        }
+
+        return 'Google sign in failed. Please check your Google OAuth client ID, secret, and redirect URI.';
     }
 
     private function disableProxyEnvironment(): void

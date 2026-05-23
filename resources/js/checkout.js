@@ -16,6 +16,17 @@ const setProgressCheckState = (check, isCompleted) => {
     check.classList.toggle('opacity-0', !isCompleted);
 };
 
+const setPromoStatus = (status, message, type) => {
+    if (!(status instanceof HTMLElement)) {
+        return;
+    }
+
+    status.textContent = message || '';
+    status.classList.toggle('hidden', !message);
+    status.classList.toggle('text-emerald-600', type === 'success');
+    status.classList.toggle('text-rose-500', type === 'error');
+};
+
 const initializeCheckoutFlow = () => {
     document.querySelectorAll('[data-checkout-page]').forEach((page) => {
         if (!(page instanceof HTMLElement) || page.dataset.initialized === 'true') {
@@ -27,6 +38,12 @@ const initializeCheckoutFlow = () => {
         const progressSteps = Array.from(page.querySelectorAll('[data-checkout-progress-step]')).filter((step) => step instanceof HTMLElement);
         const paymentCards = Array.from(page.querySelectorAll('[data-payment-card]')).filter((card) => card instanceof HTMLButtonElement);
         const selectedPaymentInput = page.querySelector('[data-selected-payment-input]');
+        const promoForm = page.querySelector('[data-checkout-promo-form]');
+        const promoHiddenInput = page.querySelector('[data-checkout-promo-hidden]');
+        const promoInput = page.querySelector('[data-checkout-promo-input]');
+        const promoPaymentInput = page.querySelector('[data-promo-payment-input]');
+        const promoStatus = page.querySelector('[data-checkout-promo-status]');
+        const promoSubmit = page.querySelector('[data-checkout-promo-submit]');
         const confirmationCheck = page.querySelector('[data-confirmation-check]');
         const initialStep = Number.parseInt(page.dataset.initialStep || '1', 10);
         let currentStep = Number.isFinite(initialStep) && initialStep >= 1 && initialStep <= 4 ? initialStep : 1;
@@ -121,6 +138,34 @@ const initializeCheckoutFlow = () => {
             }
         };
 
+        const applyPromoData = (data) => {
+            const hasAppliedPromo = Boolean(data.applied?.code);
+
+            if (promoHiddenInput instanceof HTMLInputElement) {
+                promoHiddenInput.value = hasAppliedPromo ? data.applied.code : '';
+            }
+
+            page.querySelectorAll('[data-checkout-discount]').forEach((target) => {
+                if (target instanceof HTMLElement) {
+                    target.textContent = data.formattedDiscount || '\u20b10.00';
+                }
+            });
+
+            page.querySelectorAll('[data-checkout-total]').forEach((target) => {
+                if (target instanceof HTMLElement) {
+                    target.textContent = data.formattedTotal || target.textContent;
+                }
+            });
+
+            if (hasAppliedPromo) {
+                setPromoStatus(promoStatus, data.applied.message, 'success');
+
+                return;
+            }
+
+            setPromoStatus(promoStatus, data.error || '', data.error ? 'error' : 'success');
+        };
+
         const setStep = (stepNumber) => {
             currentStep = stepNumber;
 
@@ -148,6 +193,10 @@ const initializeCheckoutFlow = () => {
 
                 if (selectedPaymentInput instanceof HTMLInputElement) {
                     selectedPaymentInput.value = card.dataset.paymentTitle || '';
+                }
+
+                if (promoPaymentInput instanceof HTMLInputElement) {
+                    promoPaymentInput.value = card.dataset.paymentTitle || '';
                 }
             });
 
@@ -184,6 +233,47 @@ const initializeCheckoutFlow = () => {
 
             form.requestSubmit();
         });
+
+        if (promoForm instanceof HTMLFormElement && promoInput instanceof HTMLInputElement) {
+            promoForm.addEventListener('submit', async (event) => {
+                event.preventDefault();
+
+                const promoUrl = page.dataset.promoUrl;
+
+                if (!promoUrl) {
+                    return;
+                }
+
+                if (promoSubmit instanceof HTMLButtonElement) {
+                    promoSubmit.disabled = true;
+                }
+
+                try {
+                    const url = new URL(promoUrl, window.location.origin);
+                    url.searchParams.set('promo_code', promoInput.value.trim());
+
+                    const response = await fetch(url, {
+                        headers: {
+                            Accept: 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                        },
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Unable to apply promo code.');
+                    }
+
+                    applyPromoData(await response.json());
+                    setStep(3);
+                } catch {
+                    setPromoStatus(promoStatus, 'Promo code could not be applied. Please try again.', 'error');
+                } finally {
+                    if (promoSubmit instanceof HTMLButtonElement) {
+                        promoSubmit.disabled = false;
+                    }
+                }
+            });
+        }
 
         setStep(currentStep);
         page.dataset.initialized = 'true';

@@ -56,6 +56,7 @@ Route::middleware(RedirectAdminToDashboard::class)->group(function (): void {
     Route::post('/cart/items', [CartController::class, 'store'])->name('cart.items.store');
     Route::patch('/cart/items/{slug}', [CartController::class, 'update'])->name('cart.items.update');
     Route::delete('/cart/items/{slug}', [CartController::class, 'destroy'])->name('cart.items.destroy');
+    Route::get('/checkout/promo', [CheckoutController::class, 'promotion'])->name('checkout.promo');
     Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout');
 
     Route::middleware('auth')->group(function (): void {

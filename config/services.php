@@ -29,9 +29,10 @@ return [
     ],
 
     'google' => [
-        'client_id' => env('GOOGLE_CLIENT_ID'),
-        'client_secret' => env('GOOGLE_CLIENT_SECRET'),
-        'redirect' => env('GOOGLE_REDIRECT_URI'),
+        'client_id' => trim((string) env('GOOGLE_CLIENT_ID')) ?: null,
+        'client_secret' => trim((string) env('GOOGLE_CLIENT_SECRET')) ?: null,
+        'redirect' => trim((string) env('GOOGLE_REDIRECT_URI')) ?: null,
+        'ca_bundle' => trim((string) env('GOOGLE_CA_BUNDLE')) ?: null,
     ],
 
     'slack' => [

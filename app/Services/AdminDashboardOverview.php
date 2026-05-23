@@ -400,14 +400,14 @@ class AdminDashboardOverview
      */
     private function customerActivity(Collection $orders, Collection $customers): array
     {
-        $orderEvents = $orders->take(3)->map(fn (Order $order): array => [
+        $orderEvents = collect($orders->take(3)->map(fn (Order $order): array => [
             'type' => 'order',
             'name' => $order->full_name,
             'message' => 'placed an order',
             'detail' => $order->order_number.' - '.$this->money((float) $order->total, 2).' - '.$this->relativeTime($order->created_at),
             'time' => $order->created_at,
-        ]);
-        $customerEvents = $customers
+        ]));
+        $customerEvents = collect($customers
             ->sortByDesc('created_at')
             ->take(2)
             ->map(fn (User $user): array => [
@@ -416,7 +416,7 @@ class AdminDashboardOverview
                 'message' => 'registered an account',
                 'detail' => 'New customer - '.$this->relativeTime($user->created_at),
                 'time' => $user->created_at,
-            ]);
+            ]));
 
         return $orderEvents
             ->merge($customerEvents)

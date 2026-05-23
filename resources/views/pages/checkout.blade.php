@@ -11,6 +11,11 @@
         3 => 'Order Review',
         4 => 'Confirmation',
     ];
+    $allowedPaymentMethods = ['GCash', 'PayMaya', 'Cash on Delivery'];
+    $requestedPaymentMethod = old('payment_method', request('payment_method', 'GCash'));
+    $selectedPaymentMethod = in_array($requestedPaymentMethod, $allowedPaymentMethods, true) ? $requestedPaymentMethod : 'GCash';
+    $promoStatusMessage = $appliedPromotion ? $appliedPromotion->code.' applied.' : ($promoError ?? '');
+    $promoStatusClass = $appliedPromotion ? 'text-emerald-600' : 'text-rose-500';
     $phoneDigits = function (?string $value): string {
         $digits = preg_replace('/\D/', '', (string) $value) ?: '';
 
@@ -27,7 +32,7 @@
 @endphp
 
 @section('content')
-    <div class="relative min-h-screen overflow-x-hidden" data-checkout-page data-confirm-url="{{ route('orders.confirm') }}" data-initial-step="{{ request()->has('promo_code') || request('checkout_step') === '3' ? 3 : 1 }}">
+    <div class="relative min-h-screen overflow-x-hidden" data-checkout-page data-promo-url="{{ route('checkout.promo') }}" data-confirm-url="{{ route('orders.confirm') }}" data-initial-step="{{ request()->has('promo_code') || request('checkout_step') === '3' ? 3 : 1 }}">
         <x-home.store-header />
 
         <main class="mx-auto max-w-[86rem] px-4 py-10 sm:px-6 lg:px-8">
@@ -41,13 +46,14 @@
                 <x-checkout.progress :steps="$steps" />
             </div>
 
-            <form id="checkout-promo-form" method="GET" action="{{ route('checkout') }}">
+            <form id="checkout-promo-form" method="GET" action="{{ route('checkout') }}" data-checkout-promo-form>
                 <input type="hidden" name="checkout_step" value="3">
+                <input type="hidden" name="payment_method" value="{{ $selectedPaymentMethod }}" data-promo-payment-input>
             </form>
 
             <form class="mt-8" method="POST" action="{{ route('checkout.store') }}" data-checkout-form>
                 @csrf
-                <input type="hidden" name="promo_code" value="{{ $appliedPromotion?->code }}">
+                <input type="hidden" name="promo_code" value="{{ $appliedPromotion?->code }}" data-checkout-promo-hidden>
 
                 @if ($errors->any())
                     <div class="mb-6 rounded-2xl border border-rose-100 bg-rose-50 px-5 py-4 text-sm font-semibold text-rose-600">
@@ -101,7 +107,7 @@
                         </div>
                         <div class="mt-5 flex items-center justify-between gap-4">
                             <span class="font-extrabold text-slate-950">Total</span>
-                            <span class="text-2xl font-extrabold text-love-pink-500">{{ $formattedTotal }}</span>
+                            <span class="text-2xl font-extrabold text-love-pink-500" data-checkout-total>{{ $formattedTotal }}</span>
                         </div>
                     </aside>
                 </section>
@@ -111,19 +117,19 @@
                     <p class="mt-2 text-sm leading-6 text-slate-500">Choose how you would like to pay for this order.</p>
 
                     <div class="mt-6 grid gap-4 lg:grid-cols-3">
-                        <x-checkout.payment-card method="gcash" title="GCash" description="Pay instantly with your mobile wallet before delivery." selected>
+                        <x-checkout.payment-card method="gcash" title="GCash" description="Pay instantly with your mobile wallet before delivery." :selected="$selectedPaymentMethod === 'GCash'">
                             <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                                 <rect x="7" y="2.75" width="10" height="18.5" rx="2.2" />
                                 <path stroke-linecap="round" d="M10 6.5h4M11 18h2" />
                             </svg>
                         </x-checkout.payment-card>
-                        <x-checkout.payment-card method="paymaya" title="PayMaya" description="Use your PayMaya wallet or linked card at checkout.">
+                        <x-checkout.payment-card method="paymaya" title="PayMaya" description="Use your PayMaya wallet or linked card at checkout." :selected="$selectedPaymentMethod === 'PayMaya'">
                             <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                                 <rect x="3.5" y="5.5" width="17" height="13" rx="2.5" />
                                 <path stroke-linecap="round" d="M3.5 9.5h17M7 15h4" />
                             </svg>
                         </x-checkout.payment-card>
-                        <x-checkout.payment-card method="cod" title="Cash on Delivery" description="Settle the payment when your desserts arrive.">
+                        <x-checkout.payment-card method="cod" title="Cash on Delivery" description="Settle the payment when your desserts arrive." :selected="$selectedPaymentMethod === 'Cash on Delivery'">
                             <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                                 <rect x="3.25" y="6.5" width="17.5" height="11" rx="2" />
                                 <circle cx="12" cy="12" r="2.5" />
@@ -132,7 +138,7 @@
                         </x-checkout.payment-card>
                     </div>
 
-                    <input type="hidden" name="payment_method" value="GCash" data-selected-payment-input>
+                    <input type="hidden" name="payment_method" value="{{ $selectedPaymentMethod }}" data-selected-payment-input>
 
                     <div class="mt-7 flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
                         <button class="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-6 py-3.5 text-sm font-semibold text-slate-600 transition hover:-translate-y-0.5 hover:border-love-blue-200 hover:text-love-blue-500 focus:outline-none focus:ring-4 focus:ring-love-blue-100" type="button" data-checkout-back>
@@ -259,14 +265,10 @@
                         <h3 class="text-xl font-extrabold text-slate-950">Payment summary</h3>
                         <label class="mt-6 block text-sm font-extrabold text-slate-700" for="checkout-promo-code">Promo code</label>
                         <div class="mt-2 flex gap-2">
-                            <input class="min-w-0 flex-1 rounded-full border border-love-pink-100 bg-white px-4 py-3 text-sm font-semibold text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-love-pink-300 focus:ring-4 focus:ring-love-pink-100" id="checkout-promo-code" name="promo_code" type="text" value="{{ $promoCode }}" placeholder="Enter code" form="checkout-promo-form">
-                            <button class="rounded-full bg-love-pink-100 px-5 text-sm font-extrabold text-love-pink-500 transition hover:bg-love-pink-200" type="submit" form="checkout-promo-form">Apply</button>
+                            <input class="min-w-0 flex-1 rounded-full border border-love-pink-100 bg-white px-4 py-3 text-sm font-semibold text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-love-pink-300 focus:ring-4 focus:ring-love-pink-100" id="checkout-promo-code" name="promo_code" type="text" value="{{ $promoCode }}" placeholder="Enter code" form="checkout-promo-form" data-checkout-promo-input>
+                            <button class="rounded-full bg-love-pink-100 px-5 text-sm font-extrabold text-love-pink-500 transition hover:bg-love-pink-200" type="submit" form="checkout-promo-form" data-checkout-promo-submit>Apply</button>
                         </div>
-                        @if ($appliedPromotion)
-                            <p class="mt-2 text-xs font-extrabold text-emerald-600">{{ $appliedPromotion->code }} applied.</p>
-                        @elseif ($promoError)
-                            <p class="mt-2 text-xs font-extrabold text-rose-500">{{ $promoError }}</p>
-                        @endif
+                        <p class="mt-2 text-xs font-extrabold {{ $promoStatusClass }} {{ $promoStatusMessage === '' ? 'hidden' : '' }}" data-checkout-promo-status>{{ $promoStatusMessage }}</p>
 
                         <dl class="mt-6 space-y-4 border-y border-love-pink-100/80 py-5">
                             <div class="flex items-center justify-between gap-4 text-sm font-semibold text-slate-500">
@@ -275,7 +277,7 @@
                             </div>
                             <div class="flex items-center justify-between gap-4 text-sm font-semibold text-slate-500">
                                 <dt>Discount</dt>
-                                <dd class="font-extrabold text-slate-950">{{ $formattedDiscount }}</dd>
+                                <dd class="font-extrabold text-slate-950" data-checkout-discount>{{ $formattedDiscount }}</dd>
                             </div>
                             <div class="flex items-center justify-between gap-4 text-sm font-semibold text-slate-500">
                                 <dt>Delivery fee</dt>
@@ -285,7 +287,7 @@
 
                         <div class="mt-5 flex items-center justify-between gap-4">
                             <span class="text-lg font-extrabold text-slate-950">Total</span>
-                            <span class="text-2xl font-extrabold text-love-pink-500">{{ $formattedTotal }}</span>
+                            <span class="text-2xl font-extrabold text-love-pink-500" data-checkout-total>{{ $formattedTotal }}</span>
                         </div>
 
                         <div class="mt-7 flex flex-col-reverse gap-3">

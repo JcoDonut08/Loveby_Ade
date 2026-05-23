@@ -1,15 +1,34 @@
 <?php
 
+use App\Models\CartItem;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\Promotion;
 use App\Models\User;
 
+/**
+ * @return array<string, array<string, int>>
+ */
+function checkoutGuestCart(string $slug = 'pastel-donut-box', int $quantity = 1): array
+{
+    return [
+        'cart.items' => [
+            $slug => $quantity,
+        ],
+    ];
+}
+
+function checkoutDatabaseCart(User $user, string $slug = 'pastel-donut-box', int $quantity = 1): void
+{
+    CartItem::query()->create([
+        'user_id' => $user->id,
+        'product_slug' => $slug,
+        'quantity' => $quantity,
+    ]);
+}
+
 test('checkout page renders shipping payment review and confirmation steps', function () {
-    $this->postJson(route('cart.items.store'), [
-        'slug' => 'pastel-donut-box',
-        'quantity' => 2,
-    ])->assertSuccessful();
+    $this->withSession(checkoutGuestCart(quantity: 2));
 
     $this->get(route('checkout'))
         ->assertSuccessful()
@@ -34,6 +53,8 @@ test('checkout page renders shipping payment review and confirmation steps', fun
         ->assertSee('Promo code')
         ->assertSee('data-checkout-step="3"', false)
         ->assertSee('name="checkout_step" value="3"', false)
+        ->assertSee('data-checkout-promo-form', false)
+        ->assertSee('data-promo-url="'.route('checkout.promo').'"', false)
         ->assertSee('Delivery fee')
         ->assertSee('Free')
         ->assertSee('Place Order')
@@ -49,10 +70,7 @@ test('checkout opens on review step after applying a promo code', function () {
         'code' => 'STAY25',
     ]);
 
-    $this->postJson(route('cart.items.store'), [
-        'slug' => 'pastel-donut-box',
-        'quantity' => 1,
-    ])->assertSuccessful();
+    $this->withSession(checkoutGuestCart());
 
     $this->get(route('checkout', [
         'promo_code' => $promotion->code,
@@ -61,6 +79,40 @@ test('checkout opens on review step after applying a promo code', function () {
         ->assertSuccessful()
         ->assertSee('data-initial-step="3"', false)
         ->assertSee('STAY25 applied.');
+});
+
+test('checkout promo preview applies active discounts without changing payment method', function () {
+    $promotion = Promotion::factory()->fixed(25)->create([
+        'code' => 'STAY25',
+    ]);
+
+    $this->withSession(checkoutGuestCart());
+
+    $this->getJson(route('checkout.promo', ['promo_code' => ' stay25 ']))
+        ->assertSuccessful()
+        ->assertJsonPath('applied.code', 'STAY25')
+        ->assertJsonPath('error', null)
+        ->assertJsonPath('formattedDiscount', "\u{20B1}25.00");
+
+    $this->get(route('checkout', [
+        'promo_code' => $promotion->code,
+        'checkout_step' => 3,
+        'payment_method' => 'Cash on Delivery',
+    ]))
+        ->assertSuccessful()
+        ->assertSee('value="Cash on Delivery"', false)
+        ->assertSee('data-payment-title="Cash on Delivery"', false)
+        ->assertSee('aria-pressed="true"', false);
+});
+
+test('invalid promo preview does not attach a checkout promo code', function () {
+    $this->withSession(checkoutGuestCart());
+
+    $this->getJson(route('checkout.promo', ['promo_code' => 'NOPE']))
+        ->assertSuccessful()
+        ->assertJsonPath('applied', null)
+        ->assertJsonPath('error', 'Promo code is not active or does not exist.')
+        ->assertJsonPath('formattedDiscount', "\u{20B1}0.00");
 });
 
 test('orders confirm alias renders the confirmation page', function () {
@@ -72,12 +124,7 @@ test('orders confirm alias renders the confirmation page', function () {
 test('authenticated customer can place an order from the cart', function () {
     $user = User::factory()->create();
 
-    $this->actingAs($user)
-        ->postJson(route('cart.items.store'), [
-            'slug' => 'pastel-donut-box',
-            'quantity' => 2,
-        ])
-        ->assertSuccessful();
+    checkoutDatabaseCart($user, quantity: 2);
 
     $this->actingAs($user)
         ->post(route('checkout.store'), [
@@ -106,12 +153,7 @@ test('authenticated customer can apply an active promo code at checkout', functi
         'code' => 'SWEET50',
     ]);
 
-    $this->actingAs($user)
-        ->postJson(route('cart.items.store'), [
-            'slug' => 'pastel-donut-box',
-            'quantity' => 2,
-        ])
-        ->assertSuccessful();
+    checkoutDatabaseCart($user, quantity: 2);
 
     $this->actingAs($user)
         ->get(route('checkout', ['promo_code' => 'sweet50']))
@@ -134,6 +176,7 @@ test('authenticated customer can apply an active promo code at checkout', functi
 
     expect($order->promotion_id)->toBe($promotion->id)
         ->and($order->promo_code)->toBe('SWEET50')
+        ->and($order->payment_method)->toBe('Cash on Delivery')
         ->and((float) $order->discount)->toBe(50.0)
         ->and((float) $order->total)->toBe((float) $order->subtotal - 50.0);
 });
@@ -147,13 +190,7 @@ test('checkout keeps the exact cart quantity up to available stock', function ()
         'price' => 75,
     ]);
 
-    $this->actingAs($user)
-        ->postJson(route('cart.items.store'), [
-            'slug' => 'celebration-cookie-box',
-            'quantity' => 42,
-        ])
-        ->assertSuccessful()
-        ->assertJsonPath('items.0.quantity', 42);
+    checkoutDatabaseCart($user, slug: 'celebration-cookie-box', quantity: 42);
 
     $this->actingAs($user)
         ->post(route('checkout.store'), [
