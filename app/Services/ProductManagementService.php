@@ -17,6 +17,7 @@ class ProductManagementService
     public function create(array $data, array $images): Product
     {
         $imagePaths = $this->storeImages($images);
+        $primaryImagePath = $imagePaths[0] ?? null;
 
         return Product::query()->create([
             'slug' => $this->uniqueSlug($data['title']),
@@ -27,8 +28,9 @@ class ProductManagementService
             'stock' => (int) $data['stock'],
             'sold' => 0,
             'rating' => 0,
-            'image_path' => $imagePaths[0] ?? null,
+            'image_path' => $primaryImagePath,
             'product_images' => $imagePaths,
+            'image_url' => $this->publicImageUrl($primaryImagePath),
             'is_active' => true,
         ]);
     }
@@ -41,6 +43,7 @@ class ProductManagementService
     public function update(Product $product, array $data, array $images, ?array $existingImagePaths = null): Product
     {
         $currentImagePaths = $this->currentImagePaths($product);
+        $imagesWereSubmitted = $images !== [] || $existingImagePaths !== null;
 
         if ($existingImagePaths === null && $images !== []) {
             $this->deleteStoredImages($product);
@@ -69,6 +72,8 @@ class ProductManagementService
             $imagePaths = $currentImagePaths;
         }
 
+        $primaryImagePath = $imagePaths[0] ?? null;
+
         $product->update([
             'slug' => $this->uniqueSlug($data['title'], $product),
             'title' => $data['title'],
@@ -76,8 +81,9 @@ class ProductManagementService
             'category' => $data['category'],
             'price' => $data['price'],
             'stock' => (int) $data['stock'],
-            'image_path' => $imagePaths[0] ?? null,
+            'image_path' => $primaryImagePath,
             'product_images' => $imagePaths,
+            'image_url' => $imagesWereSubmitted ? $this->publicImageUrl($primaryImagePath) : $product->image_url,
         ]);
 
         return $product;
@@ -156,6 +162,15 @@ class ProductManagementService
             ->take(4)
             ->values()
             ->all();
+    }
+
+    private function publicImageUrl(?string $path): ?string
+    {
+        if ($path === null || $path === '') {
+            return null;
+        }
+
+        return Storage::disk('public')->url($path);
     }
 
     private function uniqueSlug(string $title, ?Product $ignoreProduct = null): string

@@ -1,8 +1,13 @@
 <?php
 
 use App\Models\Product;
+use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+
+beforeEach(function (): void {
+    $this->withoutMiddleware(ValidateCsrfToken::class);
+});
 
 test('admin products page renders the catalog management workspace', function () {
     Product::factory()->create([
@@ -76,10 +81,16 @@ test('admin can add a product with stored gallery images', function () {
 
     expect($product->image_path)->not->toBeNull();
     expect($product->product_images)->toHaveCount(3)
-        ->and($product->image_path)->toBe($product->product_images[0]);
+        ->and($product->image_path)->toBe($product->product_images[0])
+        ->and($product->image_url)->toBe(Storage::disk('public')->url($product->image_path));
     expect((float) $product->rating)->toBe(0.0);
     Storage::disk('public')->assertExists($product->image_path);
     Storage::disk('public')->assertExists($product->product_images[1]);
+
+    $this->actingAs(adminUser())
+        ->get(route('admin.products'))
+        ->assertSuccessful()
+        ->assertSee('src="'.Storage::disk('public')->url($product->image_path).'"', false);
 });
 
 test('admin product uploads are limited to four images', function () {
@@ -189,7 +200,8 @@ test('admin can replace a product gallery', function () {
     $product->refresh();
 
     expect($product->product_images)->toHaveCount(2)
-        ->and($product->image_path)->toBe($product->product_images[0]);
+        ->and($product->image_path)->toBe($product->product_images[0])
+        ->and($product->image_url)->toBe(Storage::disk('public')->url($product->image_path));
     Storage::disk('public')->assertMissing('products/old.jpg');
     Storage::disk('public')->assertExists($product->product_images[0]);
     Storage::disk('public')->assertExists($product->product_images[1]);
