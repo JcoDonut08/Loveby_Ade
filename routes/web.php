@@ -9,6 +9,8 @@ use App\Http\Controllers\Admin\NotificationController as AdminNotificationContro
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Admin\PromotionController as AdminPromotionController;
+use App\Http\Controllers\Admin\ReportController as AdminReportController;
+use App\Http\Controllers\Admin\ReportExportController as AdminReportExportController;
 use App\Http\Controllers\Admin\UserAuditLogController as AdminUserAuditLogController;
 use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\Auth\LoginController;
@@ -170,7 +172,8 @@ Route::prefix('admin')->name('admin.')->middleware(EnsureUserIsAdmin::class)->gr
     Route::post('/notifications/read', [AdminNotificationController::class, 'markAllRead'])->name('notifications.read');
     Route::post('/notifications/{notification}/read', [AdminNotificationController::class, 'markRead'])->name('notifications.read-one');
     Route::get('/analytics', AdminAnalyticsController::class)->name('analytics');
-    Route::view('/reports', 'pages.admin.reports')->name('reports');
+    Route::get('/reports', AdminReportController::class)->name('reports');
+    Route::get('/reports/{report}', AdminReportExportController::class)->name('reports.export');
     Route::get('/account', [AdminAccountController::class, 'index'])->name('account');
     Route::patch('/account', [AdminAccountController::class, 'update'])->name('account.update');
 });

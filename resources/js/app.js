@@ -7,6 +7,7 @@ import { initializeAdminOrderManagement } from './admin-orders';
 import { initializeAdminOrderModals } from './admin-orders-modals';
 import { initializeAdminProducts } from './admin-products';
 import { initializeAdminProductModals } from './admin-products-modals';
+import { initializeAdminReports } from './admin-reports';
 import { initializeCheckoutFlow } from './checkout';
 import { initializePromoCarousels } from './promo-carousel';
 
@@ -1275,6 +1276,7 @@ const initializeStorefrontInteractions = () => {
     initializeAdminOrderModals();
     initializeAdminProducts();
     initializeAdminProductModals();
+    initializeAdminReports();
     initializeAdminCustomers();
     initializeAdminNotifications();
     initializeAdminAnalytics();
