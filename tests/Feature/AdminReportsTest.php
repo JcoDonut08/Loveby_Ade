@@ -4,6 +4,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\User;
+use App\Models\UserAuditLog;
 use App\Services\AdminReportPdfViewData;
 use Illuminate\Support\Carbon;
 use PHPUnit\Framework\TestCase;
@@ -28,16 +29,20 @@ test('admin reports page renders report generation cards', function () {
             ->assertSee('Export and share business reports.')
             ->assertSee($admin->name)
             ->assertSee('Generate reports')
-            ->assertSee('Pick a date range and download in your favorite format')
+            ->assertSee('Pick a date range, generate a preview, then download the file.')
             ->assertSee('From')
             ->assertSee('To')
             ->assertSee('Sales report')
             ->assertSee('Revenue, orders and AOV across periods')
             ->assertSee('Product performance')
             ->assertSee('Top-selling desserts and stock turnover')
+            ->assertSee('Audit logs report')
+            ->assertSee('User activity, admin actions and security events')
             ->assertSee('PDF')
             ->assertSee('Excel')
-            ->assertSee('Download')
+            ->assertSee('Generate')
+            ->assertDontSee('Generated file preview')
+            ->assertDontSee('Download PDF')
             ->assertSee('data-admin-reports', false)
             ->assertSee('id="admin-report-filter-form"', false)
             ->assertSee('name="search"', false)
@@ -48,17 +53,106 @@ test('admin reports page renders report generation cards', function () {
             ->assertSee('value="2026-05-22"', false)
             ->assertSee('name="sales_format"', false)
             ->assertSee('name="products_format"', false)
+            ->assertSee('name="audit-logs_format"', false)
             ->assertSee('type="hidden"', false)
-            ->assertSee('value="pdf"', false)
-            ->assertSee('value="excel"', false)
             ->assertSee('data-report-format-button', false)
-            ->assertSee('data-report-download="sales"', false)
-            ->assertSee('data-report-download="products"', false)
-            ->assertSee('formaction="'.route('admin.reports.export', ['report' => 'sales']).'"', false)
-            ->assertSee('formaction="'.route('admin.reports.export', ['report' => 'products']).'"', false)
+            ->assertSee('data-report-format-value="pdf"', false)
+            ->assertSee('data-report-format-value="excel"', false)
+            ->assertSee('data-report-generate="sales"', false)
+            ->assertSee('data-report-generate="products"', false)
+            ->assertSee('data-report-generate="audit-logs"', false)
+            ->assertDontSee('data-report-download="sales"', false)
+            ->assertDontSee('data-report-download="products"', false)
+            ->assertDontSee('data-report-download="audit-logs"', false)
+            ->assertDontSee('formaction="'.route('admin.reports.export', ['report' => 'sales']).'"', false)
+            ->assertDontSee('formaction="'.route('admin.reports.export', ['report' => 'products']).'"', false)
+            ->assertDontSee('formaction="'.route('admin.reports.export', ['report' => 'audit-logs']).'"', false)
             ->assertDontSee('formaction="'.route('admin.reports.export', ['report' => 'sales', 'format' => 'pdf']).'"', false)
             ->assertDontSee('formaction="'.route('admin.reports.export', ['report' => 'products', 'format' => 'excel']).'"', false)
             ->assertSee('href="'.route('admin.reports').'" aria-current="page"', false);
+    } finally {
+        Carbon::setTestNow();
+    }
+});
+
+test('admin can generate an audit logs report preview before download', function () {
+    skipReportsDatabaseTestIfNeeded($this);
+
+    config(['app.business_timezone' => 'UTC']);
+    Carbon::setTestNow(Carbon::parse('2026-05-22 10:00:00', 'UTC'));
+
+    try {
+        $admin = adminUser();
+        UserAuditLog::factory()->for($admin)->create([
+            'user_name' => $admin->name,
+            'user_email' => $admin->email,
+            'activity' => 'Product Updated',
+            'module' => 'Products',
+            'description' => 'Product Ube Cake was updated.',
+            'status' => 'success',
+            'created_at' => Carbon::parse('2026-05-20 09:00:00', 'UTC'),
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('admin.reports', [
+                'preview' => 'audit-logs',
+                'audit-logs_format' => 'excel',
+                'from' => '2026-05-01',
+                'to' => '2026-05-22',
+                'search' => 'Product',
+            ]))
+            ->assertSuccessful()
+            ->assertSee('Audit logs report')
+            ->assertSee('Generated file preview')
+            ->assertSee('Download XLS')
+            ->assertSee('preview=1', false)
+            ->assertSee('format=excel', false)
+            ->assertSee('value="excel"', false)
+            ->assertDontSee('Sales report was generated');
+    } finally {
+        Carbon::setTestNow();
+    }
+});
+
+test('admin report preview uses the same export route without recording a download audit event', function () {
+    skipReportsDatabaseTestIfNeeded($this);
+
+    config(['app.business_timezone' => 'UTC']);
+    Carbon::setTestNow(Carbon::parse('2026-05-22 10:00:00', 'UTC'));
+
+    try {
+        $admin = adminUser();
+        UserAuditLog::factory()->for($admin)->create([
+            'user_name' => $admin->name,
+            'user_email' => $admin->email,
+            'activity' => 'Product Updated',
+            'module' => 'Products',
+            'description' => 'Product Ube Cake was updated.',
+            'status' => 'success',
+            'created_at' => Carbon::parse('2026-05-20 09:00:00', 'UTC'),
+        ]);
+
+        $response = $this->actingAs($admin)
+            ->get(route('admin.reports.export', [
+                'report' => 'audit-logs',
+                'preview' => 1,
+                'format' => 'excel',
+                'from' => '2026-05-01',
+                'to' => '2026-05-22',
+                'search' => 'Product',
+            ]));
+
+        $response->assertSuccessful()
+            ->assertHeader('content-disposition', 'inline; filename="loveby-ade-audit-logs-report-may-1-2026-to-may-22-2026.xls"');
+
+        expect($response->getContent())
+            ->toContain('<?mso-application progid="Excel.Sheet"?>')
+            ->and($response->getContent())->toContain('Product Ube Cake was updated.');
+
+        $this->assertDatabaseMissing('user_audit_logs', [
+            'activity' => 'Report Downloaded',
+            'module' => 'Reports',
+        ]);
     } finally {
         Carbon::setTestNow();
     }
@@ -105,6 +199,20 @@ test('admin can download an aesthetic sales pdf report from real order data', fu
         expect($response->headers->get('content-disposition'))
             ->toContain('attachment; filename=loveby-ade-sales-report')
             ->and($response->getContent())->toStartWith('%PDF');
+
+        $this->assertDatabaseHas('user_audit_logs', [
+            'user_id' => $admin->id,
+            'activity' => 'Report Downloaded',
+            'module' => 'Reports',
+            'status' => 'success',
+        ]);
+
+        expect(UserAuditLog::query()->where('activity', 'Report Downloaded')->first()?->metadata)
+            ->toMatchArray([
+                'report' => 'sales',
+                'format' => 'pdf',
+                'row_count' => 1,
+            ]);
     } finally {
         Carbon::setTestNow();
     }
@@ -196,6 +304,47 @@ test('admin can download a clean excel product performance report from real prod
             ->and($content)->toContain('Product performance')
             ->and($content)->toContain('Ube Cloud Cake')
             ->and($content)->not->toContain('Chocolate Cookies');
+    } finally {
+        Carbon::setTestNow();
+    }
+});
+
+test('admin can download an audit logs excel report', function () {
+    skipReportsDatabaseTestIfNeeded($this);
+
+    config(['app.business_timezone' => 'UTC']);
+    Carbon::setTestNow(Carbon::parse('2026-05-22 10:00:00', 'UTC'));
+
+    try {
+        $admin = adminUser();
+        UserAuditLog::factory()->for($admin)->create([
+            'user_name' => $admin->name,
+            'user_email' => $admin->email,
+            'activity' => 'Login',
+            'module' => 'Authentication',
+            'description' => 'User logged in successfully.',
+            'status' => 'success',
+            'created_at' => Carbon::parse('2026-05-20 09:00:00', 'UTC'),
+        ]);
+
+        $response = $this->actingAs($admin)
+            ->get(route('admin.reports.export', [
+                'report' => 'audit-logs',
+                'from' => '2026-05-01',
+                'to' => '2026-05-22',
+                'search' => 'Login',
+                'audit-logs_format' => 'excel',
+            ]));
+
+        $response->assertSuccessful();
+
+        $content = $response->streamedContent();
+
+        expect($response->headers->get('content-type'))->toContain('application/vnd.ms-excel')
+            ->and($response->headers->get('content-disposition'))->toContain('attachment; filename=loveby-ade-audit-logs-report')
+            ->and($content)->toContain('Audit logs report')
+            ->and($content)->toContain('Login')
+            ->and($content)->toContain('User logged in successfully.');
     } finally {
         Carbon::setTestNow();
     }

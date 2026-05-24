@@ -61,6 +61,12 @@ export const initializeAdminReports = () => {
                 .forEach((button) => setButtonState(button, button.dataset.reportFormatValue === value));
         };
 
+        const selectedFormat = (group) => {
+            const input = inputs.find((input) => input.dataset.reportFormatInput === group);
+
+            return input?.value || '';
+        };
+
         buttons.forEach((button) => {
             button.addEventListener('click', () => {
                 const group = button.dataset.reportFormatGroup || '';
@@ -71,7 +77,10 @@ export const initializeAdminReports = () => {
                 }
             });
 
-            setButtonState(button, false);
+            setButtonState(
+                button,
+                selectedFormat(button.dataset.reportFormatGroup || '') === button.dataset.reportFormatValue,
+            );
         });
 
         form.addEventListener('submit', (event) => {
@@ -81,13 +90,19 @@ export const initializeAdminReports = () => {
                 return;
             }
 
-            const group = submitter.dataset.reportDownload;
+            const group = submitter.dataset.reportDownload || submitter.dataset.reportGenerate;
 
             if (!group) {
                 return;
             }
 
-            window.setTimeout(() => clearGroup(group), 1200);
+            if (selectedFormat(group) === '') {
+                selectFormat(group, 'pdf');
+            }
+
+            if (submitter.dataset.reportDownload) {
+                window.setTimeout(() => clearGroup(group), 1200);
+            }
         });
 
         section.dataset.initialized = 'true';

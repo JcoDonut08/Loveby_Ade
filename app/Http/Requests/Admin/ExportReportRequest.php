@@ -24,6 +24,7 @@ class ExportReportRequest extends FormRequest
             'search' => ['nullable', 'string', 'max:80'],
             'from' => ['nullable', 'date_format:Y-m-d'],
             'to' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:from'],
+            'preview' => ['nullable', 'boolean'],
         ];
     }
 
@@ -59,5 +60,10 @@ class ExportReportRequest extends FormRequest
             'from' => $validated['from'] ?? null,
             'to' => $validated['to'] ?? null,
         ];
+    }
+
+    public function isPreview(): bool
+    {
+        return $this->boolean('preview');
     }
 }

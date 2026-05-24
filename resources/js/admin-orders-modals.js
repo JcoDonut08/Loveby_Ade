@@ -11,6 +11,10 @@ export const initializeAdminOrderModals = () => {
         const walkInProducts = section.querySelector('[data-walk-in-products]');
         const walkInTemplate = section.querySelector('[data-walk-in-product-template]');
         const walkInOverallTotal = section.querySelector('[data-walk-in-overall-total]');
+        const walkInPromoCode = section.querySelector('[data-walk-in-promo-code]');
+        const walkInPromoMessage = section.querySelector('[data-walk-in-promo-message]');
+        const walkInDiscount = section.querySelector('[data-walk-in-discount]');
+        const walkInGrandTotal = section.querySelector('[data-walk-in-grand-total]');
         const walkInRemoveProduct = section.querySelector('[data-walk-in-remove-product]');
         const detailsModal = section.querySelector('[data-order-details]');
         const detailsTitle = section.querySelector('[data-details-title]');
@@ -45,6 +49,48 @@ export const initializeAdminOrderModals = () => {
             const price = Number.parseFloat(option?.dataset.price || '0');
 
             return Number.isFinite(price) ? price : 0;
+        };
+
+        const promotions = (() => {
+            try {
+                const parsed = JSON.parse(section.dataset.walkInPromotions || '[]');
+
+                return Array.isArray(parsed) ? parsed : [];
+            } catch {
+                return [];
+            }
+        })();
+
+        const selectedPromotion = () => {
+            if (!(walkInPromoCode instanceof HTMLInputElement)) {
+                return null;
+            }
+
+            const code = walkInPromoCode.value.trim().toUpperCase();
+
+            if (code === '') {
+                return null;
+            }
+
+            return promotions.find((promotion) => promotion.code === code) || null;
+        };
+
+        const discountFor = (subtotal) => {
+            const promotion = selectedPromotion();
+
+            if (!promotion || subtotal <= 0) {
+                return 0;
+            }
+
+            const value = Number.parseFloat(promotion.value || '0');
+
+            if (!Number.isFinite(value)) {
+                return 0;
+            }
+
+            return promotion.type === 'percentage'
+                ? Math.min(subtotal, subtotal * (value / 100))
+                : Math.min(subtotal, value);
         };
 
         const reindexWalkInRows = () => {
@@ -98,6 +144,37 @@ export const initializeAdminOrderModals = () => {
 
             if (walkInOverallTotal instanceof HTMLInputElement) {
                 walkInOverallTotal.value = overallTotal.toFixed(2);
+            }
+
+            const promotion = selectedPromotion();
+            const hasPromoInput = walkInPromoCode instanceof HTMLInputElement && walkInPromoCode.value.trim() !== '';
+            const discount = discountFor(overallTotal);
+
+            if (walkInPromoCode instanceof HTMLInputElement) {
+                walkInPromoCode.value = walkInPromoCode.value.toUpperCase();
+            }
+
+            if (walkInPromoMessage instanceof HTMLElement) {
+                if (promotion) {
+                    walkInPromoMessage.textContent = `${promotion.code} applied (${promotion.label}).`;
+                    walkInPromoMessage.classList.remove('text-rose-500');
+                    walkInPromoMessage.classList.add('text-emerald-600');
+                } else if (hasPromoInput) {
+                    walkInPromoMessage.textContent = 'Promo code will be validated before saving.';
+                    walkInPromoMessage.classList.add('text-rose-500');
+                    walkInPromoMessage.classList.remove('text-emerald-600');
+                } else {
+                    walkInPromoMessage.textContent = 'No promo code applied.';
+                    walkInPromoMessage.classList.remove('text-rose-500', 'text-emerald-600');
+                }
+            }
+
+            if (walkInDiscount instanceof HTMLInputElement) {
+                walkInDiscount.value = discount.toFixed(2);
+            }
+
+            if (walkInGrandTotal instanceof HTMLInputElement) {
+                walkInGrandTotal.value = (overallTotal - discount).toFixed(2);
             }
         };
 
@@ -166,6 +243,7 @@ export const initializeAdminOrderModals = () => {
         walkInRemoveProduct?.addEventListener('click', removeWalkInProductRow);
         walkInProducts?.addEventListener('input', updateWalkInTotals);
         walkInProducts?.addEventListener('change', updateWalkInTotals);
+        walkInPromoCode?.addEventListener('input', updateWalkInTotals);
 
         section.querySelectorAll('[data-admin-details-open]').forEach((button) => {
             button.addEventListener('click', () => {

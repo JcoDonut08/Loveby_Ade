@@ -7,6 +7,7 @@ use App\Http\Requests\Admin\StoreWalkInOrderRequest;
 use App\Http\Requests\Admin\UpdateOrderStatusRequest;
 use App\Models\Order;
 use App\Models\Product;
+use App\Models\Promotion;
 use App\Services\OrderReceiptService;
 use App\Services\UserAuditLogger;
 use App\Services\WalkInOrderService;
@@ -69,6 +70,13 @@ class OrderController extends Controller
                 ->where('is_active', true)
                 ->orderBy('title')
                 ->get(),
+            'promotions' => Promotion::query()
+                ->where('kind', Promotion::KIND_DISCOUNT)
+                ->where('is_active', true)
+                ->orderBy('code')
+                ->get()
+                ->filter(fn (Promotion $promotion): bool => $promotion->isAvailable())
+                ->values(),
             'walkInOrderNumber' => $this->walkInOrders->uniqueOrderNumber(),
         ]);
     }

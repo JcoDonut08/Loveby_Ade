@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Order;
 use App\Models\Product;
+use App\Models\UserAuditLog;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -14,6 +15,8 @@ class AdminReportService
     public const REPORT_SALES = 'sales';
 
     public const REPORT_PRODUCTS = 'products';
+
+    public const REPORT_AUDIT_LOGS = 'audit-logs';
 
     public const FORMAT_PDF = 'pdf';
 
@@ -26,7 +29,7 @@ class AdminReportService
      */
     public static function reportTypes(): array
     {
-        return [self::REPORT_SALES, self::REPORT_PRODUCTS];
+        return [self::REPORT_SALES, self::REPORT_PRODUCTS, self::REPORT_AUDIT_LOGS];
     }
 
     /**
@@ -60,6 +63,7 @@ class AdminReportService
     {
         return match ($type) {
             self::REPORT_PRODUCTS => $this->productPerformanceReport($filters),
+            self::REPORT_AUDIT_LOGS => $this->auditLogReport($filters),
             default => $this->salesReport($filters),
         };
     }
@@ -171,6 +175,44 @@ class AdminReportService
     }
 
     /**
+     * @param  array{search?: string|null, from?: string|null, to?: string|null}  $filters
+     * @return array<string, mixed>
+     */
+    private function auditLogReport(array $filters): array
+    {
+        $normalized = $this->filters($filters);
+        $logs = UserAuditLog::query()
+            ->with('user')
+            ->whereBetween('created_at', [$normalized['start'], $normalized['end']])
+            ->when($normalized['search'] !== '', fn (Builder $query) => $this->applyAuditLogSearch($query, $normalized['search']))
+            ->latest()
+            ->get();
+
+        return $this->baseReport('Audit logs report', 'User activity, admin actions and security events', $normalized, [
+            ['label' => 'Audit events', 'value' => number_format($logs->count())],
+            ['label' => 'Successful events', 'value' => number_format($logs->where('status', 'success')->count())],
+            ['label' => 'Failed events', 'value' => number_format($logs->where('status', 'failed')->count())],
+            ['label' => 'Modules touched', 'value' => number_format($logs->pluck('module')->filter()->unique()->count())],
+        ], [
+            ['key' => 'date', 'label' => 'Date & Time', 'type' => 'text', 'width' => 22],
+            ['key' => 'user', 'label' => 'User', 'type' => 'text', 'width' => 24],
+            ['key' => 'email', 'label' => 'Email', 'type' => 'text', 'width' => 28],
+            ['key' => 'activity', 'label' => 'Activity', 'type' => 'text', 'width' => 24],
+            ['key' => 'module', 'label' => 'Module', 'type' => 'text', 'width' => 18],
+            ['key' => 'description', 'label' => 'Description', 'type' => 'text', 'width' => 52],
+            ['key' => 'status', 'label' => 'Status', 'type' => 'text', 'width' => 14],
+        ], $logs->map(fn (UserAuditLog $log): array => [
+            'date' => $log->created_at?->timezone($this->timezone())->format('Y-m-d g:i A') ?? '',
+            'user' => $log->user_name ?: ($log->user?->name ?? 'Guest'),
+            'email' => $log->user_email ?: ($log->user?->email ?? 'Not available'),
+            'activity' => $log->activity,
+            'module' => $log->module,
+            'description' => $log->description,
+            'status' => Str::of($log->status)->title()->toString(),
+        ])->values()->all());
+    }
+
+    /**
      * @param  array<string, mixed>  $normalized
      * @return Collection<int, Order>
      */
@@ -193,6 +235,19 @@ class AdminReportService
                 ->orWhere('email_address', 'like', '%'.$search.'%')
                 ->orWhereHas('user', fn (Builder $query) => $query->where('name', 'like', '%'.$search.'%')->orWhere('email', 'like', '%'.$search.'%'))
                 ->orWhereHas('items', fn (Builder $query) => $query->where('product_title', 'like', '%'.$search.'%')->orWhere('category', 'like', '%'.$search.'%'));
+        });
+    }
+
+    private function applyAuditLogSearch(Builder $query, string $search): void
+    {
+        $query->where(function (Builder $query) use ($search): void {
+            $query->where('user_name', 'like', '%'.$search.'%')
+                ->orWhere('user_email', 'like', '%'.$search.'%')
+                ->orWhere('activity', 'like', '%'.$search.'%')
+                ->orWhere('module', 'like', '%'.$search.'%')
+                ->orWhere('description', 'like', '%'.$search.'%')
+                ->orWhere('status', 'like', '%'.$search.'%')
+                ->orWhereHas('user', fn (Builder $query) => $query->where('name', 'like', '%'.$search.'%')->orWhere('email', 'like', '%'.$search.'%'));
         });
     }
 

@@ -54,7 +54,7 @@
         </header>
 
         <main class="px-4 py-4 sm:px-6 lg:px-10">
-            <x-admin.orders-section :orders="$orders" :status-counts="$statusCounts" :statuses="$statuses" :products="$products" :walk-in-order-number="$walkInOrderNumber" />
+            <x-admin.orders-section :orders="$orders" :status-counts="$statusCounts" :statuses="$statuses" :products="$products" :promotions="$promotions" :walk-in-order-number="$walkInOrderNumber" />
         </main>
     </div>
 @endsection

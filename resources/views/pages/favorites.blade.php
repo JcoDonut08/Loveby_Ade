@@ -37,6 +37,7 @@
                         :title="$favorite['title']"
                         :price="$favorite['price']"
                         :rating="$favorite['rating']"
+                        :stock="$favorite['stock']"
                     />
                 @endforeach
             </section>

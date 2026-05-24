@@ -13,6 +13,14 @@ class ReportController extends Controller
 
     public function __invoke(FilterReportsRequest $request): View
     {
-        return view('pages.admin.reports', $this->reports->overview($request->filters()));
+        $filters = $request->filters();
+        $previewReport = $request->previewReport();
+
+        return view('pages.admin.reports', [
+            ...$this->reports->overview($filters),
+            'previewReport' => $previewReport,
+            'previewFormat' => $request->previewFormat(),
+            'preview' => $previewReport === null ? null : $this->reports->report($previewReport, $filters),
+        ]);
     }
 }

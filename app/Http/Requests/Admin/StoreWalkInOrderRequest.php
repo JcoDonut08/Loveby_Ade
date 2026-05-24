@@ -28,6 +28,7 @@ class StoreWalkInOrderRequest extends FormRequest
             'order_number' => ['required', 'string', 'regex:/^LBA-[0-9]{6}$/', Rule::unique('orders', 'order_number')],
             'customer_name' => ['required', 'string', 'max:160'],
             'date_ordered' => ['required', 'date'],
+            'promo_code' => ['nullable', 'string', 'max:40'],
             'products' => ['required', 'array', 'min:1', 'max:10'],
             'products.*' => ['required', 'array:product_id,quantity'],
             'products.*.product_id' => [

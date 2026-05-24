@@ -5,6 +5,7 @@
 @php
     $gallery = $product['gallery'];
     $mainGalleryItem = $gallery[0];
+    $isOutOfStock = (int) $product['stock'] <= 0;
 @endphp
 
 <section class="mx-auto max-w-[86rem] px-4 sm:px-6 lg:px-8">
@@ -63,15 +64,15 @@
                     <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                         <div>
                             <p class="text-sm font-semibold text-slate-900">Quantity</p>
-                            <p class="mt-1 text-xs text-slate-500">Maximum of {{ $product['stock'] }} per checkout</p>
+                            <p class="mt-1 text-xs text-slate-500">{{ $isOutOfStock ? 'Currently out of stock' : 'Maximum of '.$product['stock'].' per checkout' }}</p>
                         </div>
 
                         <div class="flex items-center gap-3">
-                            <button class="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 transition hover:border-love-pink-200 hover:text-love-pink-500" type="button" aria-label="Decrease quantity" data-quantity-decrease>
+                            <button class="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 transition hover:border-love-pink-200 hover:text-love-pink-500 disabled:cursor-not-allowed disabled:opacity-50" type="button" aria-label="Decrease quantity" data-quantity-decrease @disabled($isOutOfStock)>
                                 <span aria-hidden="true">-</span>
                             </button>
-                            <input class="h-10 w-16 rounded-xl border border-slate-200 bg-white text-center text-sm font-semibold text-slate-900 outline-none focus:border-love-pink-300 focus:ring-4 focus:ring-love-pink-100" type="number" min="1" max="{{ $product['stock'] }}" value="1" aria-label="Product quantity" data-quantity-input>
-                            <button class="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 transition hover:border-love-pink-200 hover:text-love-pink-500" type="button" aria-label="Increase quantity" data-quantity-increase>
+                            <input class="h-10 w-16 rounded-xl border border-slate-200 bg-white text-center text-sm font-semibold text-slate-900 outline-none focus:border-love-pink-300 focus:ring-4 focus:ring-love-pink-100 disabled:cursor-not-allowed disabled:opacity-50" type="number" min="1" max="{{ max(1, (int) $product['stock']) }}" value="1" aria-label="Product quantity" data-quantity-input @disabled($isOutOfStock)>
+                            <button class="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 transition hover:border-love-pink-200 hover:text-love-pink-500 disabled:cursor-not-allowed disabled:opacity-50" type="button" aria-label="Increase quantity" data-quantity-increase @disabled($isOutOfStock)>
                                 <span aria-hidden="true">+</span>
                             </button>
                         </div>
@@ -79,8 +80,8 @@
                 </div>
 
                 <div class="mt-6 grid gap-3 sm:grid-cols-[1fr_auto]">
-                    <button class="inline-flex items-center justify-center rounded-xl bg-slate-900 px-6 py-3.5 text-sm font-semibold text-white shadow-[0_18px_34px_-24px_rgba(15,23,42,0.8)] transition hover:-translate-y-0.5 hover:bg-love-pink-500 disabled:cursor-wait disabled:opacity-70" type="button" data-add-to-cart data-product-slug="{{ $product['slug'] }}" data-quantity-source="[data-quantity-input]">
-                        Add to cart
+                    <button class="inline-flex items-center justify-center rounded-xl bg-slate-900 px-6 py-3.5 text-sm font-semibold text-white shadow-[0_18px_34px_-24px_rgba(15,23,42,0.8)] transition hover:-translate-y-0.5 hover:bg-love-pink-500 disabled:cursor-not-allowed disabled:opacity-70" type="button" data-add-to-cart data-product-slug="{{ $product['slug'] }}" data-quantity-source="[data-quantity-input]" @disabled($isOutOfStock) aria-disabled="{{ $isOutOfStock ? 'true' : 'false' }}">
+                        {{ $isOutOfStock ? 'Out of stock' : 'Add to cart' }}
                     </button>
                     <button class="inline-flex h-12 w-full items-center justify-center rounded-xl border border-transparent bg-white/92 text-slate-500 transition hover:border-love-pink-200 hover:text-love-pink-500 sm:w-12" type="button" aria-label="Add to favorites" aria-pressed="false" data-favorite-toggle data-product-slug="{{ $product['slug'] }}">
                         <svg class="h-5 w-5 fill-transparent" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true" data-favorite-icon>

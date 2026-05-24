@@ -2,6 +2,7 @@
 
 use App\Models\Order;
 use App\Models\Product;
+use App\Models\Promotion;
 use App\Models\User;
 
 test('admin orders page renders the order management workspace', function () {
@@ -135,6 +136,48 @@ test('admin can add a walk in order with multiple products', function () {
         ->assertSee('Mark delivered')
         ->assertSee('Cancel order')
         ->assertDontSee('aria-label="Mark for delivery"', false);
+});
+
+test('admin can add a promo code discount to a walk in order', function () {
+    $cake = Product::factory()->create([
+        'title' => 'Discounted Cake',
+        'slug' => 'discounted-cake',
+        'category' => 'Cakes',
+        'price' => 500,
+    ]);
+    $promotion = Promotion::factory()->fixed(75)->create([
+        'code' => 'WALKIN75',
+    ]);
+
+    $this->actingAs(adminUser())
+        ->post(route('admin.orders.store'), [
+            'order_number' => 'LBA-351111',
+            'customer_name' => 'Discount Buyer',
+            'date_ordered' => '2026-05-15T14:42',
+            'promo_code' => 'walkin75',
+            'products' => [
+                [
+                    'product_id' => $cake->id,
+                    'quantity' => 2,
+                ],
+            ],
+        ])
+        ->assertRedirect(route('admin.orders', ['status' => 'walk_in']));
+
+    $order = Order::query()->where('order_number', 'LBA-351111')->firstOrFail();
+
+    expect((float) $order->subtotal)->toBe(1000.0)
+        ->and($order->promotion_id)->toBe($promotion->id)
+        ->and($order->promo_code)->toBe('WALKIN75')
+        ->and((float) $order->discount)->toBe(75.0)
+        ->and((float) $order->total)->toBe(925.0);
+
+    $this->actingAs(adminUser())
+        ->get(route('admin.orders', ['status' => 'walk_in']))
+        ->assertSuccessful()
+        ->assertSee('Discount Buyer')
+        ->assertSee('WALKIN75')
+        ->assertSee('-&#8369;75.00', false);
 });
 
 test('walk in order product ids are validated before database writes', function () {

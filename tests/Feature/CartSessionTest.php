@@ -77,6 +77,27 @@ test('cart quantities can use the available product stock above twenty', functio
         ->assertJsonPath('items.0.quantity', 37);
 });
 
+test('products with no stock cannot be added to the cart', function () {
+    Product::factory()->create([
+        'slug' => 'sold-out-cookie-box',
+        'title' => 'Sold Out Cookie Box',
+        'stock' => 0,
+        'price' => 95,
+    ]);
+
+    $this->postJson(route('cart.items.store'), [
+        'slug' => 'sold-out-cookie-box',
+        'quantity' => 1,
+    ])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('slug');
+
+    $this->getJson(route('cart.summary'))
+        ->assertSuccessful()
+        ->assertJsonPath('count', 0)
+        ->assertJsonCount(0, 'items');
+});
+
 test('authenticated cart items stay after logout and logging back in', function () {
     $user = User::factory()->create([
         'email' => 'returning-cart@example.com',

@@ -3,6 +3,7 @@
     'statusCounts',
     'statuses',
     'products',
+    'promotions',
     'walkInOrderNumber',
 ])
 
@@ -43,7 +44,13 @@
 
     $activeStatus = request('status', 'all');
     $allOrderCount = collect($statusCounts)->except('walk_in')->sum();
-    $showWalkInModal = $errors->has('order_number') || $errors->has('customer_name') || $errors->has('date_ordered') || $errors->has('products') || $errors->has('products.*.product_id') || $errors->has('products.*.quantity');
+    $showWalkInModal = $errors->has('order_number') || $errors->has('customer_name') || $errors->has('date_ordered') || $errors->has('promo_code') || $errors->has('products') || $errors->has('products.*.product_id') || $errors->has('products.*.quantity');
+    $promotionPayload = $promotions->map(fn ($promotion): array => [
+        'code' => $promotion->code,
+        'type' => $promotion->discount_type,
+        'value' => (float) $promotion->discount_value,
+        'label' => $promotion->discountLabel(),
+    ])->values();
     $queryForStatus = function (string $status): array {
         $query = request()->except(['page', 'status']);
 
@@ -80,7 +87,7 @@
     $tooltipClass = 'pointer-events-none absolute bottom-full left-1/2 z-20 mb-2 min-w-max -translate-x-1/2 translate-y-1 rounded-lg bg-[#3b1728] px-2.5 py-1 text-xs font-extrabold text-white opacity-0 shadow-lg transition group-hover/status:translate-y-0 group-hover/status:opacity-100 group-focus-visible/status:translate-y-0 group-focus-visible/status:opacity-100 group-hover/action:translate-y-0 group-hover/action:opacity-100 group-focus-visible/action:translate-y-0 group-focus-visible/action:opacity-100';
 @endphp
 
-<section class="grid gap-6" data-admin-order-management data-backend-orders="true">
+<section class="grid gap-6" data-admin-order-management data-backend-orders="true" data-walk-in-promotions='@json($promotionPayload)'>
     @if (session('status'))
         <div class="rounded-[1.25rem] border border-emerald-100 bg-emerald-50 px-5 py-4 text-sm font-extrabold text-emerald-700">
             {{ session('status') }}
@@ -416,8 +423,32 @@
                 </div>
 
                 <label class="block" for="walk-in-overall-total">
-                    <span class="text-sm font-extrabold text-[#512438]">Total Amount</span>
+                    <span class="text-sm font-extrabold text-[#512438]">Subtotal</span>
                     <input class="mt-2 h-12 w-full rounded-full border border-love-pink-100 bg-love-cream px-4 text-sm font-extrabold text-[#512438] outline-none transition focus:border-love-pink-300 focus:bg-white focus:ring-4 focus:ring-love-pink-100/80" id="walk-in-overall-total" type="text" value="0.00" readonly data-walk-in-overall-total>
+                </label>
+
+                <label class="block" for="walk-in-promo-code">
+                    <span class="text-sm font-extrabold text-[#512438]">Promo code</span>
+                    <input class="mt-2 h-12 w-full rounded-full border border-love-pink-100 bg-love-cream px-4 text-sm font-extrabold uppercase text-[#512438] outline-none transition placeholder:text-[#9a6c7b] focus:border-love-pink-300 focus:bg-white focus:ring-4 focus:ring-love-pink-100/80" id="walk-in-promo-code" type="text" name="promo_code" value="{{ old('promo_code') }}" list="walk-in-promo-codes" placeholder="Optional promo code" data-walk-in-promo-code>
+                    <datalist id="walk-in-promo-codes">
+                        @foreach ($promotions as $promotion)
+                            <option value="{{ $promotion->code }}">{{ $promotion->discountLabel() }}</option>
+                        @endforeach
+                    </datalist>
+                    <p class="mt-1 text-xs font-bold text-[#9a6c7b]" data-walk-in-promo-message>No promo code applied.</p>
+                    @error('promo_code')
+                        <span class="mt-1 block text-xs font-bold text-rose-500">{{ $message }}</span>
+                    @enderror
+                </label>
+
+                <label class="block" for="walk-in-discount-preview">
+                    <span class="text-sm font-extrabold text-[#512438]">Discount</span>
+                    <input class="mt-2 h-12 w-full rounded-full border border-love-pink-100 bg-love-cream px-4 text-sm font-extrabold text-[#512438] outline-none transition focus:border-love-pink-300 focus:bg-white focus:ring-4 focus:ring-love-pink-100/80" id="walk-in-discount-preview" type="text" value="0.00" readonly data-walk-in-discount>
+                </label>
+
+                <label class="block" for="walk-in-grand-total">
+                    <span class="text-sm font-extrabold text-[#512438]">Total Amount</span>
+                    <input class="mt-2 h-12 w-full rounded-full border border-love-pink-100 bg-love-cream px-4 text-sm font-extrabold text-[#512438] outline-none transition focus:border-love-pink-300 focus:bg-white focus:ring-4 focus:ring-love-pink-100/80" id="walk-in-grand-total" type="text" value="0.00" readonly data-walk-in-grand-total>
                 </label>
 
                 <label class="block" for="walk-in-date-ordered">
@@ -546,6 +577,12 @@
                 </section>
                 <div class="grid gap-3 rounded-[1.25rem] border border-love-pink-100 bg-love-cream p-4">
                     <div class="flex items-center justify-between gap-4 text-sm font-bold text-[#9a6c7b]"><span>Subtotal</span><span>&#8369;{{ number_format((float) $order->subtotal, 2) }}</span></div>
+                    @if ((float) $order->discount > 0)
+                        @if ($order->promo_code)
+                            <div class="flex items-center justify-between gap-4 text-sm font-bold text-[#9a6c7b]"><span>Promo code</span><span>{{ $order->promo_code }}</span></div>
+                        @endif
+                        <div class="flex items-center justify-between gap-4 text-sm font-bold text-[#9a6c7b]"><span>Discount</span><span>-&#8369;{{ number_format((float) $order->discount, 2) }}</span></div>
+                    @endif
                     <div class="flex items-center justify-between gap-4 border-t border-love-pink-100 pt-3 text-lg font-extrabold text-[#3b1728]"><span>Total amount</span><span>&#8369;{{ number_format((float) $order->total, 2) }}</span></div>
                 </div>
                 @if ($order->status === 'cancelled')

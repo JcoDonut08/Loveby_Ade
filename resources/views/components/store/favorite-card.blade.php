@@ -5,10 +5,12 @@
     'title',
     'price',
     'rating',
+    'stock' => 1,
 ])
 
 @php
     $filledStars = max(0, min(5, (int) round((float) $rating)));
+    $isOutOfStock = (int) $stock <= 0;
 @endphp
 
 <article class="group flex h-full flex-col overflow-hidden rounded-[1.5rem] border border-love-pink-100/80 bg-white shadow-[0_22px_50px_-34px_rgba(15,23,42,0.34)] transition duration-300" data-favorite-card data-favorite-slug="{{ $slug }}">
@@ -40,8 +42,8 @@
         </div>
 
         <div class="mt-5 grid gap-3 sm:grid-cols-[1fr_auto]">
-            <button class="inline-flex items-center justify-center rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-love-pink-500 disabled:cursor-wait disabled:opacity-70" type="button" data-add-to-cart data-product-slug="{{ $slug }}">
-                <span data-add-to-cart-label>Add to cart</span>
+            <button class="inline-flex items-center justify-center rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-love-pink-500 disabled:cursor-not-allowed disabled:opacity-70" type="button" data-add-to-cart data-product-slug="{{ $slug }}" @disabled($isOutOfStock) aria-disabled="{{ $isOutOfStock ? 'true' : 'false' }}">
+                <span data-add-to-cart-label>{{ $isOutOfStock ? 'Out of stock' : 'Add to cart' }}</span>
             </button>
             <button class="inline-flex items-center justify-center rounded-xl border border-love-pink-200 bg-love-pink-100/70 px-5 py-3 text-sm font-extrabold text-love-pink-500 transition hover:bg-love-pink-200 disabled:cursor-wait disabled:opacity-70" type="button" data-favorite-remove data-product-slug="{{ $slug }}">
                 Remove

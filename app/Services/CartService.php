@@ -44,6 +44,10 @@ class CartService
                     return null;
                 }
 
+                if ((int) $product['stock'] <= 0) {
+                    return null;
+                }
+
                 $safeQuantity = min($quantity, (int) $product['stock']);
                 $lineTotal = (float) $product['price'] * $safeQuantity;
 
@@ -68,6 +72,11 @@ class CartService
     public function add(Request $request, string $slug, int $quantity = 1): array
     {
         $product = $this->productOrFail($slug);
+
+        if ((int) $product['stock'] <= 0) {
+            throw new InvalidArgumentException('Product is out of stock.');
+        }
+
         $quantities = $this->quantities($request);
         $currentQuantity = $quantities[$slug] ?? 0;
 
@@ -81,6 +90,14 @@ class CartService
     {
         $product = $this->productOrFail($slug);
         $quantities = $this->quantities($request);
+
+        if ((int) $product['stock'] <= 0) {
+            unset($quantities[$slug]);
+            $this->storeQuantities($request, $quantities);
+
+            return $this->summary($request);
+        }
+
         $quantities[$slug] = min($quantity, (int) $product['stock']);
 
         $this->storeQuantities($request, $quantities);
@@ -115,7 +132,7 @@ class CartService
 
     public function count(Request $request): int
     {
-        return (int) array_sum($this->quantities($request));
+        return (int) $this->items($request)->sum('quantity');
     }
 
     public function mergeSessionIntoUser(Store $session, User $user): void
@@ -194,6 +211,11 @@ class CartService
      */
     private function storeQuantities(Request $request, array $quantities): void
     {
+        $quantities = collect($quantities)
+            ->map(fn (mixed $quantity): int => (int) $quantity)
+            ->filter(fn (int $quantity): bool => $quantity > 0)
+            ->all();
+
         $user = $request->user();
 
         if ($user instanceof User) {

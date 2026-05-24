@@ -8,11 +8,14 @@ use App\Models\User;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 
 class WalkInOrderService
 {
+    public function __construct(private PromotionService $promotions) {}
+
     /**
-     * @param  array{order_number: string, customer_name: string, date_ordered: string, products: array<int, array{product_id: int|string, quantity: int|string}>}  $data
+     * @param  array{order_number: string, customer_name: string, date_ordered: string, promo_code?: string|null, products: array<int, array{product_id: int|string, quantity: int|string}>}  $data
      */
     public function create(array $data, User $admin): Order
     {
@@ -43,10 +46,22 @@ class WalkInOrderService
                 ->values();
             $orderedAt = Carbon::parse($data['date_ordered']);
             $subtotal = $items->sum('line_total');
+            $promoCode = $this->promotions->normalizeCode($data['promo_code'] ?? null);
+            $promotion = $this->promotions->findAvailable($promoCode);
+
+            if ($promoCode !== null && $promotion === null) {
+                throw ValidationException::withMessages([
+                    'promo_code' => 'Promo code is not active or does not exist.',
+                ]);
+            }
+
+            $discount = $promotion?->discountFor((float) $subtotal) ?? 0.00;
 
             $order = Order::query()->create([
                 'order_number' => $data['order_number'],
                 'user_id' => $admin->id,
+                'promotion_id' => $promotion?->id,
+                'promo_code' => $promotion?->code,
                 'status' => Order::STATUS_PENDING,
                 'is_walk_in' => true,
                 'full_name' => $data['customer_name'],
@@ -57,8 +72,8 @@ class WalkInOrderService
                 'payment_method' => 'Walk-in',
                 'subtotal' => $subtotal,
                 'delivery_fee' => 0,
-                'discount' => 0,
-                'total' => $subtotal,
+                'discount' => $discount,
+                'total' => $subtotal - $discount,
             ]);
 
             $order->timestamps = false;
