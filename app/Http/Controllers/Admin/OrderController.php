@@ -151,4 +151,31 @@ class OrderController extends Controller
 
         return view('pages.orders.receipt', $viewData);
     }
+
+    public function confirmDelivery(Request $request, Order $order): RedirectResponse
+    {
+        if ($order->status !== Order::STATUS_OUT_FOR_DELIVERY) {
+            return redirect()
+                ->route('admin.orders')
+                ->with('status', 'Order is not out for delivery.');
+        }
+
+        $previousStatus = $order->status;
+
+        $order->update([
+            'status' => Order::STATUS_DELIVERED,
+        ]);
+
+        $this->auditLogger->record(
+            $request->user(),
+            'Order Delivery Confirmed',
+            'Orders',
+            'Order '.$order->order_number.' marked as delivered by admin.',
+            metadata: ['order_id' => $order->getKey()],
+        );
+
+        return redirect()
+            ->route('admin.orders')
+            ->with('status', 'Order marked delivered.');
+    }
 }
