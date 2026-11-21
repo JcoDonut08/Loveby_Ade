@@ -1,92 +1,143 @@
-# Contribution Report
+# Loveby Ade
 
-## Team Members and Roles
+Loveby Ade is an academic team project: a dessert storefront and administration workspace built with Laravel, Blade, JavaScript, and MySQL. Customers can browse products, save favorites, manage a cart, place orders, and follow their order history. Administrators manage the catalog, orders, customers, promotions, reports, and audit activity.
 
-| Member | Role |
-|---|---|
-| Inocencio, Ron Alexander | Full Stack Developer, Quality Assurance (QA), Security |
-| Salvador, Jericho Paul | Leader, Lead Full Stack Developer, UI/UX Designer, Quality Assurance (QA) |
-| Ventura, Carl Vincent | Full Stack Developer, Quality Assurance (QA), Business Flow |
+**Status:** source available for local development. No public application demo has been verified. The features below describe the repository implementation; they are not a claim of production readiness.
 
----
+## Features
 
-## Peer Evaluation — Inocencio, Ron Alexander
+### Customer storefront
 
-| Member | Rating | Justification |
-|---|---:|---|
-| Inocencio, Ron Alexander | 100/100 | I gave myself a perfect score because I consistently contributed to the project as a Full Stack Developer, Quality Assurance tester, and security support. I helped develop both frontend and backend features, tested system functionality, identified issues, and supported improvements that made the system more secure, stable, and reliable. My contributions helped strengthen the overall quality of the project and ensured that the system worked properly across different parts of development. |
-| Salvador, Jericho Paul | 100/100 | I gave Salvador a perfect score because he showed outstanding leadership throughout the entire project. As the team leader and Lead Full Stack Developer, he guided the team, organized the workflow, helped manage development direction, and made sure the project stayed aligned with its goals. He also contributed strongly by leading both frontend and backend tasks, while also improving the UI/UX design to make the system more organized, user-friendly, and visually polished. His involvement in Quality Assurance helped ensure that the system was tested, refined, and ready for final presentation. |
-| Ventura, Carl Vincent | 100/100 | I gave Ventura a perfect score because he contributed consistently as a Full Stack Developer and helped improve both the functionality and quality of the system. He supported frontend and backend development, participated in QA testing, and helped ensure that the project’s business flow was properly followed. His work helped make the system more organized, functional, and aligned with the intended process. |
+- Product browsing, category filtering, product details, and search suggestions.
+- Session-aware cart and favorites.
+- Registration with email OTP, login, password recovery, and optional Google sign-in.
+- Authenticated checkout with promotion-code validation.
+- Order history, order confirmation, delivery confirmation, and printable receipts.
+- Product reviews, replies, likes, profile updates, and in-app notifications.
 
----
+### Administration
 
-## Peer Evaluation — Salvador, Jericho Paul
+- Role-restricted dashboard and administrator account management.
+- Product and stock management, including product images.
+- Order processing and walk-in order entry.
+- Customer lists, promotions, notification reads, analytics, and report exports.
+- User audit logs.
 
-| Member | Rating | Justification |
-|---|---:|---|
-| Inocencio, Ron Alexander | 100/100 | Ron Alexander earned a perfect score because he made valuable contributions to the system as a Full Stack Developer, QA tester, and security support. He helped develop important frontend and backend parts of the project, tested system features, identified possible issues, and contributed to improving security and reliability. His work helped make the system more stable, safer, and more dependable. |
-| Salvador, Jericho Paul | 100/100 | I gave myself a perfect score because I took on a major role in leading, developing, designing, and testing the project. As the leader and Lead Full Stack Developer, I helped guide the team, organize tasks, coordinate the workflow, and make sure that the project continued moving in the right direction. I also led and contributed to both frontend and backend implementation, helped build features, improve structure, and support system integration. As the UI/UX Designer, I helped refine the interface, improve layout consistency, and make the system more user-friendly and presentable. I also actively participated in Quality Assurance by testing features, identifying bugs, validating system behavior, and ensuring that the final system was stable, functional, and aligned with the project requirements. |
-| Ventura, Carl Vincent | 100/100 | Carl Vincent earned a perfect score because he contributed strongly to the project as a Full Stack Developer, QA tester, and business flow support. He helped develop system features, tested functionality, supported debugging, and made sure that the workflow of the system followed the intended business process. His contributions helped improve the organization, usability, and overall completeness of the project. |
+## Technical structure
 
----
+```text
+Browser / Blade + JavaScript
+          |
+Laravel routes and middleware
+          |
+Controllers, form requests, and services
+          |
+Eloquent models / MySQL
+```
 
-## Peer Evaluation — Ventura, Carl Vincent
+Laravel renders the Blade interface and handles validation, authentication, authorization, and persistence. Checkout uses a database transaction, checks current product stock under a row lock, and stores the order and its item details.
 
-| Member | Rating | Justification |
-|---|---:|---|
-| Inocencio, Ron Alexander | 100/100 | I gave Ron Alexander a perfect score because he contributed greatly to the project through full-stack development, quality assurance, and security support. He helped implement system features, check functionality, identify errors, and improve system reliability. His contribution to security and testing helped make the system more stable, trustworthy, and ready for use. |
-| Salvador, Jericho Paul | 100/100 | I gave Salvador a perfect score because he played a major role in the success of the project as the team leader, Lead Full Stack Developer, UI/UX Designer, and QA tester. He guided the team throughout development, helped organize tasks, supported members, and made sure that the project stayed focused and complete. His development work helped lead and improve both the frontend and backend of the system, while his UI/UX contributions made the interface cleaner, more organized, and easier to use. His testing and debugging efforts also helped ensure that the final system was functional, polished, and stable. |
-| Ventura, Carl Vincent | 100/100 | I gave myself a perfect score because I contributed consistently as a Full Stack Developer, QA tester, and business flow support. I helped develop frontend and backend features, tested system functionality, supported debugging, and helped make sure that the system followed the correct business process. My work contributed to making the project more complete, organized, and aligned with its intended workflow. |
+| Layer | Technology |
+| --- | --- |
+| Server | PHP 8.2+, Laravel 12 |
+| Interface | Blade, JavaScript, Tailwind CSS 4 |
+| Assets | Vite 7 |
+| Database | MySQL, as configured in `.env.example` |
+| Optional identity provider | Laravel Socialite / Google OAuth |
+| PDF output | Laravel Dompdf |
+| Automated checks | Pest / PHPUnit; Laravel Pint |
 
----
+## Local setup
 
-## Contribution Breakdown
+Requirements: PHP 8.2 or newer with the extensions required by Laravel and MySQL, Composer, Node.js/npm compatible with the Vite 7 toolchain, and a local MySQL server.
 
-| Member | Contribution Area | Description |
-|---|---|---|
-| Inocencio, Ron Alexander | Full Stack Development / QA Testing / Security | Contributed significantly to both frontend and backend development while also helping ensure the system’s quality and security. He supported feature implementation, tested functionality, identified issues, assisted in debugging, and helped improve validation, reliability, and safer system processes. |
-| Salvador, Jericho Paul | Leadership / Lead Full Stack Development / UI-UX Design / QA Testing | Served as the team leader and Lead Full Stack Developer, playing a central role in the overall development and completion of the project. He helped guide the team, organize tasks, coordinate the workflow, lead and contribute to frontend and backend development, improve UI/UX design, test system features, identify bugs, and ensure that the final project was functional, stable, polished, and aligned with project requirements. |
-| Ventura, Carl Vincent | Full Stack Development / QA Testing / Business Flow | Contributed strongly to full-stack development, quality assurance, and business flow organization. He helped implement features, test system behavior, support debugging, and ensure that the system followed the intended business process and project workflow. |
+### 1. Install dependencies
 
----
+```powershell
+git clone https://github.com/JcoDonut08/Loveby_Ade.git
+cd Loveby_Ade
+composer install
+npm install
+Copy-Item .env.example .env
+php artisan key:generate
+```
 
-## Major Contributions
+The copy command is for a fresh checkout. Keep an existing local `.env` when updating the project.
 
-### Inocencio, Ron Alexander
+### 2. Configure the local database
 
-| Area | Contributions |
-|---|---|
-| Full Stack Development | Contributed to both frontend and backend development, helped implement system features, supported feature integration, and improved the overall functionality of the project. |
-| Quality Assurance | Tested system features, checked functionality, identified bugs, supported debugging, and helped ensure that the system remained stable and reliable. |
-| Security | Supported security-related improvements through validation, reliability checks, safer system processes, and attention to possible system issues. |
+Create a local MySQL database named `loveby_ade`, or choose another name and update `DB_DATABASE`. Set the `DB_HOST`, `DB_PORT`, `DB_USERNAME`, and `DB_PASSWORD` entries in `.env` for your own local server. The committed example uses the MySQL connection.
 
-### Salvador, Jericho Paul
+Run the repository migrations:
 
-| Area | Contributions |
-|---|---|
-| Leadership | Led the team throughout the project, organized tasks, guided the development process, supported decision-making, coordinated team workflow, and ensured that the project stayed aligned with its goals and requirements. |
-| Lead Full Stack Development | Took a lead role in both frontend and backend development, helped implement major system features, supported system integration, improved application structure, assisted team members with development concerns, and helped make the system functional, complete, and ready for final presentation. |
-| UI/UX Design | Improved the system interface, refined layout organization, enhanced visual consistency, improved usability, and helped make the system cleaner, more polished, and more user-friendly. |
-| Quality Assurance | Actively tested features, identified issues, supported debugging, validated system behavior, checked project requirements, and helped ensure that the final system was stable, functional, and ready for presentation. |
+```powershell
+php artisan migrate
+```
 
-### Ventura, Carl Vincent
+The migrations create users, sessions, cache storage, OTP records, cart/favorite records, products, orders and order items, reviews, notifications, promotions, and audit logs.
 
-| Area | Contributions |
-|---|---|
-| Full Stack Development | Contributed to frontend and backend development, helped implement system features, supported integration, and improved the overall completeness of the system. |
-| Quality Assurance | Participated in testing, checking features, identifying issues, supporting debugging, and helping improve system stability and quality. |
-| Business Flow | Helped ensure that the system followed the intended business process, supported workflow organization, and made sure that features were aligned with project requirements. |
+To add the sample product catalog to a local database:
 
----
+```powershell
+php artisan db:seed --class=ProductSeeder
+```
 
-## Overall Project Summary
+The full `DatabaseSeeder` additionally creates or updates a development administrator fixture. Review that file before using it; it is not a production account-provisioning workflow.
 
-The project was completed through a strong collaborative full-stack development effort, with each member contributing important skills in development, testing, design, security, leadership, and business flow.
+### 3. Start the application
 
-Inocencio, Ron Alexander contributed as a Full Stack Developer, Quality Assurance tester, and security support. He helped develop frontend and backend features, tested system functionality, identified issues, and supported security-related improvements that helped make the system more stable, reliable, and safer to use.
+Run the Laravel server:
 
-Salvador, Jericho Paul served as the team leader and Lead Full Stack Developer, playing a central role in the success of the project. He also contributed as the UI/UX Designer and Quality Assurance tester. His leadership helped guide the team, organize tasks, and keep the project aligned with its goals. His development work led and supported both frontend and backend implementation, while his UI/UX contributions improved the system’s layout, usability, and overall presentation. He also helped test, debug, and refine the system to ensure that the final project was functional, polished, and complete.
+```powershell
+php artisan serve
+```
 
-Ventura, Carl Vincent contributed as a Full Stack Developer, Quality Assurance tester, and business flow support. He helped develop system features, test functionality, identify issues, and ensure that the project followed the intended workflow and business process. His contributions helped make the system more organized, complete, and aligned with the project requirements.
+In a second terminal, start the asset server:
 
-Overall, every member contributed meaningfully to the completion of the project. The team demonstrated strong collaboration, balanced technical contributions, consistent testing, and clear role distribution, resulting in a complete and functional final system.
+```powershell
+npm run dev
+```
+
+Open [http://127.0.0.1:8000](http://127.0.0.1:8000).
+
+### Mail and optional Google sign-in
+
+The example environment uses `MAIL_MAILER=log`, which writes local OTP mail to application logs rather than delivering email. Configure a supported mail transport to test actual delivery.
+
+Google sign-in additionally needs `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and a matching `GOOGLE_REDIRECT_URI`. The supplied local callback is `http://127.0.0.1:8000/auth/google/callback`.
+
+Keep local credentials in `.env`; never commit the configured file.
+
+## Checks
+
+```powershell
+composer test
+npm run build
+vendor\bin\pint --test
+```
+
+`composer test` clears configuration and runs the Laravel test suite. `phpunit.xml` configures an isolated in-memory SQLite database, array mail/session/cache drivers, and synchronous test queues. Enable the PHP SQLite extension before running those tests.
+
+The repository includes feature tests for authentication, cart and favorites, checkout, reviews, orders, administrator access, catalog management, promotions, reports, and related interfaces. No current passing test count is claimed in this README.
+
+## Project boundaries
+
+- This is an academic application, with no verified public demo linked here.
+- Recording a selected payment method on an order does not establish a payment-gateway integration.
+- The source contains development fixtures and sample catalog data.
+- Setup instructions were checked against the repository configuration and scripts; a clean installation and the checks above should be verified in the target development environment.
+
+## Team
+
+| Member | Reported project role |
+| --- | --- |
+| Jericho Paul Salvador | Team leader, lead full-stack developer, UI/UX designer, quality assurance |
+| Ron Alexander Inocencio | Full-stack development, quality assurance, security support |
+| Carl Vincent Ventura | Full-stack development, quality assurance, business flow |
+
+These roles are recorded in the team's academic report. Module-by-module ownership is not inferred from them. The original report is preserved in [docs/contribution-report.md](docs/contribution-report.md).
+
+## Source
+
+[GitHub repository](https://github.com/JcoDonut08/Loveby_Ade)
+
